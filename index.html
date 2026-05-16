@@ -141,16 +141,6 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .empty-text{font-size:14px;line-height:1.6;}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--navy2);border:1px solid var(--border2);color:var(--text);padding:12px 22px;border-radius:10px;font-size:13px;font-weight:500;z-index:9999;transition:transform 0.25s;pointer-events:none;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,0.4);}
 .toast.show{transform:translateX(-50%) translateY(0);}
-.settings-panel{background:var(--navy2);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:500px;}
-.settings-title{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--white);margin-bottom:6px;}
-.settings-sub{font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6;}
-.settings-row{display:flex;gap:8px;}
-.settings-row input{flex:1;background:var(--navy3);border:1px solid var(--border2);border-radius:8px;padding:10px 13px;font-family:var(--font-b);font-size:13px;color:var(--text);outline:none;}
-.settings-row input:focus{border-color:var(--blue);}
-.settings-row button{background:var(--blue);color:white;border:none;border-radius:8px;padding:10px 16px;font-family:var(--font-d);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
-.api-status{font-size:12px;margin-top:10px;padding:8px 12px;border-radius:6px;}
-.api-status.ok{background:rgba(16,185,129,0.1);color:#34d399;}
-.api-status.missing{background:rgba(239,68,68,0.1);color:#f87171;}
 @media(max-width:768px){
   .auth-left{display:none;}
   .kpi-grid{grid-template-columns:1fr 1fr;}
@@ -242,7 +232,6 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="sidebar-link" onclick="showTab('knowledge',this)"><i class="ti ti-database"></i><span id="nav-kb">Base de connaissances</span></div>
       <div class="sidebar-link" onclick="showTab('search',this)"><i class="ti ti-search"></i><span id="nav-search">Recherche</span></div>
       <div class="sidebar-section" id="nav-section-account">Compte</div>
-      <div class="sidebar-link" onclick="showTab('settings',this)"><i class="ti ti-settings"></i><span id="nav-settings">Paramètres</span></div>
       <div class="sidebar-link" onclick="doLogout()"><i class="ti ti-logout"></i><span id="nav-logout">Déconnexion</span></div>
       <div class="sidebar-bottom">
         <div class="user-chip">
@@ -347,9 +336,9 @@ tr:hover td{background:rgba(255,255,255,0.02);}
           <div class="kb-controls">
             <div class="kb-filter active" onclick="filterKB('all',this)" id="kbf-all">Tout</div>
             <div class="kb-filter" onclick="filterKB('Structure',this)" id="kbf-struct">Structure</div>
-            <div class="kb-filter" onclick="filterKB('Électricité',this)" id="kbf-elec">Électricité</div>
+            <div class="kb-filter" onclick="filterKB('Electricite',this)" id="kbf-elec">Électricité</div>
             <div class="kb-filter" onclick="filterKB('Plomberie',this)" id="kbf-plumb">Plomberie</div>
-            <div class="kb-filter" onclick="filterKB('Sécurité',this)" id="kbf-safe">Sécurité</div>
+            <div class="kb-filter" onclick="filterKB('Securite',this)" id="kbf-safe">Sécurité</div>
           </div>
           <div id="kb-content">
             <div class="empty-state"><div class="empty-icon">🗂️</div><div class="empty-text" id="kb-empty">Aucune entrée. Commencez à capturer.</div></div>
@@ -364,19 +353,6 @@ tr:hover td{background:rgba(255,255,255,0.02);}
           </div>
           <div id="s-results">
             <div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text" id="s-hint">Tapez pour rechercher dans votre base de connaissances</div></div>
-          </div>
-        </div>
-
-        <!-- SETTINGS -->
-        <div id="tab-settings" class="tab">
-          <div class="settings-panel">
-            <div class="settings-title" id="set-title">Clé API Gemini</div>
-            <div class="settings-sub" id="set-sub">Entrez votre clé API Google Gemini pour activer l'analyse IA réelle des photos et notes vocales.</div>
-            <div class="settings-row">
-              <input type="password" id="api-key-input" placeholder="AIzaSy...">
-              <button onclick="saveApiKey()" id="btn-save-key">Enregistrer</button>
-            </div>
-            <div class="api-status" id="api-status-box"></div>
           </div>
         </div>
 
@@ -397,232 +373,167 @@ var mediaRecorder = null;
 var audioChunks = [];
 var isRecording = false;
 
-// ── TRANSLATIONS ──
 var T = {
   fr: {
-    tagline: 'La mémoire intelligente de vos chantiers',
-    sub: 'Capturez chaque incident en quelques secondes. Retrouvez instantanément ce qui s\'est passé. Ne répétez plus jamais les mêmes erreurs.',
-    feat1: 'Capture photo et vocale alimentée par l\'IA',
-    feat2: 'Base de connaissances partagée par toute l\'équipe',
-    feat3: 'Recherche intelligente en langage naturel',
-    feat4: 'Accessible sur site et au bureau',
-    clients: 'Conçu pour les PME construction et infrastructure en Europe et au Brésil',
-    tabLogin: 'Connexion', tabSignup: 'Créer un compte',
-    lblEmail: 'Adresse email', lblPass: 'Mot de passe',
-    btnLogin: 'Se connecter', noAccount: 'Pas encore de compte ?', linkSignup: 'Créer votre espace',
-    lblFirst: 'Prénom', lblLast: 'Nom', lblWorkEmail: 'Email professionnel',
-    lblCompany: 'Nom de l\'entreprise', lblSector: 'Secteur', lblSize: 'Effectif',
-    lblPass2: 'Mot de passe', btnSignup: 'Créer mon espace Bace Tech',
-    haveAccount: 'Déjà un compte ?', linkLogin: 'Se connecter',
-    navDash: 'Dashboard', navCap: 'Capturer', navKb: 'Base de connaissances',
-    navSearch: 'Recherche', navSet: 'Paramètres', navLogout: 'Déconnexion',
-    navMain: 'Principal', navAccount: 'Compte',
-    btnCap: 'Capturer',
-    klTotal: 'Total captures', ksMonth: 'ce mois-ci',
-    klRes: 'Résolus', ksRes: 'incidents traités',
-    klCrit: 'Critiques', ksCrit: 'nécessitent action',
-    klProj: 'Projets actifs', ksProj: 'en cours',
-    stRecent: 'Incidents récents', slAll: 'Voir tout',
-    dashEmpty: 'Aucune capture. Commencez par documenter un incident.',
-    ptCap: 'Capture et IA Gemini',
-    utPhoto: 'Appuyer pour importer ou prendre une photo',
-    utVoice: 'Appuyer pour enregistrer une note vocale',
-    recording: 'Enregistrement en cours... Appuyer pour arrêter',
-    ptDetails: 'Détails de l\'incident',
-    flTitle: 'Titre', flProj: 'Projet', flSev: 'Sévérité', flCat: 'Catégorie',
-    flDesc: 'Description', flAction: 'Action recommandée',
-    btnSave: 'Enregistrer dans Bace Tech',
-    sevLow: 'Faible', sevMed: 'Moyen', sevHigh: 'Élevé', sevCrit: 'Critique',
-    catStruct: 'Structure', catElec: 'Électricité', catPlumb: 'Plomberie',
-    catSafe: 'Sécurité', catEquip: 'Équipement', catDoc: 'Documentation',
-    kbfAll: 'Tout', kbEmpty: 'Aucune entrée. Commencez à capturer.',
-    sHint: 'Tapez pour rechercher dans votre base de connaissances',
-    sPlaceholder: 'Ex: infiltration eau dalle béton...',
-    setTitle: 'Clé API Gemini',
-    setSub: 'Entrez votre clé API Google Gemini pour activer l\'analyse IA réelle.',
-    btnSaveKey: 'Enregistrer',
-    thTitle: 'Titre', thProject: 'Projet', thCat: 'Catégorie', thSev: 'Sévérité', thStatus: 'Status',
-    statusOpen: 'Ouvert',
-    solLabel: 'Solution : ',
-    aiLoading: 'IA Gemini en cours d\'analyse...',
-    aiAudioLoading: 'Analyse audio en cours...',
-    toastWelcome: 'Bienvenue sur Bace Tech',
-    toastFill: 'Remplissez tous les champs',
-    toastSaved: 'Enregistré dans Bace',
-    toastAddTitle: 'Ajoutez un titre',
-    toastApiSaved: 'Clé API enregistrée — IA activée',
-    toastAiOk: 'Analyse IA complète',
-    toastAiErr: 'Erreur IA — vérifiez votre clé dans Paramètres',
-    toastMic: 'Microphone non disponible',
-    apiOk: 'IA Gemini active — vos analyses sont réelles.',
-    apiMissing: 'Aucune clé API. Entrez votre clé pour activer l\'IA.',
-    noResults: 'Aucun résultat trouvé',
-    emptyBase: 'Base vide — capturez d\'abord des incidents',
-    results: 'résultat(s)',
-    promptPhoto: `Tu es un expert en gestion de chantier de construction. Analyse cette image et produis un rapport d'incident structuré en français avec exactement ce format:\nTitre: [titre court et précis]\nCatégorie: [Structure / Électricité / Plomberie / Sécurité / Équipement / Documentation]\nSévérité: [Faible / Moyen / Élevé / Critique]\nDescription: [description détaillée du problème visible]\nAction: [action corrective recommandée immédiatement]`,
-    promptVoice: `Tu es un expert en gestion de chantier. Ceci est un enregistrement audio d'un ouvrier décrivant un incident sur chantier. Transcris et structure ce rapport avec exactement ce format:\nTitre: [titre court]\nCatégorie: [Structure / Électricité / Plomberie / Sécurité / Équipement / Documentation]\nSévérité: [Faible / Moyen / Élevé / Critique]\nDescription: [description complète de l'incident]\nAction: [action recommandée]`,
-    promptSearch: `Tu es un assistant IA pour une plateforme de gestion de connaissances construction. Voici la base de connaissances:\n{KB}\n\nRecherche: "{Q}"\n\nRetourne les 3 entrées les plus pertinentes. Format: INDEX|SCORE|EXPLICATION`
+    tagline:'La mémoire intelligente de vos chantiers',
+    sub:'Capturez chaque incident en quelques secondes. Retrouvez instantanément ce qui s\'est passé. Ne répétez plus jamais les mêmes erreurs.',
+    feat1:'Capture photo et vocale alimentée par l\'IA',
+    feat2:'Base de connaissances partagée par toute l\'équipe',
+    feat3:'Recherche intelligente en langage naturel',
+    feat4:'Accessible sur site et au bureau',
+    clients:'Conçu pour les PME construction et infrastructure en Europe et au Brésil',
+    tabLogin:'Connexion', tabSignup:'Créer un compte',
+    lblEmail:'Adresse email', lblPass:'Mot de passe',
+    btnLogin:'Se connecter', noAccount:'Pas encore de compte ?', linkSignup:'Créer votre espace',
+    lblFirst:'Prénom', lblLast:'Nom', lblWorkEmail:'Email professionnel',
+    lblCompany:'Nom de l\'entreprise', lblSector:'Secteur', lblSize:'Effectif',
+    lblPass2:'Mot de passe', btnSignup:'Créer mon espace Bace Tech',
+    haveAccount:'Déjà un compte ?', linkLogin:'Se connecter',
+    navMain:'Principal', navAccount:'Compte',
+    navDash:'Dashboard', navCap:'Capturer', navKb:'Base de connaissances',
+    navSearch:'Recherche', navLogout:'Déconnexion', btnCap:'Capturer',
+    klTotal:'Total captures', ksMonth:'ce mois-ci',
+    klRes:'Résolus', ksRes:'incidents traités',
+    klCrit:'Critiques', ksCrit:'nécessitent action',
+    klProj:'Projets actifs', ksProj:'en cours',
+    stRecent:'Incidents récents', slAll:'Voir tout',
+    dashEmpty:'Aucune capture. Commencez par documenter un incident.',
+    ptCap:'Capture et IA Gemini', utPhoto:'Appuyer pour importer ou prendre une photo',
+    utVoice:'Appuyer pour enregistrer une note vocale', recording:'Enregistrement... Appuyer pour arrêter',
+    ptDetails:'Détails de l\'incident', flTitle:'Titre', flProj:'Projet',
+    flSev:'Sévérité', flCat:'Catégorie', flDesc:'Description', flAction:'Action recommandée',
+    btnSave:'Enregistrer dans Bace Tech',
+    sevLow:'Faible', sevMed:'Moyen', sevHigh:'Élevé', sevCrit:'Critique',
+    catStruct:'Structure', catElec:'Électricité', catPlumb:'Plomberie',
+    catSafe:'Sécurité', catEquip:'Équipement', catDoc:'Documentation',
+    kbfAll:'Tout', kbEmpty:'Aucune entrée. Commencez à capturer.',
+    sHint:'Tapez pour rechercher dans votre base de connaissances',
+    sPlaceholder:'Ex: infiltration eau dalle béton...',
+    thTitle:'Titre', thProject:'Projet', thCat:'Catégorie', thSev:'Sévérité', thStatus:'Status',
+    statusOpen:'Ouvert', solLabel:'Solution : ',
+    aiLoading:'IA Gemini en cours d\'analyse...', aiAudioLoading:'Analyse audio en cours...',
+    toastWelcome:'Bienvenue sur Bace Tech', toastFill:'Remplissez tous les champs',
+    toastSaved:'Enregistré dans Bace Tech', toastAddTitle:'Ajoutez un titre',
+    toastAiOk:'Analyse IA complète', toastAiErr:'Erreur IA — vérifiez la connexion',
+    toastMic:'Microphone non disponible',
+    noResults:'Aucun résultat trouvé', emptyBase:'Base vide — capturez d\'abord des incidents',
+    results:'résultat(s)',
+    promptPhoto:'Tu es un expert en gestion de chantier de construction. Analyse cette image et produis un rapport d\'incident structuré en français avec exactement ce format:\nTitre: [titre court et précis]\nCatégorie: [Structure / Électricité / Plomberie / Sécurité / Équipement / Documentation]\nSévérité: [Faible / Moyen / Élevé / Critique]\nDescription: [description détaillée du problème visible]\nAction: [action corrective recommandée immédiatement]',
+    promptVoice:'Tu es un expert en gestion de chantier. Transcris et structure ce rapport audio avec exactement ce format:\nTitre: [titre court]\nCatégorie: [Structure / Électricité / Plomberie / Sécurité / Équipement / Documentation]\nSévérité: [Faible / Moyen / Élevé / Critique]\nDescription: [description complète]\nAction: [action recommandée]',
+    promptSearch:'Tu es un assistant IA pour une base de connaissances construction. Base:\n{KB}\n\nRecherche: "{Q}"\n\nRetourne les 3 entrées les plus pertinentes. Format: INDEX|SCORE|EXPLICATION'
   },
   en: {
-    tagline: 'The intelligent memory of your construction sites',
-    sub: 'Capture every incident in seconds. Instantly find what happened. Never repeat the same mistakes.',
-    feat1: 'AI-powered photo and voice capture',
-    feat2: 'Knowledge base shared across the entire team',
-    feat3: 'Intelligent natural language search',
-    feat4: 'Accessible on site and in the office',
-    clients: 'Built for construction and infrastructure SMEs in Europe and Brazil',
-    tabLogin: 'Sign in', tabSignup: 'Create account',
-    lblEmail: 'Email address', lblPass: 'Password',
-    btnLogin: 'Sign in', noAccount: 'No account yet?', linkSignup: 'Create your workspace',
-    lblFirst: 'First name', lblLast: 'Last name', lblWorkEmail: 'Work email',
-    lblCompany: 'Company name', lblSector: 'Sector', lblSize: 'Team size',
-    lblPass2: 'Password', btnSignup: 'Create my Bace Tech workspace',
-    haveAccount: 'Already have an account?', linkLogin: 'Sign in',
-    navDash: 'Dashboard', navCap: 'Capture', navKb: 'Knowledge base',
-    navSearch: 'Search', navSet: 'Settings', navLogout: 'Sign out',
-    navMain: 'Main', navAccount: 'Account',
-    btnCap: 'Capture',
-    klTotal: 'Total captures', ksMonth: 'this month',
-    klRes: 'Resolved', ksRes: 'issues handled',
-    klCrit: 'Critical', ksCrit: 'need action',
-    klProj: 'Active projects', ksProj: 'ongoing',
-    stRecent: 'Recent incidents', slAll: 'View all',
-    dashEmpty: 'No captures yet. Start by documenting an incident.',
-    ptCap: 'Capture & Gemini AI',
-    utPhoto: 'Tap to import or take a photo',
-    utVoice: 'Tap to record a voice note',
-    recording: 'Recording... Tap to stop',
-    ptDetails: 'Incident details',
-    flTitle: 'Title', flProj: 'Project', flSev: 'Severity', flCat: 'Category',
-    flDesc: 'Description', flAction: 'Recommended action',
-    btnSave: 'Save to Bace Tech',
-    sevLow: 'Low', sevMed: 'Medium', sevHigh: 'High', sevCrit: 'Critical',
-    catStruct: 'Structure', catElec: 'Electrical', catPlumb: 'Plumbing',
-    catSafe: 'Safety', catEquip: 'Equipment', catDoc: 'Documentation',
-    kbfAll: 'All', kbEmpty: 'No entries. Start capturing.',
-    sHint: 'Type to search your knowledge base',
-    sPlaceholder: 'E.g: water infiltration concrete slab...',
-    setTitle: 'Gemini API Key',
-    setSub: 'Enter your Google Gemini API key to activate real AI analysis.',
-    btnSaveKey: 'Save',
-    thTitle: 'Title', thProject: 'Project', thCat: 'Category', thSev: 'Severity', thStatus: 'Status',
-    statusOpen: 'Open',
-    solLabel: 'Solution: ',
-    aiLoading: 'Gemini AI analyzing...',
-    aiAudioLoading: 'Analyzing audio...',
-    toastWelcome: 'Welcome to Bace Tech',
-    toastFill: 'Please fill all fields',
-    toastSaved: 'Saved to Bace',
-    toastAddTitle: 'Please add a title',
-    toastApiSaved: 'API key saved — AI activated',
-    toastAiOk: 'AI analysis complete',
-    toastAiErr: 'AI error — check your key in Settings',
-    toastMic: 'Microphone not available',
-    apiOk: 'Gemini AI active — your analyses are real.',
-    apiMissing: 'No API key. Enter your key to activate AI.',
-    noResults: 'No results found',
-    emptyBase: 'Empty base — capture incidents first',
-    results: 'result(s)',
-    promptPhoto: `You are an expert construction site manager. Analyze this image and produce a structured incident report in English with exactly this format:\nTitle: [short precise title]\nCategory: [Structure / Electrical / Plumbing / Safety / Equipment / Documentation]\nSeverity: [Low / Medium / High / Critical]\nDescription: [detailed description of the visible problem]\nAction: [recommended corrective action immediately]`,
-    promptVoice: `You are a construction site expert. This is an audio recording of a worker describing a site incident. Transcribe and structure this report with exactly this format:\nTitle: [short title]\nCategory: [Structure / Electrical / Plumbing / Safety / Equipment / Documentation]\nSeverity: [Low / Medium / High / Critical]\nDescription: [full incident description]\nAction: [recommended action]`,
-    promptSearch: `You are an AI assistant for a construction knowledge management platform. Knowledge base:\n{KB}\n\nSearch: "{Q}"\n\nReturn the 3 most relevant entries. Format: INDEX|SCORE|EXPLANATION`
+    tagline:'The intelligent memory of your construction sites',
+    sub:'Capture every incident in seconds. Instantly find what happened. Never repeat the same mistakes.',
+    feat1:'AI-powered photo and voice capture',
+    feat2:'Knowledge base shared across the entire team',
+    feat3:'Intelligent natural language search',
+    feat4:'Accessible on site and in the office',
+    clients:'Built for construction and infrastructure SMEs in Europe and Brazil',
+    tabLogin:'Sign in', tabSignup:'Create account',
+    lblEmail:'Email address', lblPass:'Password',
+    btnLogin:'Sign in', noAccount:'No account yet?', linkSignup:'Create your workspace',
+    lblFirst:'First name', lblLast:'Last name', lblWorkEmail:'Work email',
+    lblCompany:'Company name', lblSector:'Sector', lblSize:'Team size',
+    lblPass2:'Password', btnSignup:'Create my Bace Tech workspace',
+    haveAccount:'Already have an account?', linkLogin:'Sign in',
+    navMain:'Main', navAccount:'Account',
+    navDash:'Dashboard', navCap:'Capture', navKb:'Knowledge base',
+    navSearch:'Search', navLogout:'Sign out', btnCap:'Capture',
+    klTotal:'Total captures', ksMonth:'this month',
+    klRes:'Resolved', ksRes:'issues handled',
+    klCrit:'Critical', ksCrit:'need action',
+    klProj:'Active projects', ksProj:'ongoing',
+    stRecent:'Recent incidents', slAll:'View all',
+    dashEmpty:'No captures yet. Start by documenting an incident.',
+    ptCap:'Capture & Gemini AI', utPhoto:'Tap to import or take a photo',
+    utVoice:'Tap to record a voice note', recording:'Recording... Tap to stop',
+    ptDetails:'Incident details', flTitle:'Title', flProj:'Project',
+    flSev:'Severity', flCat:'Category', flDesc:'Description', flAction:'Recommended action',
+    btnSave:'Save to Bace Tech',
+    sevLow:'Low', sevMed:'Medium', sevHigh:'High', sevCrit:'Critical',
+    catStruct:'Structure', catElec:'Electrical', catPlumb:'Plumbing',
+    catSafe:'Safety', catEquip:'Equipment', catDoc:'Documentation',
+    kbfAll:'All', kbEmpty:'No entries. Start capturing.',
+    sHint:'Type to search your knowledge base',
+    sPlaceholder:'E.g: water infiltration concrete slab...',
+    thTitle:'Title', thProject:'Project', thCat:'Category', thSev:'Severity', thStatus:'Status',
+    statusOpen:'Open', solLabel:'Solution: ',
+    aiLoading:'Gemini AI analyzing...', aiAudioLoading:'Analyzing audio...',
+    toastWelcome:'Welcome to Bace Tech', toastFill:'Please fill all fields',
+    toastSaved:'Saved to Bace Tech', toastAddTitle:'Please add a title',
+    toastAiOk:'AI analysis complete', toastAiErr:'AI error — check connection',
+    toastMic:'Microphone not available',
+    noResults:'No results found', emptyBase:'Empty base — capture incidents first',
+    results:'result(s)',
+    promptPhoto:'You are an expert construction site manager. Analyze this image and produce a structured incident report in English with exactly this format:\nTitle: [short precise title]\nCategory: [Structure / Electrical / Plumbing / Safety / Equipment / Documentation]\nSeverity: [Low / Medium / High / Critical]\nDescription: [detailed description of the visible problem]\nAction: [recommended corrective action immediately]',
+    promptVoice:'You are a construction site expert. Transcribe and structure this audio report with exactly this format:\nTitle: [short title]\nCategory: [Structure / Electrical / Plumbing / Safety / Equipment / Documentation]\nSeverity: [Low / Medium / High / Critical]\nDescription: [full incident description]\nAction: [recommended action]',
+    promptSearch:'You are an AI assistant for a construction knowledge base. Base:\n{KB}\n\nSearch: "{Q}"\n\nReturn the 3 most relevant entries. Format: INDEX|SCORE|EXPLANATION'
   },
   pt: {
-    tagline: 'A memória inteligente dos seus canteiros de obras',
-    sub: 'Capture cada incidente em segundos. Encontre instantaneamente o que aconteceu. Nunca repita os mesmos erros.',
-    feat1: 'Captura de foto e voz com IA',
-    feat2: 'Base de conhecimento compartilhada pela equipe',
-    feat3: 'Pesquisa inteligente em linguagem natural',
-    feat4: 'Acessível na obra e no escritório',
-    clients: 'Criado para PMEs de construção e infraestrutura no Brasil e Europa',
-    tabLogin: 'Entrar', tabSignup: 'Criar conta',
-    lblEmail: 'E-mail', lblPass: 'Senha',
-    btnLogin: 'Entrar', noAccount: 'Não tem conta?', linkSignup: 'Criar seu espaço',
-    lblFirst: 'Nome', lblLast: 'Sobrenome', lblWorkEmail: 'E-mail profissional',
-    lblCompany: 'Nome da empresa', lblSector: 'Setor', lblSize: 'Tamanho da equipe',
-    lblPass2: 'Senha', btnSignup: 'Criar meu espaço Bace Tech',
-    haveAccount: 'Já tem conta?', linkLogin: 'Entrar',
-    navDash: 'Dashboard', navCap: 'Capturar', navKb: 'Base de conhecimento',
-    navSearch: 'Pesquisa', navSet: 'Configurações', navLogout: 'Sair',
-    navMain: 'Principal', navAccount: 'Conta',
-    btnCap: 'Capturar',
-    klTotal: 'Total de capturas', ksMonth: 'este mês',
-    klRes: 'Resolvidos', ksRes: 'incidentes tratados',
-    klCrit: 'Críticos', ksCrit: 'precisam de ação',
-    klProj: 'Projetos ativos', ksProj: 'em andamento',
-    stRecent: 'Incidentes recentes', slAll: 'Ver tudo',
-    dashEmpty: 'Nenhuma captura. Comece documentando um incidente.',
-    ptCap: 'Captura e IA Gemini',
-    utPhoto: 'Toque para importar ou tirar uma foto',
-    utVoice: 'Toque para gravar uma nota de voz',
-    recording: 'Gravando... Toque para parar',
-    ptDetails: 'Detalhes do incidente',
-    flTitle: 'Título', flProj: 'Projeto', flSev: 'Severidade', flCat: 'Categoria',
-    flDesc: 'Descrição', flAction: 'Ação recomendada',
-    btnSave: 'Salvar no Bace Tech',
-    sevLow: 'Baixa', sevMed: 'Média', sevHigh: 'Alta', sevCrit: 'Crítica',
-    catStruct: 'Estrutura', catElec: 'Elétrica', catPlumb: 'Hidráulica',
-    catSafe: 'Segurança', catEquip: 'Equipamento', catDoc: 'Documentação',
-    kbfAll: 'Tudo', kbEmpty: 'Nenhuma entrada. Comece a capturar.',
-    sHint: 'Digite para pesquisar na sua base de conhecimento',
-    sPlaceholder: 'Ex: infiltração de água em laje de concreto...',
-    setTitle: 'Chave API Gemini',
-    setSub: 'Insira sua chave API do Google Gemini para ativar a análise real por IA.',
-    btnSaveKey: 'Salvar',
-    thTitle: 'Título', thProject: 'Projeto', thCat: 'Categoria', thSev: 'Severidade', thStatus: 'Status',
-    statusOpen: 'Aberto',
-    solLabel: 'Solução: ',
-    aiLoading: 'IA Gemini analisando...',
-    aiAudioLoading: 'Analisando áudio...',
-    toastWelcome: 'Bem-vindo ao Bace Tech',
-    toastFill: 'Preencha todos os campos',
-    toastSaved: 'Salvo no Bace',
-    toastAddTitle: 'Adicione um título',
-    toastApiSaved: 'Chave API salva — IA ativada',
-    toastAiOk: 'Análise IA concluída',
-    toastAiErr: 'Erro de IA — verifique sua chave em Configurações',
-    toastMic: 'Microfone não disponível',
-    apiOk: 'IA Gemini ativa — suas análises são reais.',
-    apiMissing: 'Sem chave API. Insira sua chave para ativar a IA.',
-    noResults: 'Nenhum resultado encontrado',
-    emptyBase: 'Base vazia — capture incidentes primeiro',
-    results: 'resultado(s)',
-    promptPhoto: `Você é um especialista em gestão de obras de construção. Analise esta imagem e produza um relatório de incidente estruturado em português brasileiro com exatamente este formato:\nTítulo: [título curto e preciso]\nCategoria: [Estrutura / Elétrica / Hidráulica / Segurança / Equipamento / Documentação]\nSeveridade: [Baixa / Média / Alta / Crítica]\nDescrição: [descrição detalhada do problema visível]\nAção: [ação corretiva recomendada imediatamente]`,
-    promptVoice: `Você é um especialista em obras de construção. Este é um áudio de um trabalhador descrevendo um incidente. Transcreva e estruture o relatório com exatamente este formato:\nTítulo: [título curto]\nCategoria: [Estrutura / Elétrica / Hidráulica / Segurança / Equipamento / Documentação]\nSeveridade: [Baixa / Média / Alta / Crítica]\nDescrição: [descrição completa do incidente]\nAção: [ação recomendada]`,
-    promptSearch: `Você é um assistente de IA para uma plataforma de gestão de conhecimento em construção. Base de conhecimento:\n{KB}\n\nPesquisa: "{Q}"\n\nRetorne as 3 entradas mais relevantes. Formato: INDEX|SCORE|EXPLICAÇÃO`
+    tagline:'A memória inteligente dos seus canteiros de obras',
+    sub:'Capture cada incidente em segundos. Encontre instantaneamente o que aconteceu. Nunca repita os mesmos erros.',
+    feat1:'Captura de foto e voz com IA',
+    feat2:'Base de conhecimento compartilhada pela equipe',
+    feat3:'Pesquisa inteligente em linguagem natural',
+    feat4:'Acessível na obra e no escritório',
+    clients:'Criado para PMEs de construção e infraestrutura no Brasil e Europa',
+    tabLogin:'Entrar', tabSignup:'Criar conta',
+    lblEmail:'E-mail', lblPass:'Senha',
+    btnLogin:'Entrar', noAccount:'Não tem conta?', linkSignup:'Criar seu espaço',
+    lblFirst:'Nome', lblLast:'Sobrenome', lblWorkEmail:'E-mail profissional',
+    lblCompany:'Nome da empresa', lblSector:'Setor', lblSize:'Tamanho da equipe',
+    lblPass2:'Senha', btnSignup:'Criar meu espaço Bace Tech',
+    haveAccount:'Já tem conta?', linkLogin:'Entrar',
+    navMain:'Principal', navAccount:'Conta',
+    navDash:'Dashboard', navCap:'Capturar', navKb:'Base de conhecimento',
+    navSearch:'Pesquisa', navLogout:'Sair', btnCap:'Capturar',
+    klTotal:'Total de capturas', ksMonth:'este mês',
+    klRes:'Resolvidos', ksRes:'incidentes tratados',
+    klCrit:'Críticos', ksCrit:'precisam de ação',
+    klProj:'Projetos ativos', ksProj:'em andamento',
+    stRecent:'Incidentes recentes', slAll:'Ver tudo',
+    dashEmpty:'Nenhuma captura. Comece documentando um incidente.',
+    ptCap:'Captura e IA Gemini', utPhoto:'Toque para importar ou tirar uma foto',
+    utVoice:'Toque para gravar uma nota de voz', recording:'Gravando... Toque para parar',
+    ptDetails:'Detalhes do incidente', flTitle:'Título', flProj:'Projeto',
+    flSev:'Severidade', flCat:'Categoria', flDesc:'Descrição', flAction:'Ação recomendada',
+    btnSave:'Salvar no Bace Tech',
+    sevLow:'Baixa', sevMed:'Média', sevHigh:'Alta', sevCrit:'Crítica',
+    catStruct:'Estrutura', catElec:'Elétrica', catPlumb:'Hidráulica',
+    catSafe:'Segurança', catEquip:'Equipamento', catDoc:'Documentação',
+    kbfAll:'Tudo', kbEmpty:'Nenhuma entrada. Comece a capturar.',
+    sHint:'Digite para pesquisar na sua base de conhecimento',
+    sPlaceholder:'Ex: infiltração de água em laje de concreto...',
+    thTitle:'Título', thProject:'Projeto', thCat:'Categoria', thSev:'Severidade', thStatus:'Status',
+    statusOpen:'Aberto', solLabel:'Solução: ',
+    aiLoading:'IA Gemini analisando...', aiAudioLoading:'Analisando áudio...',
+    toastWelcome:'Bem-vindo ao Bace Tech', toastFill:'Preencha todos os campos',
+    toastSaved:'Salvo no Bace Tech', toastAddTitle:'Adicione um título',
+    toastAiOk:'Análise IA concluída', toastAiErr:'Erro de IA — verifique a conexão',
+    toastMic:'Microfone não disponível',
+    noResults:'Nenhum resultado encontrado', emptyBase:'Base vazia — capture incidentes primeiro',
+    results:'resultado(s)',
+    promptPhoto:'Você é um especialista em gestão de obras. Analise esta imagem e produza um relatório em português brasileiro com exatamente este formato:\nTítulo: [título curto e preciso]\nCategoria: [Estrutura / Elétrica / Hidráulica / Segurança / Equipamento / Documentação]\nSeveridade: [Baixa / Média / Alta / Crítica]\nDescrição: [descrição detalhada do problema]\nAção: [ação corretiva recomendada]',
+    promptVoice:'Você é um especialista em obras. Transcreva e estruture este áudio com exatamente este formato:\nTítulo: [título curto]\nCategoria: [Estrutura / Elétrica / Hidráulica / Segurança / Equipamento / Documentação]\nSeveridade: [Baixa / Média / Alta / Crítica]\nDescrição: [descrição completa]\nAção: [ação recomendada]',
+    promptSearch:'Você é um assistente de IA para base de conhecimento em construção. Base:\n{KB}\n\nPesquisa: "{Q}"\n\nRetorne as 3 entradas mais relevantes. Formato: INDEX|SCORE|EXPLICAÇÃO'
   }
 };
 
-function t(key) { return (T[lang] && T[lang][key]) ? T[lang][key] : (T['en'][key] || key); }
+function t(key) {
+  return (T[lang] && T[lang][key]) ? T[lang][key] : (T['en'][key] || key);
+}
 
-// ── SET LANG ──
 function setLang(l, btn) {
   lang = l;
   document.querySelectorAll('.lang-btn').forEach(function(b) {
     b.classList.toggle('active', b.textContent === l.toUpperCase());
   });
-  applyTranslations();
+  applyT();
 }
 
-function applyTranslations() {
-  var ids = [
-    'auth-tagline','auth-sub','feat1','feat2','feat3','feat4','auth-clients',
-    'tab-login-btn','tab-signup-btn','lbl-email','lbl-pass','btn-login',
-    'no-account','link-signup','lbl-first','lbl-last','lbl-work-email',
-    'lbl-company','lbl-sector','lbl-size','lbl-pass2','btn-signup',
-    'have-account','link-login',
-    'nav-dashboard','nav-capture','nav-kb','nav-search','nav-settings','nav-logout',
-    'nav-section-main','nav-section-account','btn-cap',
-    'kl-total','ks-month','kl-res','ks-res','kl-crit','ks-crit','kl-proj','ks-proj',
-    'st-recent','sl-all','dash-empty',
-    'pt-capture','ut-photo','ut-voice','pt-details',
-    'fl-title','fl-proj','fl-sev','fl-cat','fl-desc','fl-action','btn-save',
-    'sev-low','sev-med','sev-high','sev-crit',
-    'cat-struct','cat-elec','cat-plumb','cat-safe','cat-equip','cat-doc',
-    'kbf-all','kb-empty','s-hint',
-    'set-title','set-sub','btn-save-key','nav-settings'
-  ];
-  var keyMap = {
+function applyT() {
+  var map = {
     'auth-tagline':'tagline','auth-sub':'sub','feat1':'feat1','feat2':'feat2',
     'feat3':'feat3','feat4':'feat4','auth-clients':'clients',
     'tab-login-btn':'tabLogin','tab-signup-btn':'tabSignup',
@@ -632,10 +543,9 @@ function applyTranslations() {
     'lbl-company':'lblCompany','lbl-sector':'lblSector','lbl-size':'lblSize',
     'lbl-pass2':'lblPass2','btn-signup':'btnSignup',
     'have-account':'haveAccount','link-login':'linkLogin',
-    'nav-dashboard':'navDash','nav-capture':'navCap','nav-kb':'navKb',
-    'nav-search':'navSearch','nav-settings':'navSet','nav-logout':'navLogout',
     'nav-section-main':'navMain','nav-section-account':'navAccount',
-    'btn-cap':'btnCap',
+    'nav-dashboard':'navDash','nav-capture':'navCap','nav-kb':'navKb',
+    'nav-search':'navSearch','nav-logout':'navLogout','btn-cap':'btnCap',
     'kl-total':'klTotal','ks-month':'ksMonth','kl-res':'klRes','ks-res':'ksRes',
     'kl-crit':'klCrit','ks-crit':'ksCrit','kl-proj':'klProj','ks-proj':'ksProj',
     'st-recent':'stRecent','sl-all':'slAll','dash-empty':'dashEmpty',
@@ -646,21 +556,18 @@ function applyTranslations() {
     'sev-low':'sevLow','sev-med':'sevMed','sev-high':'sevHigh','sev-crit':'sevCrit',
     'cat-struct':'catStruct','cat-elec':'catElec','cat-plumb':'catPlumb',
     'cat-safe':'catSafe','cat-equip':'catEquip','cat-doc':'catDoc',
-    'kbf-all':'kbfAll','kb-empty':'kbEmpty','s-hint':'sHint',
-    'set-title':'setTitle','set-sub':'setSub','btn-save-key':'btnSaveKey'
+    'kbf-all':'kbfAll','kb-empty':'kbEmpty','s-hint':'sHint'
   };
-  ids.forEach(function(id) {
+  Object.keys(map).forEach(function(id) {
     var el = document.getElementById(id);
-    if (el && keyMap[id]) el.textContent = t(keyMap[id]);
+    if (el) el.textContent = t(map[id]);
   });
   var si = document.getElementById('s-input');
   if (si) si.placeholder = t('sPlaceholder');
-  updateApiStatus();
   renderDash();
   renderKB();
 }
 
-// ── AUTH ──
 function switchAuthTab(tab, btn) {
   document.querySelectorAll('.auth-tab').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
@@ -674,7 +581,7 @@ function doLogin() {
   if (!e || !p) { toast(t('toastFill')); return; }
   var pts = e.split('@')[0].split('.');
   var f = cap(pts[0] || 'User'), la = cap(pts[1] || '');
-  currentUser = {name: f + ' ' + la, company: e.split('@')[1] || 'Bace', initials: (f[0] + (la[0] || '')).toUpperCase()};
+  currentUser = {name: f + ' ' + la, company: e.split('@')[1] || 'Bace Tech', initials: (f[0] + (la[0] || '')).toUpperCase()};
   enterApp();
 }
 
@@ -696,8 +603,6 @@ function enterApp() {
   document.getElementById('u-initials').textContent = currentUser.initials;
   document.getElementById('u-name').textContent = currentUser.name;
   document.getElementById('u-company').textContent = currentUser.company;
-  document.getElementById('api-key-input').value = GEMINI_KEY ? '••••••••••••••••' : '';
-  updateApiStatus();
   toast(t('toastWelcome') + ' 👋');
   renderDash();
 }
@@ -707,28 +612,6 @@ function doLogout() {
   document.getElementById('s-login').classList.add('active');
 }
 
-// ── API KEY ──
-function saveApiKey() {
-  var k = document.getElementById('api-key-input').value.trim();
-  if (!k || k === '••••••••••••••••') { toast('Clé invalide'); return; }
-  GEMINI_KEY = k;
-  updateApiStatus();
-  toast(t('toastApiSaved'));
-}
-
-function updateApiStatus() {
-  var el = document.getElementById('api-status-box');
-  if (!el) return;
-  if (GEMINI_KEY) {
-    el.className = 'api-status ok';
-    el.textContent = t('apiOk');
-  } else {
-    el.className = 'api-status missing';
-    el.textContent = t('apiMissing');
-  }
-}
-
-// ── GEMINI ──
 async function callGemini(parts) {
   if (!GEMINI_KEY) return null;
   showLoading(true, t('aiLoading'));
@@ -762,8 +645,7 @@ function parseAI(text) {
       else if (s.match(/élevé|high|alta/)) r.severity = 'high';
       else if (s.match(/moyen|medium|média/)) r.severity = 'medium';
       else r.severity = 'low';
-    }
-    else if (low.match(/^(description|descrição):/)) r.description = val;
+    } else if (low.match(/^(description|descrição):/)) r.description = val;
     else if (low.match(/^(action|ação):/)) r.action = val;
   });
   if (!r.title) r.title = text.substring(0, 60);
@@ -771,17 +653,12 @@ function parseAI(text) {
   return r;
 }
 
-// ── PHOTO ──
 async function handlePhoto(input) {
   if (!input.files || !input.files[0]) return;
-  if (!GEMINI_KEY) { toast(t('toastAiErr')); return; }
   var reader = new FileReader();
   reader.onload = async function(e) {
     var b64 = e.target.result.split(',')[1];
-    var parts = [
-      {inline_data: {mime_type: 'image/jpeg', data: b64}},
-      {text: t('promptPhoto')}
-    ];
+    var parts = [{inline_data: {mime_type: 'image/jpeg', data: b64}}, {text: t('promptPhoto')}];
     var response = await callGemini(parts);
     if (response) {
       var p = parseAI(response);
@@ -799,7 +676,6 @@ async function handlePhoto(input) {
   reader.readAsDataURL(input.files[0]);
 }
 
-// ── VOICE ──
 async function toggleVoice() {
   if (!isRecording) {
     try {
@@ -813,9 +689,7 @@ async function toggleVoice() {
       document.getElementById('voice-btn').classList.add('recording');
       document.getElementById('voice-icon').textContent = '⏹️';
       document.getElementById('ut-voice').textContent = t('recording');
-    } catch(e) {
-      toast(t('toastMic'));
-    }
+    } catch(e) { toast(t('toastMic')); }
   } else {
     mediaRecorder.stop();
     isRecording = false;
@@ -826,16 +700,12 @@ async function toggleVoice() {
 }
 
 async function processVoice() {
-  if (!GEMINI_KEY) { toast(t('toastAiErr')); return; }
   var blob = new Blob(audioChunks, {type: 'audio/webm'});
   var reader = new FileReader();
   reader.onload = async function(e) {
     var b64 = e.target.result.split(',')[1];
     showLoading(true, t('aiAudioLoading'));
-    var parts = [
-      {inline_data: {mime_type: 'audio/webm', data: b64}},
-      {text: t('promptVoice')}
-    ];
+    var parts = [{inline_data: {mime_type: 'audio/webm', data: b64}}, {text: t('promptVoice')}];
     var response = await callGemini(parts);
     if (response) {
       var p = parseAI(response);
@@ -853,7 +723,6 @@ async function processVoice() {
   reader.readAsDataURL(blob);
 }
 
-// ── SAVE ──
 function saveEntry() {
   var title = document.getElementById('c-title').value;
   if (!title) { toast(t('toastAddTitle')); return; }
@@ -874,7 +743,6 @@ function saveEntry() {
   setTimeout(function() { showTab('dashboard', document.querySelectorAll('.sidebar-link')[0]); }, 700);
 }
 
-// ── RENDER ──
 function renderDash() {
   document.getElementById('kv-total').textContent = entries.length;
   document.getElementById('kv-res').textContent = entries.filter(function(e) { return e.status === 'resolved'; }).length;
@@ -910,7 +778,6 @@ function rowHTML(e, withStatus) {
   return '<tr><td style="font-weight:500;color:var(--white);">' + e.title + '</td><td>' + e.project + '</td><td>' + e.cat + '</td><td><span class="badge ' + sc + '">' + sl + '</span></td><td>' + e.date + '</td>' + (withStatus ? '<td><span class="badge b-open">' + t('statusOpen') + '</span></td>' : '') + '</tr>';
 }
 
-// ── SEARCH ──
 async function doSearch(val) {
   var w = document.getElementById('s-results');
   if (!val || val.length < 3) {
@@ -935,9 +802,9 @@ async function doSearch(val) {
         return entries[idx] ? Object.assign({}, entries[idx], {sim: score, explain: explain}) : null;
       }).filter(Boolean).slice(0, 3);
       if (results.length) {
-        w.innerHTML = '<div style="font-size:11px;color:var(--text3);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.8px;">' + results.length + ' ' + t('results') + '</div>' + results.map(function(d) {
+        w.innerHTML = '<div style="font-size:11px;color:var(--text3);margin-bottom:14px;">' + results.length + ' ' + t('results') + '</div>' + results.map(function(d) {
           var sc = {low:'b-low',medium:'b-medium',high:'b-high',critical:'b-critical'}[d.sev] || 'b-medium';
-          return '<div class="result-card"><div class="result-header"><div class="result-title">' + d.title + '</div><div class="result-sim">' + d.sim + '</div></div><div class="result-meta"><span>' + d.project + '</span><span>·</span><span class="badge ' + sc + '">' + d.cat + '</span></div><div class="result-solution"><strong>' + t('solLabel') + '</strong>' + d.action + '<br><span style="color:var(--text3);font-size:12px;margin-top:4px;display:block;">' + d.explain + '</span></div></div>';
+          return '<div class="result-card"><div class="result-header"><div class="result-title">' + d.title + '</div><div class="result-sim">' + d.sim + '</div></div><div class="result-meta"><span>' + d.project + '</span><span>·</span><span class="badge ' + sc + '">' + d.cat + '</span></div><div class="result-solution"><strong>' + t('solLabel') + '</strong>' + d.action + '</div></div>';
         }).join('');
         return;
       }
@@ -951,32 +818,28 @@ async function doSearch(val) {
   }).join('');
 }
 
-// ── NAV ──
 function showTab(name, btn) {
   document.querySelectorAll('.tab').forEach(function(tab) { tab.classList.remove('active'); });
   document.querySelectorAll('.sidebar-link').forEach(function(b) { b.classList.remove('active'); });
   var el = document.getElementById('tab-' + name);
   if (el) el.classList.add('active');
   if (btn) btn.classList.add('active');
-  var titles = {dashboard:'Dashboard', capture:t('navCap'), knowledge:t('navKb'), search:t('navSearch'), settings:t('navSet')};
+  var titles = {dashboard:'Dashboard', capture:t('navCap'), knowledge:t('navKb'), search:t('navSearch')};
   document.getElementById('topbar-title').textContent = titles[name] || name;
   if (name === 'dashboard') renderDash();
   if (name === 'knowledge') renderKB();
-  if (name === 'settings') updateApiStatus();
 }
 
-// ── UTILS ──
 function showLoading(show, text) {
-  var el = document.getElementById('loading');
-  el.classList.toggle('show', show);
+  document.getElementById('loading').classList.toggle('show', show);
   if (text) document.getElementById('loading-text').textContent = text;
 }
 
 function toast(msg) {
-  var t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(function() { t.classList.remove('show'); }, 2800);
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(function() { el.classList.remove('show'); }, 2800);
 }
 </script>
 </body>
