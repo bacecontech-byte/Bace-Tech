@@ -214,6 +214,23 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .notif-txt{font-size:12px;color:var(--text2);line-height:1.5;}
 .notif-time{font-size:10px;color:var(--text3);margin-top:3px;}
 .notif-empty{padding:24px;text-align:center;color:var(--text3);font-size:13px;}
+.ai-solution-box{background:var(--navy3);border:1px solid rgba(30,111,255,0.25);border-radius:12px;padding:20px;margin-bottom:16px;display:none;}
+.ai-solution-header{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.ai-solution-tag{font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:1px;}
+.ai-solution-badge{background:var(--blue);color:white;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;}
+.ai-field{margin-bottom:10px;}
+.ai-field-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;}
+.ai-field-value{font-size:13px;color:var(--text);line-height:1.6;background:var(--navy2);border-radius:6px;padding:8px 10px;}
+.ai-solution-highlight{background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:12px;margin-bottom:10px;}
+.ai-solution-highlight .ai-field-label{color:#34d399;}
+.ai-solution-highlight .ai-field-value{background:transparent;padding:4px 0;}
+.ai-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+.btn-accept{background:var(--green);color:white;border:none;border-radius:7px;padding:8px 16px;font-family:var(--font-d);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all 0.12s;}
+.btn-accept:hover{opacity:0.85;}
+.btn-decline{background:var(--navy2);border:1px solid var(--red);color:var(--red);border-radius:7px;padding:8px 16px;font-family:var(--font-d);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all 0.12s;}
+.btn-decline:hover{background:rgba(239,68,68,0.1);}
+.btn-edit-ai{background:var(--navy2);border:1px solid var(--border2);color:var(--text2);border-radius:7px;padding:8px 16px;font-family:var(--font-d);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all 0.12s;}
+.btn-edit-ai:hover{border-color:var(--blue);color:var(--white);}
 .loading-overlay{display:none;position:fixed;inset:0;background:rgba(6,17,31,0.85);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
 .loading-overlay.show{display:flex;}
 .loading-spinner{width:40px;height:40px;border:3px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite;}
@@ -340,9 +357,43 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               <div class="panel-title">Capture &amp; Bace IA</div>
               <div style="background:var(--blue-light);border:1px solid rgba(30,111,255,0.2);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--blue);margin-bottom:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-map-pin" style="font-size:14px"></i><span id="ai-hint">L'IA analysera selon le projet sélectionné</span></div>
               <div class="upload-zone"><input type="file" accept="image/*" onchange="handlePhoto(this)"><div class="upload-icon">&#x1F4F7;</div><div class="upload-text" id="ut-photo">Appuyer pour importer une photo</div></div>
-              <div class="ai-result" id="ai-photo"><div class="ai-tag">Bace IA - Analyse photo</div><div class="ai-text" id="ai-photo-txt"></div></div>
+              <div class="ai-solution-box" id="ai-photo">
+                <div class="ai-solution-header">
+                  <div class="ai-solution-tag">Bace IA</div>
+                  <div class="ai-solution-badge">Analyse photo</div>
+                </div>
+                <div class="ai-field"><div class="ai-field-label">Description</div><div class="ai-field-value" id="ai-p-desc">-</div></div>
+                <div class="ai-field"><div class="ai-field-label">Cause probable</div><div class="ai-field-value" id="ai-p-cause">-</div></div>
+                <div class="ai-solution-highlight">
+                  <div class="ai-field-label">Solution recommandee</div>
+                  <div class="ai-field-value" id="ai-p-solution">-</div>
+                </div>
+                <div class="ai-field"><div class="ai-field-label">Normes applicables</div><div class="ai-field-value" id="ai-p-normes">-</div></div>
+                <div class="ai-actions">
+                  <button class="btn-accept" onclick="acceptAI()"><i class="ti ti-check"></i> Accepter</button>
+                  <button class="btn-edit-ai" onclick="editAI()"><i class="ti ti-pencil"></i> Modifier</button>
+                  <button class="btn-decline" onclick="declineAI()"><i class="ti ti-x"></i> Refuser</button>
+                </div>
+              </div>
               <button class="voice-btn" id="voice-btn" onclick="toggleVoice()"><div class="upload-icon" id="voice-icon">&#x1F399;&#xFE0F;</div><div class="upload-text" id="ut-voice">Appuyer pour enregistrer</div></button>
-              <div class="ai-result" id="ai-voice"><div class="ai-tag">Bace IA - Transcription</div><div class="ai-text" id="ai-voice-txt"></div></div>
+              <div class="ai-solution-box" id="ai-voice">
+                <div class="ai-solution-header">
+                  <div class="ai-solution-tag">Bace IA</div>
+                  <div class="ai-solution-badge">Analyse vocale</div>
+                </div>
+                <div class="ai-field"><div class="ai-field-label">Description</div><div class="ai-field-value" id="ai-v-desc">-</div></div>
+                <div class="ai-field"><div class="ai-field-label">Cause probable</div><div class="ai-field-value" id="ai-v-cause">-</div></div>
+                <div class="ai-solution-highlight">
+                  <div class="ai-field-label">Solution recommandee</div>
+                  <div class="ai-field-value" id="ai-v-solution">-</div>
+                </div>
+                <div class="ai-field"><div class="ai-field-label">Normes applicables</div><div class="ai-field-value" id="ai-v-normes">-</div></div>
+                <div class="ai-actions">
+                  <button class="btn-accept" onclick="acceptAI()"><i class="ti ti-check"></i> Accepter</button>
+                  <button class="btn-edit-ai" onclick="editAI()"><i class="ti ti-pencil"></i> Modifier</button>
+                  <button class="btn-decline" onclick="declineAI()"><i class="ti ti-x"></i> Refuser</button>
+                </div>
+              </div>
             </div>
             <div class="capture-panel">
               <div class="panel-title">Details</div>
@@ -682,8 +733,10 @@ function startRealtime(){
     .subscribe();
 }
 
-var PROMPT_PHOTO="Tu es expert chantier. Chantier: {PROJECT}. Langue de reponse: {LANG}. Reponds UNIQUEMENT avec ce format, sans asterisques, sans markdown:\nTitre: [titre]\nCategorie: [Structure OU Electricite OU Plomberie OU Securite OU Equipement OU Documentation]\nSeverite: [Faible OU Moyen OU Eleve OU Critique]\nDescription: [description]\nAction: [action]";
-var PROMPT_VOICE="Tu es expert chantier. Chantier: {PROJECT}. Langue de reponse: {LANG}. Transcris et structure. Format, sans asterisques:\nTitre: [titre]\nCategorie: [Structure OU Electricite OU Plomberie OU Securite OU Equipement OU Documentation]\nSeverite: [Faible OU Moyen OU Eleve OU Critique]\nDescription: [description]\nAction: [action]";
+var PROMPT_PHOTO="Tu es un ingenieur expert en genie civil, batiment et gestion de chantier. Chantier: {PROJECT}. Langue de reponse: {LANG}.\nAnalyse cette image et reponds UNIQUEMENT avec ce format exact, sans asterisques, sans markdown:\nTitre: [titre court et precis]\nCategorie: [Structure OU Electricite OU Plomberie OU Securite OU Equipement OU Documentation]\nSeverite: [Faible OU Moyen OU Eleve OU Critique]\nDescription: [description technique precise du probleme observe]\nCause probable: [cause technique probable selon les regles de l ingenierie]\nSolution: [solution detaillee et precise - minimum 3 etapes concretes selon les normes de construction]\nNormes: [indique les normes et reglementations applicables selon le pays - BRESIL: ABNT NBR correspondante (ex: NBR 6118 beton, NBR 5410 electricite, NBR 5626 hydraulique, NBR 9050 accessibilite, NBR 14432 securite incendie, NBR 8160 eaux usees, NR-18 securite chantier) | FRANCE: DTU, Eurocodes, NF EN correspondants | EUROPE: Eurocodes EN correspondants - si non applicable indiquer NA]"
+
+var PROMPT_VOICE="Tu es un ingenieur expert en genie civil, batiment et gestion de chantier. Chantier: {PROJECT}. Langue de reponse: {LANG}.\nTranscris et structure ce rapport vocal UNIQUEMENT avec ce format exact, sans asterisques:\nTitre: [titre court]\nCategorie: [Structure OU Electricite OU Plomberie OU Securite OU Equipement OU Documentation]\nSeverite: [Faible OU Moyen OU Eleve OU Critique]\nDescription: [description technique precise]\nCause probable: [cause technique probable]\nSolution: [solution detaillee - minimum 3 etapes selon les normes de construction]\nNormes: [BRESIL: ABNT NBR correspondante (NBR 6118 beton, NBR 5410 electricite, NBR 5626 hydraulique, NBR 9050 accessibilite, NBR 14432 incendie, NBR 8160 eaux usees, NR-18 securite chantier) | FRANCE: DTU, Eurocodes, NF EN | EUROPE: Eurocodes EN - si non applicable: NA]"
+
 
 function saveKey(){
   var k=document.getElementById("api-inp").value.trim();
@@ -729,22 +782,26 @@ function cleanTitle(t){
 
 function parseAI(txt){
   txt=cleanAI(txt);
-  var r={title:"",cat:"Structure",sev:"medium",desc:"",action:""};
+  var r={title:"",cat:"Structure",sev:"medium",desc:"",action:"",cause:"",solution:"",normes:""};
   if(!txt)return r;
   txt.split("\n").forEach(function(ln){
     ln=ln.trim();
     var col=ln.indexOf(":");
     if(col<0)return;
     var key=ln.substring(0,col).toLowerCase().trim();
-    var val=ln.substring(col+1).trim();
-    if(key.match(/titre|title|titulo/))r.title=val.replace(/\*\*/g,"").trim();
-    else if(key.match(/cat/))r.cat=val;
+    var val=ln.substring(col+1).trim().replace(/\*\*/g,"");
+    if(key.match(/titre|title|titulo/))r.title=val;
+    else if(key.match(/^cat/))r.cat=val;
     else if(key.match(/sev|severit/)){var s=val.toLowerCase();if(s.match(/crit/))r.sev="critical";else if(s.match(/elev|high|alta/))r.sev="high";else if(s.match(/moyen|medium|media/))r.sev="medium";else r.sev="low";}
-    else if(key.match(/desc/))r.desc=val;
+    else if(key.match(/^desc/))r.desc=val;
+    else if(key.match(/cause/))r.cause=val;
+    else if(key.match(/solution/))r.solution=val;
+    else if(key.match(/norme|norm|reglement/))r.normes=val;
     else if(key.match(/action/))r.action=val;
   });
   if(!r.title)r.title=txt.split("\n")[0].substring(0,80);
   if(!r.desc)r.desc=txt;
+  if(!r.action&&r.solution)r.action=r.solution;
   return r;
 }
 
@@ -760,12 +817,14 @@ async function handlePhoto(input){
     if(resp){
       var p=parseAI(resp);
       document.getElementById("ai-photo").style.display="block";
-      document.getElementById("ai-photo-txt").textContent=resp;
+      document.getElementById("ai-p-desc").textContent=p.desc||resp;
+      document.getElementById("ai-p-cause").textContent=p.cause||"-";
+      document.getElementById("ai-p-solution").textContent=p.solution||p.action||"-";
+      document.getElementById("ai-p-normes").textContent=p.normes||"NA";
       if(p.title)document.getElementById("c-title").value=cleanTitle(p.title);
-      if(p.desc)document.getElementById("c-desc").value=p.desc;
-      if(p.action)document.getElementById("c-action").value=p.action;
       if(p.sev)document.getElementById("c-sev").value=p.sev;
-      toast("Analyse IA complète");
+      window._lastAI=p;
+      toast("Analyse IA complète — vérifiez la solution");
     }
   };
   reader.readAsDataURL(input.files[0]);
@@ -804,21 +863,51 @@ async function processVoice(){
     if(resp){
       var p=parseAI(resp);
       document.getElementById("ai-voice").style.display="block";
-      document.getElementById("ai-voice-txt").textContent=resp;
+      document.getElementById("ai-v-desc").textContent=p.desc||resp;
+      document.getElementById("ai-v-cause").textContent=p.cause||"-";
+      document.getElementById("ai-v-solution").textContent=p.solution||p.action||"-";
+      document.getElementById("ai-v-normes").textContent=p.normes||"NA";
       if(p.title)document.getElementById("c-title").value=cleanTitle(p.title);
-      if(p.desc)document.getElementById("c-desc").value=p.desc;
-      if(p.action)document.getElementById("c-action").value=p.action;
       if(p.sev)document.getElementById("c-sev").value=p.sev;
-      toast("Note vocale analysée");
+      window._lastAI=p;
+      toast("Note vocale analysée — vérifiez la solution");
     }
   };
   reader.readAsDataURL(blob);
 }
 
+function acceptAI(){
+  var p=window._lastAI||{};
+  if(p.desc)document.getElementById("c-desc").value=p.desc;
+  if(p.solution||p.action)document.getElementById("c-action").value=p.solution||p.action;
+  ["ai-photo","ai-voice"].forEach(function(id){document.getElementById(id).style.display="none";});
+  toast("✅ Solution acceptée");
+}
+
+function editAI(){
+  var p=window._lastAI||{};
+  if(p.desc)document.getElementById("c-desc").value=p.desc;
+  if(p.solution||p.action)document.getElementById("c-action").value=p.solution||p.action;
+  ["ai-photo","ai-voice"].forEach(function(id){document.getElementById(id).style.display="none";});
+  // Focus the action field for editing
+  var actionEl=document.getElementById("c-action");
+  if(actionEl){actionEl.focus();actionEl.setSelectionRange(actionEl.value.length,actionEl.value.length);}
+  toast("✏️ Modifiez la solution ci-dessous");
+}
+
+function declineAI(){
+  ["ai-photo","ai-voice"].forEach(function(id){document.getElementById(id).style.display="none";});
+  document.getElementById("c-desc").value="";
+  document.getElementById("c-action").value="";
+  window._lastAI=null;
+  toast("Solution refusée — remplissez manuellement");
+}
+
 function saveEntry(){
   var title=document.getElementById("c-title").value.trim();
   if(!title){toast("Ajoutez un titre");return;}
-  var ai=document.getElementById("ai-photo-txt").textContent||document.getElementById("ai-voice-txt").textContent||"";
+  var p=window._lastAI||{};
+  var ai=p.solution||p.action||"";
   var entry={id:Date.now(),title:title,project:document.getElementById("c-proj").value,cat:document.getElementById("c-cat").value,sev:document.getElementById("c-sev").value,desc:document.getElementById("c-desc").value,action:document.getElementById("c-action").value,date:new Date().toLocaleDateString("fr-FR"),status:"open",ai:ai};
   entries.unshift(entry);
   ["ai-photo","ai-voice"].forEach(function(id){document.getElementById(id).style.display="none";});
@@ -991,7 +1080,7 @@ async function sendChat(){
   showTyping();
   var kb=entries.length?entries.map(function(e,i){return "["+i+"] "+e.title+" | "+e.project+" | "+e.cat+" | "+e.sev+" | "+e.desc+" | "+e.action+" | "+e.date+" | "+e.status;}).join("\n"):"Aucun incident.";
   var projList=projects.map(function(p){return p.name+(p.location?" ("+p.location+")":"");}).join(", ")||"Aucun projet";
-  var sysPrompt="Tu es Bace IA, assistant expert en gestion de chantiers pour "+me.co+". Projets actifs: "+projList+". Base de connaissances ("+entries.length+" incidents tous chantiers confondus):\n"+kb+"\nReponds en "+(LANGNAMES[lang]||"Francais")+", de maniere concise et pratique.";
+  var sysPrompt="Tu es Bace IA, assistant expert en genie civil et gestion de chantiers pour "+me.co+". Tu connais les normes de construction du BRESIL (ABNT NBR 6118, NBR 5410, NBR 5626, NBR 9050, NBR 14432, NBR 8160, NR-18, NR-35, PBQP-H), de FRANCE (DTU, Eurocodes, NF EN, Code du Travail) et d EUROPE (Eurocodes EN). Projets actifs: "+projList+". Base de connaissances ("+entries.length+" incidents tous chantiers confondus):\n"+kb+"\nReponds en "+(LANGNAMES[lang]||"Francais")+", de maniere concise et pratique. Quand tu donnes une solution, cite toujours la norme applicable.";
   var messages=[{role:"system",content:sysPrompt}].concat(chatHistory.slice(-8));
   if(!GROQ){removeTyping();addMsg("bot","Cle API manquante (Shift+Alt+K).");btn.disabled=false;return;}
   try{
