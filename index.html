@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BaceTech</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--navy:#06111f;--navy2:#0d1e33;--navy3:#162840;--blue:#1E6FFF;--blue2:#3d83ff;--blue-light:rgba(30,111,255,0.08);--white:#fff;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);--text:#e8edf5;--text2:#8a9ab5;--text3:#4a5a72;--green:#10b981;--orange:#f59e0b;--red:#ef4444;--font-d:"Syne",sans-serif;--font-b:"DM Sans",sans-serif;}
+body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-height:100vh;}
+.screen{display:none;}.screen.active{display:block;}
+.tab{display:none;}.tab.active{display:block;}
+.auth-wrap{min-height:100vh;display:flex;}
+.auth-left{width:40%;background:var(--navy2);border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:space-between;padding:40px;position:relative;overflow:hidden;}
+.auth-left::before{content:"";position:absolute;top:-100px;right:-100px;width:350px;height:350px;background:radial-gradient(circle,rgba(30,111,255,0.12) 0%,transparent 70%);pointer-events:none;}
+.auth-logo{font-family:var(--font-d);font-size:24px;font-weight:800;color:var(--white);}
+.auth-logo span{color:var(--blue);}
+.auth-tagline{font-family:var(--font-d);font-size:26px;font-weight:700;color:var(--white);line-height:1.2;margin-bottom:16px;}
+.auth-sub{font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:28px;}
+.auth-feat{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);margin-bottom:8px;}
+.auth-feat-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);flex-shrink:0;}
+.auth-clients{font-size:11px;color:var(--text3);}
+.auth-right{flex:1;display:flex;align-items:center;justify-content:center;padding:40px;}
+.auth-form-box{width:100%;max-width:360px;}
+.auth-tabs{display:flex;background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:3px;margin-bottom:24px;gap:3px;}
+.auth-tab{flex:1;background:none;border:none;color:var(--text2);font-family:var(--font-b);font-size:13px;font-weight:500;padding:9px;border-radius:6px;cursor:pointer;transition:all 0.15s;}
+.auth-tab.active{background:var(--blue);color:white;}
+.form-group{margin-bottom:14px;}
+.form-label{display:block;font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;}
+.form-input,.form-select{width:100%;background:var(--navy2);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;font-family:var(--font-b);font-size:14px;color:var(--text);outline:none;transition:border-color 0.15s;}
+.form-input::placeholder{color:var(--text3);}
+.form-input:focus,.form-select:focus{border-color:var(--blue);}
+.form-select option{background:var(--navy2);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn-primary{width:100%;background:var(--blue);color:white;border:none;border-radius:8px;padding:14px;font-family:var(--font-d);font-size:14px;font-weight:600;cursor:pointer;transition:all 0.15s;margin-top:4px;}
+.btn-primary:hover{background:var(--blue2);}
+.btn-primary:disabled{opacity:0.6;cursor:not-allowed;}
+.auth-switch{text-align:center;font-size:12px;color:var(--text2);margin-top:16px;}
+.auth-switch a{color:var(--blue);cursor:pointer;font-weight:500;}
+.auth-msg{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none;}
+.auth-msg.ok{background:rgba(16,185,129,0.1);color:#34d399;border:1px solid rgba(16,185,129,0.2);}
+.auth-msg.err{background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.2);}
+.lang-toggle{display:flex;background:var(--navy2);border:1px solid var(--border);border-radius:6px;padding:2px;gap:2px;}
+.lang-btn{background:none;border:none;color:var(--text2);font-size:11px;font-weight:600;padding:4px 10px;border-radius:4px;cursor:pointer;transition:all 0.12s;}
+.lang-btn.active{background:var(--blue);color:white;}
+.app-wrap{display:flex;min-height:100vh;}
+.sidebar{width:220px;background:var(--navy2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;position:fixed;height:100vh;z-index:100;}
+.sidebar-logo{font-family:var(--font-d);font-size:19px;font-weight:800;color:var(--white);padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.sidebar-logo span{color:var(--blue);}
+.notif-bell{position:relative;cursor:pointer;color:var(--text2);font-size:18px;transition:color 0.12s;}
+.notif-bell:hover{color:var(--white);}
+.notif-badge{position:absolute;top:-4px;right:-4px;background:var(--red);color:white;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:none;align-items:center;justify-content:center;}
+.notif-badge.show{display:flex;}
+.sidebar-section{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:16px 20px 6px;}
+.sidebar-link{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;color:var(--text2);cursor:pointer;transition:all 0.12s;border-left:2px solid transparent;}
+.sidebar-link:hover{color:var(--text);background:rgba(255,255,255,0.03);}
+.sidebar-link.active{color:var(--white);background:var(--blue-light);border-left-color:var(--blue);}
+.sidebar-link i{font-size:16px;width:18px;}
+.sidebar-bottom{margin-top:auto;border-top:1px solid var(--border);padding:16px 20px;}
+.user-chip{display:flex;align-items:center;gap:8px;}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;font-family:var(--font-d);flex-shrink:0;}
+.user-name{font-size:12px;font-weight:500;color:var(--text);}
+.user-company{font-size:11px;color:var(--text3);}
+.app-main{flex:1;margin-left:220px;display:flex;flex-direction:column;min-height:100vh;}
+.app-topbar{height:54px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:var(--navy);position:sticky;top:0;z-index:50;}
+.topbar-title{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--white);}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.btn-capture{background:var(--blue);color:white;border:none;border-radius:7px;padding:8px 16px;font-family:var(--font-d);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.12s;}
+.btn-capture:hover{background:var(--blue2);}
+.app-content{flex:1;padding:28px;}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+.kpi{background:var(--navy2);border:1px solid var(--border);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden;}
+.kpi::before{content:"";position:absolute;top:0;right:0;width:80px;height:80px;background:radial-gradient(circle,rgba(30,111,255,0.12) 0%,transparent 70%);}
+.kpi-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;font-weight:500;}
+.kpi-value{font-family:var(--font-d);font-size:32px;font-weight:800;color:var(--white);}
+.kpi-value.blue{color:var(--blue);}.kpi-value.green{color:var(--green);}.kpi-value.orange{color:var(--orange);}.kpi-value.red{color:var(--red);}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:5px;}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.section-title{font-family:var(--font-d);font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;}
+.section-link{font-size:12px;color:var(--blue);cursor:pointer;}
+.table-wrap{background:var(--navy2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+table{width:100%;border-collapse:collapse;}
+th{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;padding:10px 16px;text-align:left;border-bottom:1px solid var(--border);font-weight:500;background:var(--navy3);}
+td{padding:13px 16px;font-size:13px;color:var(--text);border-bottom:1px solid var(--border);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,0.02);}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:4px;font-size:11px;font-weight:600;}
+.b-low{background:rgba(16,185,129,0.15);color:#34d399;}
+.b-medium{background:rgba(245,158,11,0.15);color:#fbbf24;}
+.b-high{background:rgba(239,68,68,0.15);color:#f87171;}
+.b-critical{background:rgba(127,29,29,0.4);color:#fca5a5;}
+.b-open{background:rgba(30,111,255,0.15);color:#60a5fa;}
+.capture-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.capture-panel{background:var(--navy2);border:1px solid var(--border);border-radius:12px;padding:24px;}
+.panel-title{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--white);margin-bottom:18px;}
+.upload-zone{border:1.5px dashed var(--border2);border-radius:10px;padding:32px;text-align:center;cursor:pointer;transition:all 0.15s;margin-bottom:14px;position:relative;}
+.upload-zone:hover{border-color:var(--blue);background:var(--blue-light);}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.upload-icon{font-size:32px;margin-bottom:8px;}
+.upload-text{font-size:13px;color:var(--text2);}
+.ai-result{background:var(--navy3);border:1px solid rgba(30,111,255,0.2);border-radius:10px;padding:16px;margin-bottom:16px;display:none;}
+.ai-tag{font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.ai-text{font-size:13px;color:var(--text2);line-height:1.65;white-space:pre-line;}
+.form-g{margin-bottom:14px;}
+.form-l{display:block;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;}
+.form-i,.form-s,.form-t{width:100%;background:var(--navy3);border:1px solid var(--border2);border-radius:8px;padding:10px 13px;font-family:var(--font-b);font-size:13px;color:var(--text);outline:none;transition:border-color 0.12s;}
+.form-i::placeholder,.form-t::placeholder{color:var(--text3);}
+.form-i:focus,.form-s:focus,.form-t:focus{border-color:var(--blue);}
+.form-s option{background:var(--navy2);}
+.form-t{min-height:75px;resize:vertical;}
+.form-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.btn-save{width:100%;background:var(--blue);color:white;border:none;border-radius:8px;padding:13px;font-family:var(--font-d);font-size:13px;font-weight:700;cursor:pointer;margin-top:6px;transition:all 0.12s;}
+.btn-save:hover{background:var(--blue2);}
+.voice-btn{width:100%;background:var(--navy3);border:1.5px dashed var(--border2);border-radius:10px;padding:32px;text-align:center;cursor:pointer;transition:all 0.15s;margin-bottom:14px;font-family:var(--font-b);}
+.voice-btn:hover{border-color:var(--blue);background:var(--blue-light);}
+.voice-btn.recording{border-color:var(--red);background:rgba(239,68,68,0.08);animation:pulse 1.2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.6;}}
+.kb-controls{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+.kb-filter{background:var(--navy2);border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:12px;font-weight:500;cursor:pointer;color:var(--text2);transition:all 0.12s;}
+.kb-filter.active{background:var(--blue);color:white;border-color:var(--blue);}
+.files-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.file-folder{background:var(--navy2);border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:all 0.15s;text-align:center;}
+.file-folder:hover{border-color:var(--blue);background:var(--blue-light);}
+.file-folder-icon{font-size:32px;margin-bottom:10px;}
+.file-folder-name{font-size:13px;font-weight:600;color:var(--white);margin-bottom:4px;}
+.file-folder-count{font-size:11px;color:var(--text3);}
+.proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;}
+.proj-card{background:var(--navy2);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;}
+.proj-card-name{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--white);margin-bottom:4px;}
+.proj-card-meta{font-size:12px;color:var(--text3);margin-bottom:12px;}
+.proj-card-count{font-size:11px;color:var(--blue);}
+.proj-del{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;transition:color 0.12s;}
+.proj-del:hover{color:var(--red);}
+.proj-add-box{background:var(--navy2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:24px;}
+.proj-add-row{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;}
+.community-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;}
+.site-selector{background:var(--navy2);border:1px solid var(--border2);border-radius:8px;padding:9px 14px;font-family:var(--font-b);font-size:13px;color:var(--text);outline:none;cursor:pointer;}
+.site-selector option{background:var(--navy2);}
+.post-box{background:var(--navy2);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:20px;}
+.post-input{width:100%;background:var(--navy3);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;font-family:var(--font-b);font-size:13px;color:var(--text);outline:none;resize:none;min-height:80px;}
+.post-input::placeholder{color:var(--text3);}
+.post-input:focus{border-color:var(--blue);}
+.post-actions{display:flex;align-items:center;justify-content:space-between;margin-top:10px;}
+.post-tag-sel{background:var(--navy3);border:1px solid var(--border2);border-radius:6px;padding:6px 10px;font-family:var(--font-b);font-size:12px;color:var(--text2);outline:none;}
+.post-tag-sel option{background:var(--navy2);}
+.btn-post{background:var(--blue);color:white;border:none;border-radius:7px;padding:8px 18px;font-family:var(--font-d);font-size:12px;font-weight:600;cursor:pointer;}
+.btn-post:hover{background:var(--blue2);}
+.post-card{background:var(--navy2);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px;}
+.post-card-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.post-av{width:32px;height:32px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;font-family:var(--font-d);flex-shrink:0;}
+.post-author{font-size:13px;font-weight:600;color:var(--white);}
+.post-meta{font-size:11px;color:var(--text3);}
+.post-tag{display:inline-flex;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;margin-left:auto;}
+.tag-problem{background:rgba(239,68,68,0.15);color:#f87171;}
+.tag-question{background:rgba(245,158,11,0.15);color:#fbbf24;}
+.tag-info{background:rgba(30,111,255,0.15);color:#60a5fa;}
+.tag-solved{background:rgba(16,185,129,0.15);color:#34d399;}
+.post-body{font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:14px;}
+.reply-list{border-top:1px solid var(--border);padding-top:12px;}
+.reply-item{display:flex;gap:8px;margin-bottom:10px;}
+.reply-av{width:24px;height:24px;border-radius:50%;background:var(--navy3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--text2);flex-shrink:0;}
+.reply-author{font-size:11px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.reply-txt{font-size:12px;color:var(--text2);line-height:1.5;}
+.reply-box{display:flex;gap:8px;margin-top:10px;}
+.reply-input{flex:1;background:var(--navy3);border:1px solid var(--border2);border-radius:7px;padding:8px 12px;font-family:var(--font-b);font-size:12px;color:var(--text);outline:none;}
+.reply-input::placeholder{color:var(--text3);}
+.reply-input:focus{border-color:var(--blue);}
+.btn-reply{background:var(--navy3);border:1px solid var(--border2);color:var(--blue);border-radius:7px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;}
+.btn-reply:hover{background:var(--blue);color:white;border-color:var(--blue);}
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 110px);}
+.chat-header{background:var(--navy2);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+.chat-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--blue),#7c3aed);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.chat-header-name{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--white);}
+.chat-header-status{font-size:11px;color:var(--green);}
+.chat-messages{flex:1;overflow-y:auto;padding:4px 0;display:flex;flex-direction:column;gap:12px;}
+.msg{display:flex;gap:10px;max-width:80%;}
+.msg.user{align-self:flex-end;flex-direction:row-reverse;}
+.msg.bot{align-self:flex-start;}
+.msg-av{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
+.msg.bot .msg-av{background:linear-gradient(135deg,var(--blue),#7c3aed);color:white;}
+.msg.user .msg-av{background:var(--navy3);color:var(--text2);border:1px solid var(--border2);}
+.msg-bubble{padding:12px 16px;border-radius:12px;font-size:13px;line-height:1.6;}
+.msg.bot .msg-bubble{background:var(--navy2);border:1px solid var(--border);color:var(--text);border-bottom-left-radius:4px;}
+.msg.user .msg-bubble{background:var(--blue);color:white;border-bottom-right-radius:4px;}
+.msg-time{font-size:10px;color:var(--text3);margin-top:4px;}
+.chat-suggestions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.chat-sugg{background:var(--navy2);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:12px;color:var(--text2);cursor:pointer;transition:all 0.12s;white-space:nowrap;}
+.chat-sugg:hover{border-color:var(--blue);color:var(--white);}
+.typing-indicator{display:flex;gap:4px;align-items:center;padding:8px 0;}
+.typing-dot{width:7px;height:7px;border-radius:50%;background:var(--text3);animation:typing 1.2s infinite;}
+.typing-dot:nth-child(2){animation-delay:0.2s;}
+.typing-dot:nth-child(3){animation-delay:0.4s;}
+@keyframes typing{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-6px);}}
+.chat-input-wrap{background:var(--navy2);border:1px solid var(--border2);border-radius:12px;padding:12px 16px;display:flex;gap:10px;align-items:flex-end;margin-top:16px;}
+.chat-input{flex:1;background:none;border:none;outline:none;font-family:var(--font-b);font-size:14px;color:var(--text);resize:none;max-height:120px;min-height:24px;line-height:1.5;}
+.chat-input::placeholder{color:var(--text3);}
+.chat-send{background:var(--blue);border:none;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.12s;}
+.chat-send:hover{background:var(--blue2);}
+.chat-send:disabled{opacity:0.4;cursor:not-allowed;}
+.chat-send i{color:white;font-size:16px;}
+.notif-panel{position:fixed;top:54px;right:20px;width:320px;background:var(--navy2);border:1px solid var(--border2);border-radius:12px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,0.4);display:none;}
+.notif-panel.show{display:block;}
+.notif-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);}
+.notif-header-title{font-family:var(--font-d);font-size:13px;font-weight:700;color:var(--white);}
+.notif-clear{font-size:11px;color:var(--blue);cursor:pointer;}
+.notif-list{max-height:320px;overflow-y:auto;}
+.notif-item{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;}
+.notif-item:last-child{border-bottom:none;}
+.notif-dot{width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0;margin-top:4px;}
+.notif-txt{font-size:12px;color:var(--text2);line-height:1.5;}
+.notif-time{font-size:10px;color:var(--text3);margin-top:3px;}
+.notif-empty{padding:24px;text-align:center;color:var(--text3);font-size:13px;}
+.loading-overlay{display:none;position:fixed;inset:0;background:rgba(6,17,31,0.85);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+.loading-overlay.show{display:flex;}
+.loading-spinner{width:40px;height:40px;border:3px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-text{font-family:var(--font-d);font-size:14px;color:var(--text2);}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3);}
+.empty-icon{font-size:36px;margin-bottom:12px;}
+.empty-text{font-size:14px;line-height:1.6;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--navy2);border:1px solid var(--border2);color:var(--text);padding:12px 22px;border-radius:10px;font-size:13px;font-weight:500;z-index:9999;transition:transform 0.25s;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,0.4);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.settings-panel{background:var(--navy2);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:500px;}
+.settings-row{display:flex;gap:8px;}
+.settings-row input{flex:1;background:var(--navy3);border:1px solid var(--border2);border-radius:8px;padding:10px 13px;font-family:var(--font-b);font-size:13px;color:var(--text);outline:none;}
+.settings-row button{background:var(--blue);color:white;border:none;border-radius:8px;padding:10px 16px;font-family:var(--font-d);font-size:12px;font-weight:600;cursor:pointer;}
+@media(max-width:768px){.auth-left{display:none;}.kpi-grid{grid-template-columns:1fr 1fr;}.capture-grid{grid-template-columns:1fr;}.files-grid{grid-template-columns:1fr 1fr;}.proj-grid{grid-template-columns:1fr 1fr;}.sidebar{width:100%;height:auto;position:relative;}.app-main{margin-left:0;}}
+</style>
+</head>
+<body>
+<div class="loading-overlay" id="loading"><div class="loading-spinner"></div><div class="loading-text" id="load-txt">Chargement...</div></div>
+<div class="notif-panel" id="notif-panel">
+  <div class="notif-header"><div class="notif-header-title">Notifications</div><div class="notif-clear" onclick="clearNotifs()">Effacer</div></div>
+  <div class="notif-list" id="notif-list"><div class="notif-empty">Aucune notification</div></div>
+</div>
+<div id="s-login" class="screen active">
+  <div class="auth-wrap">
+    <div class="auth-left">
+      <div class="auth-logo">Bace<span>Tech</span></div>
+      <div>
+        <div class="auth-tagline" id="a-tagline">La mémoire intelligente de vos chantiers</div>
+        <div class="auth-sub" id="a-sub">Capturez chaque incident en quelques secondes.</div>
+        <div class="auth-feat"><div class="auth-feat-dot"></div><span id="a-f1">Capture photo et vocale par IA</span></div>
+        <div class="auth-feat"><div class="auth-feat-dot"></div><span id="a-f2">Notifications en temps réel</span></div>
+        <div class="auth-feat"><div class="auth-feat-dot"></div><span id="a-f3">Communauté par chantier</span></div>
+        <div class="auth-feat"><div class="auth-feat-dot"></div><span id="a-f4">Classement automatique</span></div>
+      </div>
+      <div class="auth-clients" id="a-clients">Pour les entreprises de construction</div>
+    </div>
+    <div class="auth-right">
+      <div class="auth-form-box">
+        <div class="auth-tabs">
+          <button class="auth-tab active" id="tab-a" onclick="switchTab(0)">Connexion</button>
+          <button class="auth-tab" id="tab-b" onclick="switchTab(1)">Créer un compte</button>
+        </div>
+        <div id="auth-msg" class="auth-msg"></div>
+        <div id="form-login">
+          <div class="form-group"><label class="form-label" id="lb-email">Email</label><input class="form-input" type="email" id="l-email" placeholder="vous@entreprise.com"></div>
+          <div class="form-group"><label class="form-label" id="lb-pass">Mot de passe</label><input class="form-input" type="password" id="l-pass" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"></div>
+          <button class="btn-primary" id="btn-login" onclick="doLogin()">Se connecter</button>
+          <div style="text-align:center;margin-top:10px"><a onclick="doReset()" style="font-size:12px;color:var(--text3);cursor:pointer" id="lnk-reset">Mot de passe oublié ?</a></div>
+          <div class="auth-switch"><span id="no-acc">Pas encore de compte ?</span> <a onclick="switchTab(1)" id="lnk-signup">Créer votre espace</a></div>
+        </div>
+        <div id="form-signup" style="display:none">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label" id="lb-first">Prenom</label><input class="form-input" type="text" id="s-first" placeholder="Jean"></div>
+            <div class="form-group"><label class="form-label" id="lb-last">Nom</label><input class="form-input" type="text" id="s-last" placeholder="Dupont"></div>
+          </div>
+          <div class="form-group"><label class="form-label" id="lb-semail">Email professionnel</label><input class="form-input" type="email" id="s-email" placeholder="jean@entreprise.fr"></div>
+          <div class="form-group"><label class="form-label" id="lb-co">Entreprise</label><input class="form-input" type="text" id="s-co" placeholder="BTP SARL"></div>
+          <div class="form-group"><label class="form-label" id="lb-spass">Mot de passe</label><input class="form-input" type="password" id="s-pass" placeholder="Min. 8 caractères"></div>
+          <button class="btn-primary" id="btn-signup" onclick="doSignup()">Creer mon compte</button>
+          <div class="auth-switch"><span id="have-acc">Déjà un compte ?</span> <a onclick="switchTab(0)" id="lnk-login">Se connecter</a></div>
+        </div>
+        <div style="margin-top:20px;text-align:center">
+          <div class="lang-toggle" style="display:inline-flex">
+            <button class="lang-btn active" onclick="setLang(0,this)">FR</button>
+            <button class="lang-btn" onclick="setLang(1,this)">EN</button>
+            <button class="lang-btn" onclick="setLang(2,this)">PT</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="s-app" class="screen">
+  <div class="app-wrap">
+    <div class="sidebar">
+      <div class="sidebar-logo">
+        <span>Bace<span>Tech</span></span>
+        <div class="notif-bell" onclick="toggleNotifPanel()"><i class="ti ti-bell"></i><div class="notif-badge" id="notif-badge">0</div></div>
+      </div>
+      <div class="sidebar-section">Principal</div>
+      <div class="sidebar-link active" onclick="showTab(0,this)"><i class="ti ti-layout-dashboard"></i><span id="nav-dash">Dashboard</span></div>
+      <div class="sidebar-link" onclick="showTab(1,this)"><i class="ti ti-camera"></i><span id="nav-cap">Capturer</span></div>
+      <div class="sidebar-link" onclick="showTab(2,this)"><i class="ti ti-folder"></i><span id="nav-files">Mes dossiers</span></div>
+      <div class="sidebar-link" onclick="showTab(3,this)"><i class="ti ti-database"></i><span id="nav-kb">Base de connaissances</span></div>
+      <div class="sidebar-link" onclick="showTab(4,this)"><i class="ti ti-robot"></i><span id="nav-search">Bace IA</span></div>
+      <div class="sidebar-link" onclick="showTab(5,this)"><i class="ti ti-users"></i><span id="nav-comm">Communauté</span></div>
+      <div class="sidebar-link" onclick="showTab(6,this)"><i class="ti ti-building-skyscraper"></i><span id="nav-proj">Mes projets</span></div>
+      <div class="sidebar-section">Compte</div>
+      <div class="sidebar-link" onclick="doLogout()"><i class="ti ti-logout"></i><span id="nav-logout">Déconnexion</span></div>
+      <div class="sidebar-bottom">
+        <div class="user-chip">
+          <div class="user-avatar" id="u-av">?</div>
+          <div><div class="user-name" id="u-name">...</div><div class="user-company" id="u-co">...</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="app-main">
+      <div class="app-topbar">
+        <div class="topbar-title" id="top-title">Dashboard</div>
+        <div class="topbar-right">
+          <div class="lang-toggle">
+            <button class="lang-btn active" onclick="setLang(0,this)">FR</button>
+            <button class="lang-btn" onclick="setLang(1,this)">EN</button>
+            <button class="lang-btn" onclick="setLang(2,this)">PT</button>
+          </div>
+          <button class="btn-capture" onclick="showTab(1,document.querySelectorAll('.sidebar-link')[1])"><i class="ti ti-plus"></i><span id="btn-cap">Capturer</span></button>
+        </div>
+      </div>
+      <div class="app-content">
+        <div id="tab-0" class="tab active">
+          <div class="kpi-grid">
+            <div class="kpi"><div class="kpi-label" id="kl-tot">Total captures</div><div class="kpi-value blue" id="kv-tot">0</div><div class="kpi-sub" id="ks-tot">ce mois-ci</div></div>
+            <div class="kpi"><div class="kpi-label" id="kl-res">Résolus</div><div class="kpi-value green" id="kv-res">0</div><div class="kpi-sub" id="ks-res">incidents traites</div></div>
+            <div class="kpi"><div class="kpi-label" id="kl-crit">Critiques</div><div class="kpi-value red" id="kv-crit">0</div><div class="kpi-sub" id="ks-crit">necessitent action</div></div>
+            <div class="kpi"><div class="kpi-label" id="kl-cats">Categories</div><div class="kpi-value orange" id="kv-cats">0</div><div class="kpi-sub" id="ks-cats">types</div></div>
+          </div>
+          <div class="section-header"><div class="section-title" id="st-rec">Incidents récents</div><div class="section-link" onclick="showTab(3,document.querySelectorAll('.sidebar-link')[3])" id="sl-all">Voir tout</div></div>
+          <div id="dash-out"><div class="empty-state"><div class="empty-icon">&#x1F4CB;</div><div class="empty-text" id="dash-empty">Aucune capture.</div></div></div>
+        </div>
+        <div id="tab-1" class="tab">
+          <div class="capture-grid">
+            <div class="capture-panel">
+              <div class="panel-title">Capture &amp; Bace IA</div>
+              <div style="background:var(--blue-light);border:1px solid rgba(30,111,255,0.2);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--blue);margin-bottom:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-map-pin" style="font-size:14px"></i><span>L'IA analysera selon le projet sélectionné</span></div>
+              <div class="upload-zone"><input type="file" accept="image/*" onchange="handlePhoto(this)"><div class="upload-icon">&#x1F4F7;</div><div class="upload-text" id="ut-photo">Appuyer pour importer une photo</div></div>
+              <div class="ai-result" id="ai-photo"><div class="ai-tag">Bace IA - Analyse photo</div><div class="ai-text" id="ai-photo-txt"></div></div>
+              <button class="voice-btn" id="voice-btn" onclick="toggleVoice()"><div class="upload-icon" id="voice-icon">&#x1F399;&#xFE0F;</div><div class="upload-text" id="ut-voice">Appuyer pour enregistrer</div></button>
+              <div class="ai-result" id="ai-voice"><div class="ai-tag">Bace IA - Transcription</div><div class="ai-text" id="ai-voice-txt"></div></div>
+            </div>
+            <div class="capture-panel">
+              <div class="panel-title">Details</div>
+              <div class="form-g"><label class="form-l">Titre</label><input class="form-i" id="c-title" placeholder="Ex: Fissure mur..."></div>
+              <div class="form-2col">
+                <div class="form-g"><label class="form-l">Projet</label><select class="form-s" id="c-proj"><option>Aucun projet</option></select></div>
+                <div class="form-g"><label class="form-l">Severite</label><select class="form-s" id="c-sev"><option value="low">Faible</option><option value="medium">Moyen</option><option value="high">Eleve</option><option value="critical">Critique</option></select></div>
+              </div>
+              <div class="form-g"><label class="form-l">Categorie</label><select class="form-s" id="c-cat"><option>Structure</option><option>Electricite</option><option>Plomberie</option><option>Securite</option><option>Equipement</option><option>Documentation</option></select></div>
+              <div class="form-g"><label class="form-l">Description</label><textarea class="form-t" id="c-desc" placeholder="Décrivez l'incident..."></textarea></div>
+              <div class="form-g"><label class="form-l">Action recommandee</label><textarea class="form-t" id="c-action" style="min-height:60px" placeholder="Que faire ?"></textarea></div>
+              <button class="btn-save" onclick="saveEntry()">Enregistrer &amp; Classer</button>
+            </div>
+          </div>
+        </div>
+        <div id="tab-2" class="tab">
+          <div class="section-header" style="margin-bottom:20px"><div class="section-title">Dossiers par catégorie</div><div style="font-size:12px;color:var(--text3)">Classement automatique</div></div>
+          <div class="files-grid">
+            <div class="file-folder" onclick="openFolder(0)"><div class="file-folder-icon">&#x1F3D7;&#xFE0F;</div><div class="file-folder-name">Structure</div><div class="file-folder-count" id="fc-0">0 fichier(s)</div></div>
+            <div class="file-folder" onclick="openFolder(1)"><div class="file-folder-icon">&#x26A1;</div><div class="file-folder-name">Electricite</div><div class="file-folder-count" id="fc-1">0 fichier(s)</div></div>
+            <div class="file-folder" onclick="openFolder(2)"><div class="file-folder-icon">&#x1F527;</div><div class="file-folder-name">Plomberie</div><div class="file-folder-count" id="fc-2">0 fichier(s)</div></div>
+            <div class="file-folder" onclick="openFolder(3)"><div class="file-folder-icon">&#x26D1;&#xFE0F;</div><div class="file-folder-name">Securite</div><div class="file-folder-count" id="fc-3">0 fichier(s)</div></div>
+            <div class="file-folder" onclick="openFolder(4)"><div class="file-folder-icon">&#x1F529;</div><div class="file-folder-name">Equipement</div><div class="file-folder-count" id="fc-4">0 fichier(s)</div></div>
+            <div class="file-folder" onclick="openFolder(5)"><div class="file-folder-icon">&#x1F4C4;</div><div class="file-folder-name">Documentation</div><div class="file-folder-count" id="fc-5">0 fichier(s)</div></div>
+          </div>
+        </div>
+        <div id="tab-3" class="tab">
+          <div class="kb-controls">
+            <div class="kb-filter active" onclick="filterKB(-1,this)">Tout</div>
+            <div class="kb-filter" onclick="filterKB(0,this)">Structure</div>
+            <div class="kb-filter" onclick="filterKB(1,this)">Electricite</div>
+            <div class="kb-filter" onclick="filterKB(2,this)">Plomberie</div>
+            <div class="kb-filter" onclick="filterKB(3,this)">Securite</div>
+            <div class="kb-filter" onclick="filterKB(4,this)">Equipement</div>
+          </div>
+          <div id="kb-out"><div class="empty-state"><div class="empty-icon">&#x1F5C2;&#xFE0F;</div><div class="empty-text">Aucune entrée.</div></div></div>
+        </div>
+        <div id="tab-4" class="tab">
+          <div class="chat-wrap">
+            <div class="chat-header">
+              <div class="chat-avatar">&#x1F916;</div>
+              <div><div class="chat-header-name">Bace IA — Assistant chantier</div><div class="chat-header-status">En ligne — Base de connaissances connectée</div></div>
+            </div>
+            <div class="chat-suggestions" id="chat-suggs">
+              <div class="chat-sugg" onclick="sendSugg(this.textContent)">Dernier incident critique ?</div>
+              <div class="chat-sugg" onclick="sendSugg(this.textContent)">Problèmes non resolus ?</div>
+              <div class="chat-sugg" onclick="sendSugg(this.textContent)">Résumé par chantier ?</div>
+              <div class="chat-sugg" onclick="sendSugg(this.textContent)">Incidents cette semaine ?</div>
+            </div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div class="chat-input-wrap">
+              <textarea class="chat-input" id="chat-input" placeholder="Posez votre question..." rows="1" onkeydown="chatKeydown(event)" oninput="autoResize(this)"></textarea>
+              <button class="chat-send" id="chat-send" onclick="sendChat()"><i class="ti ti-send"></i></button>
+            </div>
+          </div>
+        </div>
+        <div id="tab-5" class="tab">
+          <div class="community-top">
+            <div><div style="font-family:var(--font-d);font-size:18px;font-weight:700;color:var(--white);margin-bottom:4px">Communauté du chantier</div><div style="font-size:13px;color:var(--text2)">Posez vos problèmes, partagez vos solutions</div></div>
+            <select class="site-selector" id="site-sel" onchange="loadPosts()"><option>Aucun projet</option></select>
+          </div>
+          <div class="post-box">
+            <textarea class="post-input" id="post-input" placeholder="Décrivez votre problème..."></textarea>
+            <div class="post-actions">
+              <select class="post-tag-sel" id="post-tag">
+                <option value="problem">Problème</option>
+                <option value="question">Question</option>
+                <option value="info">Info</option>
+                <option value="solved">Résolu</option>
+              </select>
+              <button class="btn-post" onclick="submitPost()">Publier</button>
+            </div>
+          </div>
+          <div id="posts-out"><div class="empty-state"><div class="empty-icon">&#x1F4AC;</div><div class="empty-text">Aucune discussion.</div></div></div>
+        </div>
+        <div id="tab-6" class="tab">
+          <div class="section-header" style="margin-bottom:20px"><div class="section-title">Mes projets &amp; chantiers</div></div>
+          <div class="proj-add-box">
+            <div style="font-family:var(--font-d);font-size:14px;font-weight:600;color:var(--white);margin-bottom:14px">Ajouter un chantier</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;">
+              <div class="form-g" style="margin:0"><label class="form-l">Nom du chantier</label><input class="form-i" id="proj-name" placeholder="Ex: Tour Horizon..."></div>
+              <div class="form-g" style="margin:0"><label class="form-l">Localisation</label><input class="form-i" id="proj-loc" placeholder="Ex: Paris..."></div>
+              <div class="form-g" style="margin:0"><label class="form-l">Maître d’œuvre</label><input class="form-i" id="proj-owner" placeholder="Ex : Ing. Jean Dupont..."></div>
+              <button class="btn-save" style="margin:0;padding:10px 20px;width:auto" onclick="addProject()">+ Ajouter</button>
+            </div>
+          </div>
+          <div id="proj-out"><div class="empty-state"><div class="empty-icon">&#x1F3D7;&#xFE0F;</div><div class="empty-text">Aucun chantier.</div></div></div>
+        </div>
+        <div id="tab-7" class="tab">
+          <div class="settings-panel">
+            <div style="font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--white);margin-bottom:6px">Clé API Bace IA</div>
+            <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Entrez votre clé Groq.</div>
+            <div class="settings-row"><input type="password" id="api-inp" placeholder="gsk_..."><button onclick="saveKey()">OK</button></div>
+            <div style="font-size:12px;margin-top:10px;padding:8px 12px;border-radius:6px" id="api-status"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+var SB_URL="https://rzdoeehbpdgjxtfbbmwp.supabase.co";
+var SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6ZG9lZWhicGRnanh0ZmJibXdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNjk0NzksImV4cCI6MjA5Njk0NTQ3OX0.XcysRlpgefqmw_zh7osXwqgL5-G71kFH-Uv-HuINLow";
+var GROQ=localStorage.getItem("bacetech_groq")||"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";
+var db=null,lang=0,entries=[],kbIdx=-1,isRec=false,mr=null,chunks=[];
+var dbCoId=null,dbOk=false,rtChannel=null;
+var me={name:"",co:"",av:"",email:""};
+var notifs=[],notifOpen=false,projects=[],chatHistory=[];
+var CATS=["Structure","Electricite","Plomberie","Securite","Equipement","Documentation"];
+var LANGNAMES=["Francais","English","Portugues"];
+
+var STRINGS=[
+  {tabA:"Connexion",tabB:"Créer un compte",lbEmail:"Email",lbPass:"Mot de passe",btnLogin:"Se connecter",noAcc:"Pas encore de compte ?",lnkSignup:"Créer votre espace",lbFirst:"Prénom",lbLast:"Nom",lbSemail:"Email professionnel",lbCo:"Entreprise",lbSpass:"Mot de passe",btnSignup:"Créer mon compte",haveAcc:"Déjà un compte ?",lnkLogin:"Se connecter",lnkReset:"Mot de passe oublié ?",navDash:"Dashboard",navCap:"Capturer",navFiles:"Mes dossiers",navKb:"Base de connaissances",navSearch:"Bace IA",navComm:"Communauté",navProj:"Mes projets",navLogout:"Déconnexion",btnCap:"Capturer",utPhoto:"Appuyer pour importer une photo",utVoice:"Appuyer pour enregistrer",klTot:"Total captures",ksTot:"ce mois-ci",klRes:"Résolus",ksRes:"incidents traités",klCrit:"Critiques",ksCrit:"nécessitent action",klCats:"Categories",ksCats:"types",stRec:"Incidents récents",slAll:"Voir tout",statusOpen:"Ouvert",sevLow:"Faible",sevMed:"Moyen",sevHigh:"Élevé",sevCrit:"Critique",thTitle:"Titre",thProj:"Projet",thCat:"Cat",thSev:"Sev",thDate:"Date",thStatus:"Status"},
+  {tabA:"Sign in",tabB:"Create account",lbEmail:"Email",lbPass:"Password",btnLogin:"Sign in",noAcc:"No account yet?",lnkSignup:"Create your workspace",lbFirst:"First name",lbLast:"Last name",lbSemail:"Work email",lbCo:"Company",lbSpass:"Password",btnSignup:"Create my account",haveAcc:"Already have an account?",lnkLogin:"Sign in",lnkReset:"Forgot password?",navDash:"Dashboard",navCap:"Capture",navFiles:"My folders",navKb:"Knowledge base",navSearch:"Bace AI",navComm:"Community",navProj:"My projects",navLogout:"Sign out",btnCap:"Capture",utPhoto:"Tap to import a photo",utVoice:"Tap to record a note",klTot:"Total captures",ksTot:"this month",klRes:"Resolved",ksRes:"issues handled",klCrit:"Critical",ksCrit:"need action",klCats:"Categories",ksCats:"types",stRec:"Recent incidents",slAll:"View all",statusOpen:"Open",sevLow:"Low",sevMed:"Medium",sevHigh:"High",sevCrit:"Critical",thTitle:"Title",thProj:"Project",thCat:"Cat",thSev:"Sev",thDate:"Date",thStatus:"Status"},
+  {tabA:"Entrar",tabB:"Criar conta",lbEmail:"E-mail",lbPass:"Senha",btnLogin:"Entrar",noAcc:"Nao tem conta?",lnkSignup:"Criar seu espaco",lbFirst:"Nome",lbLast:"Sobrenome",lbSemail:"E-mail profissional",lbCo:"Empresa",lbSpass:"Senha",btnSignup:"Criar minha conta",haveAcc:"Ja tem conta?",lnkLogin:"Entrar",lnkReset:"Esqueceu a senha?",navDash:"Dashboard",navCap:"Capturar",navFiles:"Meus arquivos",navKb:"Base de conhecimento",navSearch:"Bace IA",navComm:"Comunidade",navProj:"Meus projetos",navLogout:"Sair",btnCap:"Capturar",utPhoto:"Toque para importar uma foto",utVoice:"Toque para gravar",klTot:"Total de capturas",ksTot:"este mes",klRes:"Resolvidos",ksRes:"incidentes tratados",klCrit:"Criticos",ksCrit:"precisam de acao",klCats:"Categorias",ksCats:"tipos",stRec:"Incidentes recentes",slAll:"Ver tudo",statusOpen:"Aberto",sevLow:"Baixa",sevMed:"Media",sevHigh:"Alta",sevCrit:"Critica",thTitle:"Titulo",thProj:"Projeto",thCat:"Cat",thSev:"Sev",thDate:"Data",thStatus:"Status"}
+];
+
+try{db=supabase.createClient(SB_URL,SB_KEY);}catch(e){console.error(e);}
+
+function setLang(i,btn){
+  lang=i;
+  document.querySelectorAll(".lang-btn").forEach(function(b){b.classList.toggle("active",b===btn);});
+  applyLang();
+}
+
+function applyLang(){
+  var S=STRINGS[lang];
+  var ids={"tab-a":"tabA","tab-b":"tabB","lb-email":"lbEmail","lb-pass":"lbPass","btn-login":"btnLogin","no-acc":"noAcc","lnk-signup":"lnkSignup","lb-first":"lbFirst","lb-last":"lbLast","lb-semail":"lbSemail","lb-co":"lbCo","lb-spass":"lbSpass","btn-signup":"btnSignup","have-acc":"haveAcc","lnk-login":"lnkLogin","lnk-reset":"lnkReset","nav-dash":"navDash","nav-cap":"navCap","nav-files":"navFiles","nav-kb":"navKb","nav-search":"navSearch","nav-comm":"navComm","nav-proj":"navProj","nav-logout":"navLogout","btn-cap":"btnCap","ut-photo":"utPhoto","ut-voice":"utVoice","kl-tot":"klTot","ks-tot":"ksTot","kl-res":"klRes","ks-res":"ksRes","kl-crit":"klCrit","ks-crit":"ksCrit","kl-cats":"klCats","ks-cats":"ksCats","st-rec":"stRec","sl-all":"slAll"};
+  Object.keys(ids).forEach(function(id){var el=document.getElementById(id);if(el&&S[ids[id]])el.textContent=S[ids[id]];});
+  renderDash();renderKB();renderCounts();
+}
+
+function toggleNotifPanel(){
+  notifOpen=!notifOpen;
+  document.getElementById("notif-panel").classList.toggle("show",notifOpen);
+  if(notifOpen){document.getElementById("notif-badge").classList.remove("show");renderNotifs();}
+}
+document.addEventListener("click",function(e){if(notifOpen&&!e.target.closest(".notif-panel")&&!e.target.closest(".notif-bell")){notifOpen=false;document.getElementById("notif-panel").classList.remove("show");}});
+function addNotif(msg){notifs.unshift({msg:msg,time:new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})});if(notifs.length>20)notifs.pop();if(!notifOpen){var b=document.getElementById("notif-badge");b.textContent=(parseInt(b.textContent)||0)+1;b.classList.add("show");}renderNotifs();}
+function clearNotifs(){notifs=[];document.getElementById("notif-badge").classList.remove("show");renderNotifs();}
+function renderNotifs(){var el=document.getElementById("notif-list");if(!notifs.length){el.innerHTML="<div class='notif-empty'>Aucune notification</div>";return;}el.innerHTML=notifs.map(function(n){return "<div class='notif-item'><div class='notif-dot'></div><div><div class='notif-txt'>"+n.msg+"</div><div class='notif-time'>"+n.time+"</div></div></div>";}).join("");}
+
+function switchTab(i){document.querySelectorAll(".auth-tab").forEach(function(b,j){b.classList.toggle("active",j===i);});document.getElementById("form-login").style.display=i===0?"block":"none";document.getElementById("form-signup").style.display=i===1?"block":"none";showMsg("","");}
+function showMsg(txt,type){var el=document.getElementById("auth-msg");if(!txt){el.style.display="none";return;}el.className="auth-msg "+(type==="ok"?"ok":"err");el.textContent=txt;el.style.display="block";}
+
+async function doLogin(){
+  var em=document.getElementById("l-email").value.trim(),pw=document.getElementById("l-pass").value;
+  if(!em||!pw){showMsg("Remplissez tous les champs","err");return;}
+  var btn=document.getElementById("btn-login");btn.disabled=true;btn.textContent="...";
+  showLoad(true,"Connexion...");
+  var r=await db.auth.signInWithPassword({email:em,password:pw});
+  showLoad(false);btn.disabled=false;btn.textContent=STRINGS[lang].btnLogin||"Se connecter";
+  if(r.error){showMsg("Email ou mot de passe incorrect","err");return;}
+  enterApp(r.data.user);
+}
+
+async function doSignup(){
+  var first=document.getElementById("s-first").value.trim(),last=document.getElementById("s-last").value.trim();
+  var em=document.getElementById("s-email").value.trim(),co=document.getElementById("s-co").value.trim(),pw=document.getElementById("s-pass").value;
+  if(!first||!last||!em||!co||!pw){showMsg("Remplissez tous les champs","err");return;}
+  if(pw.length<8){showMsg("Mot de passe : min. 8 caractères","err");return;}
+  var btn=document.getElementById("btn-signup");btn.disabled=true;btn.textContent="...";
+  showLoad(true,"Creation...");
+  var r=await db.auth.signUp({email:em,password:pw,options:{data:{full_name:first+" "+last,company:co}}});
+  showLoad(false);btn.disabled=false;btn.textContent=STRINGS[lang].btnSignup||"Creer mon compte";
+  if(r.error){showMsg(r.error.message,"err");return;}
+  if(r.data&&r.data.session){enterApp(r.data.user);}
+  else{showMsg("Compte créé ! Connectez-vous.","ok");switchTab(0);}
+}
+
+async function doReset(){
+  var em=document.getElementById("l-email").value.trim();
+  if(!em){showMsg("Entrez votre email d'abord","err");return;}
+  showLoad(true,"Envoi...");
+  var r=await db.auth.resetPasswordForEmail(em,{redirectTo:"https://app.bace-tech.fr"});
+  showLoad(false);
+  if(r.error){showMsg("Erreur - vérifiez votre email","err");return;}
+  showMsg("Émail de réinitialisation envoyé !","ok");
+}
+
+function enterApp(user){
+  var meta=user.user_metadata||{};
+  var name=meta.full_name||user.email.split("@")[0];
+  var co=meta.company||user.email.split("@")[1]||"BaceTech";
+  var parts=name.split(" ");
+  me={name:name,co:co,av:((parts[0]||"?")[0]+(parts[1]||"?")[0]).toUpperCase(),email:user.email};
+  document.getElementById("u-av").textContent=me.av;
+  document.getElementById("u-name").textContent=me.name;
+  document.getElementById("u-co").textContent=me.co;
+  document.getElementById("s-login").classList.remove("active");
+  document.getElementById("s-app").classList.add("active");
+  toast("Bienvenue sur BaceTech !");
+  connectDB();
+}
+
+async function doLogout(){
+  if(rtChannel)db.removeChannel(rtChannel);
+  await db.auth.signOut();
+  entries=[];dbCoId=null;dbOk=false;notifs=[];projects=[];chatHistory=[];
+  document.getElementById("s-app").classList.remove("active");
+  document.getElementById("s-login").classList.add("active");
+}
+
+window.addEventListener("load",async function(){
+  if(!db)return;
+  var s=await db.auth.getSession();
+  if(s.data&&s.data.session)enterApp(s.data.session.user);
+  else{db.auth.onAuthStateChange(function(event,session){if(event==="SIGNED_IN"&&session&&!document.getElementById("s-app").classList.contains("active"))enterApp(session.user);});}
+});
+
+async function connectDB(){
+  if(!db)return;
+  try{
+    var r=await db.from("companies").select("id").eq("name",me.co).limit(1);
+    if(r.data&&r.data.length>0){dbCoId=r.data[0].id;}
+    else{var ins=await db.from("companies").insert({name:me.co,sector:"Construction"}).select();if(ins.data&&ins.data[0])dbCoId=ins.data[0].id;}
+    if(!dbCoId)return;
+    dbOk=true;
+    await loadDB();
+    await loadProjects();
+    startRealtime();
+  }catch(e){console.error("DB",e);}
+}
+
+async function loadDB(){
+  var r=await db.from("captures").select("*").eq("company_id",dbCoId).order("created_at",{ascending:false}).limit(200);
+  if(r.data&&r.data.length>0){
+    entries=r.data.map(function(d){return{id:d.id,title:d.title,project:d.project||"",cat:d.category||"Structure",sev:d.severity||"medium",desc:d.description||"",action:d.action||"",date:new Date(d.created_at).toLocaleDateString("fr-FR"),status:d.status||"open"};});
+    renderDash();renderKB();renderCounts();
+    toast(entries.length+" incident(s) charge(s)");
+  }
+}
+
+async function saveDB(e){
+  if(!dbOk||!dbCoId)return;
+  var r=await db.from("captures").insert({company_id:dbCoId,user_name:me.name,title:e.title,category:e.cat,severity:e.sev,description:e.desc,action:e.action,project:e.project,status:e.status,ai_analysis:e.ai||""});
+  if(!r.error)fileStorage(e);
+}
+
+async function fileStorage(e){
+  try{
+    var slug=me.co.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"");
+    var cat=e.cat.toLowerCase().replace(/[^a-z0-9]/g,"-");
+    var date=new Date().toISOString().split("T")[0];
+    var title=e.title.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"").substring(0,40);
+    var path=slug+"/"+cat+"/"+date+"_"+title+".json";
+    var blob=new Blob([JSON.stringify({title:e.title,category:e.cat,severity:e.sev,project:e.project,description:e.desc,action:e.action,date:date,by:me.name,company:me.co},null,2)],{type:"application/json"});
+    await db.storage.from("captures").upload(path,blob,{upsert:true});
+  }catch(ex){console.error("storage",ex);}
+}
+
+async function loadProjects(){
+  if(!dbOk||!dbCoId)return;
+  var r=await db.from("projects").select("*").eq("company_id",dbCoId).order("created_at",{ascending:false});
+  if(r.data){projects=r.data;renderProjects();updateProjectDropdowns();}
+}
+
+async function addProject(){
+  var name=document.getElementById("proj-name").value.trim();
+  var loc=document.getElementById("proj-loc").value.trim();
+  var owner=document.getElementById("proj-owner").value.trim();
+  if(!name){toast("Ajoutez un nom de chantier");return;}
+  if(dbOk){
+    var r=await db.from("projects").insert({company_id:dbCoId,name:name,location:loc||"",owner:owner||""}).select();
+    if(r.data&&r.data[0])projects.unshift(r.data[0]);
+  }else{projects.unshift({id:Date.now(),name:name,location:loc||"",owner:owner||""});}
+  document.getElementById("proj-name").value="";
+  document.getElementById("proj-loc").value="";
+  document.getElementById("proj-owner").value="";
+  renderProjects();updateProjectDropdowns();toast("Chantier ajouté !");
+}
+
+async function deleteProject(id){
+  if(!confirm("Supprimer ce chantier ?"))return;
+  projects=projects.filter(function(p){return String(p.id)!==String(id);});
+  if(dbOk)await db.from("projects").delete().eq("id",id);
+  renderProjects();updateProjectDropdowns();toast("Chantier supprimé");
+}
+
+function renderProjects(){
+  var w=document.getElementById("proj-out");
+  if(!projects.length){w.innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F3D7;&#xFE0F;</div><div class='empty-text'>Aucun chantier.</div></div>";return;}
+  var html="<div class='proj-grid'>";
+  projects.forEach(function(p){
+    var count=entries.filter(function(e){return e.project===p.name;}).length;
+    var btn=document.createElement("button");
+    btn.className="proj-del";
+    btn.setAttribute("onclick","deleteProject('"+String(p.id)+"')");
+    btn.innerHTML="&#x1F5D1;";
+    var ownerBadge=p.owner?"<div style='display:inline-flex;align-items:center;gap:5px;background:var(--blue-light);border:1px solid rgba(30,111,255,0.2);border-radius:5px;padding:3px 8px;font-size:11px;color:var(--blue);margin-top:6px;margin-bottom:6px'><i class='ti ti-hard-hat'></i>"+p.owner+"</div>":"";
+    var card=document.createElement("div");
+    card.className="proj-card";
+    card.innerHTML="<div class='proj-card-name'>"+p.name+"</div><div class='proj-card-meta'>"+(p.location||"")+"</div>"+ownerBadge+"<div class='proj-card-count'>"+count+" incident(s)</div>";
+    card.insertBefore(btn,card.firstChild);
+    html+="<div class='proj-card'>"+card.innerHTML+"</div>";
+  });
+  html+="</div>";
+  w.innerHTML=html;
+}
+
+function updateProjectDropdowns(){
+  var opts=projects.length?projects.map(function(p){return "<option>"+p.name+"</option>";}).join(""):"<option>Aucun projet</option>";
+  ["c-proj","site-sel"].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts;});
+}
+
+function startRealtime(){
+  if(!db||!dbCoId)return;
+  rtChannel=db.channel("co-"+dbCoId)
+    .on("postgres_changes",{event:"INSERT",schema:"public",table:"captures",filter:"company_id=eq."+dbCoId},function(payload){
+      var d=payload.new;
+      if(d.user_name===me.name)return;
+      entries.unshift({id:d.id,title:d.title,project:d.project||"",cat:d.category||"Structure",sev:d.severity||"medium",desc:d.description||"",action:d.action||"",date:new Date(d.created_at).toLocaleDateString("fr-FR"),status:d.status||"open"});
+      renderDash();renderKB();renderCounts();
+      addNotif("<strong>"+d.user_name+"</strong> a capture : "+d.title);
+      toast(d.user_name+" : "+d.title);
+    })
+    .on("postgres_changes",{event:"INSERT",schema:"public",table:"community_posts",filter:"company_id=eq."+dbCoId},function(payload){
+      var d=payload.new;
+      if(d.author_name===me.name)return;
+      addNotif("<strong>"+d.author_name+"</strong> a poste dans "+d.project);
+      var site=document.getElementById("site-sel").value;
+      if(d.project===site)loadPosts();
+    })
+    .on("postgres_changes",{event:"INSERT",schema:"public",table:"community_replies",filter:"company_id=eq."+dbCoId},function(){loadPosts();})
+    .subscribe();
+}
+
+var PROMPT_PHOTO="Tu es expert chantier. Chantier: {PROJECT}. Langue de reponse: {LANG}. Reponds UNIQUEMENT avec ce format, sans asterisques, sans markdown:\nTitre: [titre]\nCategorie: [Structure OU Electricite OU Plomberie OU Securite OU Equipement OU Documentation]\nSeverite: [Faible OU Moyen OU Eleve OU Critique]\nDescription: [description]\nAction: [action]";
+var PROMPT_VOICE="Tu es expert chantier. Chantier: {PROJECT}. Langue de reponse: {LANG}. Transcris et structure. Format, sans asterisques:\nTitre: [titre]\nCategorie: [Structure OU Electricite OU Plomberie OU Securite OU Equipement OU Documentation]\nSeverite: [Faible OU Moyen OU Eleve OU Critique]\nDescription: [description]\nAction: [action]";
+
+function saveKey(){
+  var k=document.getElementById("api-inp").value.trim();
+  if(!k)return;
+  GROQ=k;localStorage.setItem("bacetech_groq",k);
+  document.getElementById("api-inp").value="";
+  toast("Clé API enregistrée");
+}
+
+async function callAI(parts){
+  if(!GROQ)return null;
+  showLoad(true,"Bace IA...");
+  try{
+    var txt="",img=null;
+    parts.forEach(function(p){if(p.text)txt+=p.text+"\n";if(p.img)img=p.img;});
+    var msgs=img?[{role:"user",content:[{type:"image_url",image_url:{url:img}},{type:"text",text:txt.trim()}]}]:[{role:"user",content:txt.trim()}];
+    var model=img?"meta-llama/llama-4-scout-17b-16e-instruct":"llama-3.3-70b-versatile";
+    var res=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+GROQ},body:JSON.stringify({model:model,messages:msgs,max_tokens:1024})});
+    var data=await res.json();
+    showLoad(false);
+    if(data.error)return null;
+    return data.choices&&data.choices[0]?data.choices[0].message.content:null;
+  }catch(e){showLoad(false);return null;}
+}
+
+function cleanAI(txt){
+  if(!txt)return "";
+  // Remove **bold**, *italic*, ## headers, leading dashes
+  txt=txt.replace(/\*\*([^*]*)\*\*/g,"$1");
+  txt=txt.replace(/\*([^*]*)\*/g,"$1");
+  txt=txt.replace(/^#{1,6}\s*/gm,"");
+  txt=txt.replace(/^[-*]\s+/gm,"");
+  // Remove "Titre:" prefix if AI puts it on first line before the actual title
+  txt=txt.replace(/^Titre\s*:\s*/i,"");
+  return txt.trim();
+}
+
+function parseAI(txt){
+  txt=cleanAI(txt);
+  var r={title:"",cat:"Structure",sev:"medium",desc:"",action:""};
+  if(!txt)return r;
+  txt.split("\n").forEach(function(ln){
+    ln=ln.trim();
+    var col=ln.indexOf(":");
+    if(col<0)return;
+    var key=ln.substring(0,col).toLowerCase().trim();
+    var val=ln.substring(col+1).trim();
+    if(key.match(/titre|title|titulo/))r.title=val;
+    else if(key.match(/cat/))r.cat=val;
+    else if(key.match(/sev|severit/)){var s=val.toLowerCase();if(s.match(/crit/))r.sev="critical";else if(s.match(/elev|high|alta/))r.sev="high";else if(s.match(/moyen|medium|media/))r.sev="medium";else r.sev="low";}
+    else if(key.match(/desc/))r.desc=val;
+    else if(key.match(/action/))r.action=val;
+  });
+  if(!r.title)r.title=txt.split("\n")[0].substring(0,80);
+  if(!r.desc)r.desc=txt;
+  return r;
+}
+
+async function handlePhoto(input){
+  if(!input.files||!input.files[0])return;
+  var proj=document.getElementById("c-proj").value||"ce chantier";
+  var projObj=projects.filter(function(p){return p.name===proj;})[0];
+  var locStr=projObj&&projObj.location?" ("+projObj.location+")":"";
+  var prompt=PROMPT_PHOTO.replace("{PROJECT}",proj+locStr).replace("{LANG}",LANGNAMES[lang]);
+  var reader=new FileReader();
+  reader.onload=async function(e){
+    var resp=await callAI([{img:e.target.result},{text:prompt}]);
+    if(resp){
+      var p=parseAI(resp);
+      document.getElementById("ai-photo").style.display="block";
+      document.getElementById("ai-photo-txt").textContent=resp;
+      if(p.title)document.getElementById("c-title").value=p.title;
+      if(p.desc)document.getElementById("c-desc").value=p.desc;
+      if(p.action)document.getElementById("c-action").value=p.action;
+      if(p.sev)document.getElementById("c-sev").value=p.sev;
+      toast("Analyse IA complète");
+    }
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+async function toggleVoice(){
+  if(!isRec){
+    try{
+      var stream=await navigator.mediaDevices.getUserMedia({audio:true});
+      mr=new MediaRecorder(stream);chunks=[];
+      mr.ondataavailable=function(e){chunks.push(e.data);};
+      mr.onstop=processVoice;mr.start();isRec=true;
+      document.getElementById("voice-btn").classList.add("recording");
+      document.getElementById("voice-icon").textContent="Stop";
+      document.getElementById("ut-voice").textContent="Enregistrement... Appuyer pour arreter";
+    }catch(e){toast("Microphone non disponible");}
+  }else{
+    mr.stop();isRec=false;
+    document.getElementById("voice-btn").classList.remove("recording");
+    document.getElementById("voice-icon").innerHTML="&#x1F399;&#xFE0F;";
+    document.getElementById("ut-voice").textContent=STRINGS[lang].utVoice||"Appuyer pour enregistrer";
+  }
+}
+
+async function processVoice(){
+  var proj=document.getElementById("c-proj").value||"ce chantier";
+  var projObj=projects.filter(function(p){return p.name===proj;})[0];
+  var locStr=projObj&&projObj.location?" ("+projObj.location+")":"";
+  var prompt=PROMPT_VOICE.replace("{PROJECT}",proj+locStr).replace("{LANG}",LANGNAMES[lang]);
+  var blob=new Blob(chunks,{type:"audio/webm"});
+  var reader=new FileReader();
+  reader.onload=async function(e){
+    showLoad(true,"Bace IA audio...");
+    var b64=e.target.result.split(",")[1];
+    var resp=await callAI([{img:"data:audio/webm;base64,"+b64},{text:prompt}]);
+    if(resp){
+      var p=parseAI(resp);
+      document.getElementById("ai-voice").style.display="block";
+      document.getElementById("ai-voice-txt").textContent=resp;
+      if(p.title)document.getElementById("c-title").value=p.title;
+      if(p.desc)document.getElementById("c-desc").value=p.desc;
+      if(p.action)document.getElementById("c-action").value=p.action;
+      if(p.sev)document.getElementById("c-sev").value=p.sev;
+      toast("Note vocale analysée");
+    }
+  };
+  reader.readAsDataURL(blob);
+}
+
+function saveEntry(){
+  var title=document.getElementById("c-title").value.trim();
+  if(!title){toast("Ajoutez un titre");return;}
+  var ai=document.getElementById("ai-photo-txt").textContent||document.getElementById("ai-voice-txt").textContent||"";
+  var entry={id:Date.now(),title:title,project:document.getElementById("c-proj").value,cat:document.getElementById("c-cat").value,sev:document.getElementById("c-sev").value,desc:document.getElementById("c-desc").value,action:document.getElementById("c-action").value,date:new Date().toLocaleDateString("fr-FR"),status:"open",ai:ai};
+  entries.unshift(entry);
+  ["ai-photo","ai-voice"].forEach(function(id){document.getElementById(id).style.display="none";});
+  ["c-title","c-desc","c-action"].forEach(function(id){document.getElementById(id).value="";});
+  toast("Enregistré et classé !");
+  renderDash();renderKB();renderCounts();
+  if(dbOk)saveDB(entry);
+  setTimeout(function(){showTab(0,document.querySelectorAll(".sidebar-link")[0]);},700);
+}
+
+function badge(sev){return{low:"b-low",medium:"b-medium",high:"b-high",critical:"b-critical"}[sev]||"b-low";}
+function sevLabel(sev){var S=STRINGS[lang];if(S&&S.sevLow){return{low:S.sevLow,medium:S.sevMed,high:S.sevHigh,critical:S.sevCrit}[sev]||sev;}return{low:"Faible",medium:"Moyen",high:"Eleve",critical:"Critique"}[sev]||sev;}
+
+function deleteEntry(id){
+  if(!confirm("Supprimer cet incident ?"))return;
+  entries=entries.filter(function(e){return String(e.id)!==String(id);});
+  if(dbOk&&dbCoId)db.from("captures").delete().eq("id",id);
+  renderDash();renderKB();renderCounts();
+  toast("Incident supprime");
+}
+
+function rowHTML(e,ws){
+  var S=STRINGS[lang];
+  var statusTxt=S&&S.statusOpen?S.statusOpen:"Ouvert";
+  var eid=String(e.id);
+  var sc=badge(e.sev),sl=sevLabel(e.sev);
+  var statusCell=ws?"<td><span class='badge b-open'>"+statusTxt+"</span></td>":"";
+  var delBtn=document.createElement("button");
+  delBtn.setAttribute("onclick","deleteEntry('"+eid+"')");
+  delBtn.style.cssText="background:none;border:none;color:#4a5a72;cursor:pointer;font-size:15px;padding:2px 6px";
+  delBtn.innerHTML="&#x1F5D1;";
+  return "<tr><td style='font-weight:500;color:var(--white)'>"+e.title+"</td><td>"+e.project+"</td><td>"+e.cat+"</td><td><span class='badge "+sc+"'>"+sl+"</span></td><td>"+e.date+"</td>"+statusCell+"<td>"+delBtn.outerHTML+"</td></tr>";
+}
+
+function renderDash(){
+  document.getElementById("kv-tot").textContent=entries.length;
+  document.getElementById("kv-res").textContent=entries.filter(function(e){return e.status==="resolved";}).length;
+  document.getElementById("kv-crit").textContent=entries.filter(function(e){return e.sev==="critical";}).length;
+  document.getElementById("kv-cats").textContent=new Set(entries.map(function(e){return e.cat;})).size;
+  var w=document.getElementById("dash-out");
+  if(!entries.length){w.innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F4CB;</div><div class='empty-text'>Aucune capture.</div></div>";return;}
+  var S=STRINGS[lang];
+  var th="<tr><th>"+(S.thTitle||"Titre")+"</th><th>"+(S.thProj||"Projet")+"</th><th>"+(S.thCat||"Cat")+"</th><th>"+(S.thSev||"Sev")+"</th><th>"+(S.thDate||"Date")+"</th><th>"+(S.thStatus||"Status")+"</th><th></th></tr>";
+  w.innerHTML="<div class='table-wrap'><table><thead>"+th+"</thead><tbody>"+entries.slice(0,10).map(function(e){return rowHTML(e,true);}).join("")+"</tbody></table></div>";
+}
+
+function renderCounts(){CATS.forEach(function(c,i){var n=entries.filter(function(e){return e.cat===c;}).length;var el=document.getElementById("fc-"+i);if(el)el.textContent=n+" fichier(s)";});}
+
+function openFolder(i){kbIdx=i;document.querySelectorAll(".kb-filter").forEach(function(b,j){b.classList.toggle("active",j===i+1);});if(document.querySelector(".kb-filter"))document.querySelector(".kb-filter").classList.remove("active");showTab(3,document.querySelectorAll(".sidebar-link")[3]);renderKB();}
+function filterKB(i,btn){kbIdx=i;document.querySelectorAll(".kb-filter").forEach(function(b){b.classList.remove("active");});btn.classList.add("active");renderKB();}
+function renderKB(){
+  var filtered=kbIdx<0?entries:entries.filter(function(e){return e.cat===CATS[kbIdx];});
+  var w=document.getElementById("kb-out");
+  if(!filtered.length){w.innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F5C2;&#xFE0F;</div><div class='empty-text'>Aucune entrée.</div></div>";return;}
+  var S=STRINGS[lang];
+  var th="<tr><th>"+(S.thTitle||"Titre")+"</th><th>"+(S.thProj||"Projet")+"</th><th>"+(S.thCat||"Cat")+"</th><th>"+(S.thSev||"Sev")+"</th><th>"+(S.thDate||"Date")+"</th><th></th></tr>";
+  w.innerHTML="<div class='table-wrap'><table><thead>"+th+"</thead><tbody>"+filtered.map(function(e){return rowHTML(e,false);}).join("")+"</tbody></table></div>";
+}
+
+async function loadPosts(){
+  if(!db||!dbCoId)return;
+  var site=document.getElementById("site-sel").value;
+  var r=await db.from("community_posts").select("*").eq("company_id",dbCoId).eq("project",site).order("created_at",{ascending:false}).limit(50);
+  var out=document.getElementById("posts-out");
+  if(!r.data||!r.data.length){out.innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F4AC;</div><div class='empty-text'>Aucune discussion.</div></div>";return;}
+  var rr=await db.from("community_replies").select("*").eq("company_id",dbCoId).in("post_id",r.data.map(function(p){return p.id;})).order("created_at",{ascending:true});
+  var rep={};if(rr.data)rr.data.forEach(function(r){if(!rep[r.post_id])rep[r.post_id]=[];rep[r.post_id].push(r);});
+  var tclass={problem:"tag-problem",question:"tag-question",info:"tag-info",solved:"tag-solved"};
+  var tlabel={problem:"Problème",question:"Question",info:"Info",solved:"Résolu"};
+  out.innerHTML=r.data.map(function(p){
+    var replies=rep[p.id]||[];
+    var rHTML=replies.map(function(rp){return "<div class='reply-item'><div class='reply-av'>"+rp.author_name.substring(0,2).toUpperCase()+"</div><div><div class='reply-author'>"+rp.author_name+"</div><div class='reply-txt'>"+rp.content+"</div></div></div>";}).join("");
+    var delBtn=document.createElement("button");
+    delBtn.setAttribute("onclick","submitReply('"+p.id+"')");
+    delBtn.className="btn-reply";
+    delBtn.textContent="Répondre";
+    var card="<div class='post-card'>";
+    card+="<div class='post-card-header'>";
+    card+="<div class='post-av'>"+p.author_name.substring(0,2).toUpperCase()+"</div>";
+    card+="<div><div class='post-author'>"+p.author_name+"</div>";
+    card+="<div class='post-meta'>"+new Date(p.created_at).toLocaleDateString("fr-FR")+"</div></div>";
+    card+="<span class='post-tag "+(tclass[p.tag]||"tag-info")+"'>"+(tlabel[p.tag]||p.tag)+"</span>";
+    card+="</div><div class='post-body'>"+p.content+"</div>";
+    if(rHTML)card+="<div class='reply-list'>"+rHTML+"</div>";
+    card+="<div class='reply-box'><input class='reply-input' placeholder='Votre réponse...' id='ri-"+p.id+"'>";
+    var rb=document.createElement("button");rb.className="btn-reply";rb.setAttribute("onclick","submitReply('"+p.id+"')");rb.textContent="Répondre";
+    card+=rb.outerHTML+"</div></div>";
+    return card;
+  }).join("");
+}
+
+async function submitPost(){
+  var content=document.getElementById("post-input").value.trim();
+  if(!content){toast("Écrivez quelque chose");return;}
+  var tag=document.getElementById("post-tag").value;
+  var site=document.getElementById("site-sel").value;
+  if(!dbOk){toast("Connexion requise");return;}
+  var r=await db.from("community_posts").insert({company_id:dbCoId,author_name:me.name,project:site,content:content,tag:tag});
+  if(r.error){console.error(r.error);return;}
+  document.getElementById("post-input").value="";
+  toast("Publication envoyée !");
+  loadPosts();
+}
+
+async function submitReply(postId){
+  var inp=document.getElementById("ri-"+postId);
+  if(!inp||!inp.value.trim())return;
+  var r=await db.from("community_replies").insert({company_id:dbCoId,post_id:postId,author_name:me.name,content:inp.value.trim()});
+  if(r.error){console.error(r.error);return;}
+  inp.value="";
+  toast("Réponse envoyée !");
+  loadPosts();
+}
+
+function autoResize(el){el.style.height="auto";el.style.height=Math.min(el.scrollHeight,120)+"px";}
+function chatKeydown(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();}}
+function sendSugg(txt){document.getElementById("chat-suggs").style.display="none";document.getElementById("chat-input").value=txt;sendChat();}
+function addMsg(role,text){
+  var wrap=document.getElementById("chat-messages");
+  var time=new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
+  var div=document.createElement("div");
+  div.className="msg "+role;
+  div.innerHTML="<div class='msg-av'>"+(role==="user"?me.av:"&#x1F916;")+"</div><div><div class='msg-bubble'>"+text+"</div><div class='msg-time'>"+time+"</div></div>";
+  wrap.appendChild(div);
+  wrap.scrollTop=wrap.scrollHeight;
+}
+function showTyping(){var wrap=document.getElementById("chat-messages");var div=document.createElement("div");div.className="msg bot";div.id="typing-ind";div.innerHTML="<div class='msg-av'>&#x1F916;</div><div class='msg-bubble'><div class='typing-indicator'><div class='typing-dot'></div><div class='typing-dot'></div><div class='typing-dot'></div></div></div>";wrap.appendChild(div);wrap.scrollTop=wrap.scrollHeight;}
+function removeTyping(){var el=document.getElementById("typing-ind");if(el)el.remove();}
+
+async function sendChat(){
+  var input=document.getElementById("chat-input");
+  var val=input.value.trim();
+  if(!val)return;
+  var btn=document.getElementById("chat-send");
+  input.value="";input.style.height="auto";btn.disabled=true;
+  addMsg("user",val);
+  chatHistory.push({role:"user",content:val});
+  showTyping();
+  var kb=entries.length?entries.map(function(e,i){return "["+i+"] "+e.title+" | "+e.project+" | "+e.cat+" | "+e.sev+" | "+e.desc+" | "+e.action+" | "+e.date+" | "+e.status;}).join("\n"):"Aucun incident.";
+  var projList=projects.map(function(p){return p.name+(p.location?" ("+p.location+")":"");}).join(", ")||"Aucun projet";
+  var sysPrompt="Tu es Bace IA, assistant expert en gestion de chantiers pour "+me.co+". Projets actifs: "+projList+". Base de connaissances ("+entries.length+" incidents tous chantiers confondus):\n"+kb+"\nReponds en "+(LANGNAMES[lang]||"Francais")+", de maniere concise et pratique.";
+  var messages=[{role:"system",content:sysPrompt}].concat(chatHistory.slice(-8));
+  if(!GROQ){removeTyping();addMsg("bot","Cle API manquante (Shift+Alt+K).");btn.disabled=false;return;}
+  try{
+    var res=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+GROQ},body:JSON.stringify({model:"llama-3.3-70b-versatile",messages:messages,max_tokens:1024})});
+    var data=await res.json();
+    removeTyping();
+    var reply=data.choices&&data.choices[0]?data.choices[0].message.content:"Desole, erreur.";
+    chatHistory.push({role:"assistant",content:reply});
+    addMsg("bot",reply.replace(/\n/g,"<br>"));
+  }catch(e){removeTyping();addMsg("bot","Erreur de connexion.");}
+  btn.disabled=false;
+}
+
+function initChat(){
+  var wrap=document.getElementById("chat-messages");
+  if(wrap&&wrap.children.length===0){addMsg("bot","Bonjour "+me.name.split(" ")[0]+" ! Je suis Bace IA. J'ai accès à "+entries.length+" incident(s) sur tous vos chantiers. Posez vos questions !");}
+}
+
+var TAB_NAMES=["Dashboard","Capturer","Mes dossiers","Base de connaissances","Bace IA","Communauté","Mes projets","API"];
+function showTab(i,btn){
+  for(var j=0;j<8;j++){var el=document.getElementById("tab-"+j);if(el)el.classList.toggle("active",j===i);}
+  document.querySelectorAll(".sidebar-link").forEach(function(b){b.classList.remove("active");});
+  if(btn)btn.classList.add("active");
+  document.getElementById("top-title").textContent=TAB_NAMES[i]||"";
+  if(i===0)renderDash();
+  if(i===2)renderCounts();
+  if(i===3)renderKB();
+  if(i===4)initChat();
+  if(i===5)loadPosts();
+  if(i===6){renderProjects();}
+  if(i===7){var inp=document.getElementById("api-inp");if(inp&&GROQ&&!inp.value)inp.value="*".repeat(16);}
+}
+
+function showLoad(show,txt){document.getElementById("loading").classList.toggle("show",show);if(txt)document.getElementById("load-txt").textContent=txt;}
+function toast(msg){var el=document.getElementById("toast");el.innerHTML=msg;el.classList.add("show");setTimeout(function(){el.classList.remove("show");},2800);}
+
+document.addEventListener("keydown",function(e){
+  if(e.shiftKey&&e.altKey&&e.key==="K"&&document.getElementById("s-app").classList.contains("active"))showTab(7);
+});
+</script>
+</body>
+</html>
