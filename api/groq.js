@@ -1,9 +1,8 @@
 // Vercel Serverless Function - /api/groq.js
-// This keeps your Groq API key hidden from the public GitHub repo.
+// Keeps the Groq API key hidden from the public GitHub repo.
 // The key lives in Vercel's environment variables, never in the browser.
 
 export default async function handler(req, res) {
-  // Allow requests from your app
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -13,17 +12,24 @@ export default async function handler(req, res) {
   }
 
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: { message: 'Method not allowed' } });
   }
 
   const GROQ_KEY = process.env.GROQ_API_KEY;
 
   if (!GROQ_KEY) {
-    return res.status(500).json({ error: 'Server misconfigured: missing GROQ_API_KEY' });
+    // This tells us clearly if the env var is missing on Vercel
+    return res.status(500).json({
+      error: { message: 'Server misconfigured: GROQ_API_KEY environment variable is not set on Vercel.' }
+    });
   }
 
   try {
-    const { model, messages, max_tokens } = req.body;
+    const { model, messages, max_tokens } = req.body || {};
+
+    if (!model || !messages) {
+      return res.status(400).json({ error: { message: 'Missing model or messages in request body.' } });
+    }
 
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -37,7 +43,8 @@ export default async function handler(req, res) {
     const data = await groqRes.json();
     return res.status(groqRes.status).json(data);
   } catch (err) {
-    console.error('Groq proxy error:', err);
-    return res.status(500).json({ error: { message: 'Internal server error calling Groq' } });
+    return res.status(500).json({
+      error: { message: 'Server error calling Groq: ' + (err.message || 'unknown') }
+    });
   }
 }
