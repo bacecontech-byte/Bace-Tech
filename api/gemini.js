@@ -70,7 +70,8 @@ export default async function handler(req, res) {
           contents: geminiContents,
           generationConfig: {
             maxOutputTokens: max_tokens || 4096,
-            temperature: 0.2
+            temperature: 0.2,
+            thinkingConfig: { thinkingBudget: 0 }
           }
         })
       }
@@ -85,7 +86,13 @@ export default async function handler(req, res) {
     }
 
     // Convert Gemini response to OpenAI-compatible format so bace.html needs no change in response parsing
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    // Gemini 2.5 Flash may return multiple parts (thinking + response) — grab all text parts and join
+    const parts = data?.candidates?.[0]?.content?.parts || [];
+    const text = parts
+      .filter(p => p.text && !p.thought)  // exclude thinking parts
+      .map(p => p.text)
+      .join('\n')
+      .trim() || '';
     return res.status(200).json({
       choices: [{ message: { role: 'assistant', content: text } }]
     });
