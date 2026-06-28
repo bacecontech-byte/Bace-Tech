@@ -115,9 +115,52 @@ body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-heig
 .user-name{font-size:12px;font-weight:500;color:var(--text);}
 .user-company{font-size:11px;color:var(--text3);}
 .app-main{flex:1;margin-left:220px;display:flex;flex-direction:column;min-height:100vh;}
-.app-topbar{height:54px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:var(--navy);position:sticky;top:0;z-index:50;}
+.app-topbar{height:54px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 20px;background:var(--navy);position:sticky;top:0;z-index:50;}
 .topbar-title{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--white);}
-.topbar-right{display:flex;align-items:center;gap:10px;}
+.topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.site-chip{display:flex;align-items:center;gap:6px;background:var(--navy2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--text2);cursor:pointer;white-space:nowrap;}
+.site-chip i{font-size:13px;}
+.bell-btn{width:32px;height:32px;border-radius:8px;background:var(--navy2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;flex-shrink:0;}
+.bell-btn i{font-size:16px;color:var(--text2);}
+.bell-dot{position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%;background:#e24b4a;border:1.5px solid var(--navy);}
+.dash-alert{display:flex;align-items:center;gap:10px;background:rgba(226,75,74,0.08);border:0.5px solid rgba(226,75,74,0.25);border-radius:8px;padding:9px 14px;margin-bottom:20px;font-size:12px;color:#e24b4a;line-height:1.5;}
+.dash-alert i{font-size:16px;flex-shrink:0;}
+.dash-alert b{font-weight:600;}
+.dash-alert-none{display:none;}
+.dash-two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.dash-card{background:var(--navy2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.dash-card-hd{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--border);}
+.dash-card-hd i{font-size:14px;}
+.dash-card-title{font-size:12px;font-weight:600;color:var(--white);flex:1;}
+.dash-card-link{font-size:11px;color:var(--blue);cursor:pointer;}
+.inc-item{display:flex;align-items:flex-start;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);}
+.inc-item:last-child{border-bottom:none;}
+.inc-sev{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.inc-body{flex:1;min-width:0;}
+.inc-name{font-size:12px;font-weight:500;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px;}
+.inc-meta2{font-size:10px;color:var(--text3);}
+.inc-pill{font-size:9px;padding:2px 7px;border-radius:20px;flex-shrink:0;margin-left:4px;}
+.pill-open{background:rgba(226,75,74,0.12);color:#e24b4a;}
+.pill-done{background:rgba(99,153,34,0.12);color:#639922;}
+.act-item{display:flex;align-items:flex-start;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);}
+.act-item:last-child{border-bottom:none;}
+.act-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex-shrink:0;}
+.av-b{background:rgba(55,138,221,0.15);color:#378add;}
+.av-g{background:rgba(99,153,34,0.15);color:#639922;}
+.av-a{background:rgba(239,159,39,0.15);color:#ef9f27;}
+.act-text{font-size:11px;color:var(--text2);line-height:1.5;flex:1;}
+.act-text b{color:var(--white);font-weight:500;}
+.act-time{font-size:9px;color:var(--text3);margin-top:1px;}
+.quick-actions{background:var(--navy2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.qa-hd{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--border);}
+.qa-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px;}
+.qa-btn{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--navy);border:1px solid var(--border);border-radius:8px;padding:12px 8px;cursor:pointer;text-align:center;transition:border-color 0.15s;}
+.qa-btn:hover{border-color:var(--blue);}
+.qa-btn i{font-size:20px;color:var(--blue);}
+.qa-btn span{font-size:11px;color:var(--text2);}
+.kpi-sub2{font-size:10px;color:var(--text3);margin-top:3px;}
+.kpi-trend-up{color:#e24b4a;}
+.kpi-trend-ok{color:#639922;}
 .btn-capture{background:var(--blue);color:white;border:none;border-radius:7px;padding:8px 16px;font-family:var(--font-d);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.12s;}
 .btn-capture:hover{background:var(--blue2);}
 .app-content{flex:1;padding:28px;}
@@ -494,7 +537,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
     <div class="sidebar">
       <div class="sidebar-logo">
         <span>Bace<span>Tech</span></span>
-        <div class="notif-bell" onclick="toggleNotifPanel()"><i class="ti ti-bell"></i><div class="notif-badge" id="notif-badge">0</div></div>
+        
       </div>
       <div class="sidebar-section"><span id="sidebar-main">Principal</span></div>
       <div class="sidebar-link active" onclick="showTab(0,this)"><i class="ti ti-layout-dashboard"></i><span id="nav-dash">Dashboard</span></div>
@@ -519,19 +562,68 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="app-topbar">
         <div class="topbar-title" id="top-title">Dashboard</div>
         <div class="topbar-right">
+          <div class="site-chip" id="site-chip" onclick="showTab(6,document.querySelectorAll('.sidebar-link')[6])">
+            <i class="ti ti-map-pin"></i>
+            <span id="site-chip-label">—</span>
+            <i class="ti ti-chevron-down"></i>
+          </div>
+          <div class="bell-btn" onclick="toggleNotifPanel()" title="Notifications">
+            <i class="ti ti-bell"></i>
+            <div class="bell-dot" id="bell-dot" style="display:none;"></div>
+          </div>
           <button class="btn-capture" onclick="showTab(1,document.querySelectorAll('.sidebar-link')[1])"><i class="ti ti-plus"></i><span id="btn-cap">Capturer</span></button>
         </div>
       </div>
       <div class="app-content">
         <div id="tab-0" class="tab active">
+          <!-- Alert bar: hidden when no criticals -->
+          <div class="dash-alert" id="dash-alert" style="display:none;">
+            <i class="ti ti-alert-triangle"></i>
+            <span id="dash-alert-text"></span>
+          </div>
+          <!-- KPIs -->
           <div class="kpi-grid">
             <div class="kpi"><div class="kpi-label" id="kl-tot">Total captures</div><div class="kpi-value blue" id="kv-tot">0</div><div class="kpi-sub" id="ks-tot">ce mois-ci</div></div>
-            <div class="kpi"><div class="kpi-label" id="kl-res">Résolus</div><div class="kpi-value green" id="kv-res">0</div><div class="kpi-sub" id="ks-res">incidents traites</div></div>
-            <div class="kpi"><div class="kpi-label" id="kl-crit">Critiques</div><div class="kpi-value red" id="kv-crit">0</div><div class="kpi-sub" id="ks-crit">necessitent action</div></div>
-            <div class="kpi"><div class="kpi-label" id="kl-cats">Categories</div><div class="kpi-value orange" id="kv-cats">0</div><div class="kpi-sub" id="ks-cats">types</div></div>
+            <div class="kpi"><div class="kpi-label" id="kl-res">Résolus</div><div class="kpi-value green" id="kv-res">0</div><div class="kpi-sub" id="ks-res">incidents traités</div></div>
+            <div class="kpi"><div class="kpi-label" id="kl-crit">Critiques</div><div class="kpi-value red" id="kv-crit">0</div><div class="kpi-sub" id="ks-crit">nécessitent action</div></div>
+            <div class="kpi"><div class="kpi-label" id="kl-cats">Catégories</div><div class="kpi-value orange" id="kv-cats">0</div><div class="kpi-sub" id="ks-cats">types</div></div>
           </div>
-          <div class="section-header"><div class="section-title" id="st-rec">Incidents récents</div><div class="section-link" onclick="showTab(3,document.querySelectorAll('.sidebar-link')[3])" id="sl-all">Voir tout</div></div>
-          <div id="dash-out"><div class="empty-state"><div class="empty-icon">&#x1F4CB;</div><div class="empty-text" id="dash-empty">Aucune capture.</div></div></div>
+          <!-- Two column: incidents + activity -->
+          <div class="dash-two-col">
+            <div class="dash-card">
+              <div class="dash-card-hd">
+                <i class="ti ti-alert-circle" style="color:#e24b4a"></i>
+                <span class="dash-card-title" id="st-rec">Incidents récents</span>
+                <span class="dash-card-link" onclick="showTab(3,document.querySelectorAll('.sidebar-link')[3])" id="sl-all">Voir tout</span>
+              </div>
+              <div id="dash-out"></div>
+            </div>
+            <div class="dash-card">
+              <div class="dash-card-hd">
+                <i class="ti ti-activity" style="color:var(--blue)"></i>
+                <span class="dash-card-title" id="dash-act-title">Activité de l'équipe</span>
+              </div>
+              <div id="dash-activity"></div>
+            </div>
+          </div>
+          <!-- Quick actions -->
+          <div class="quick-actions">
+            <div class="qa-hd">
+              <i class="ti ti-bolt" style="font-size:14px;color:var(--blue)"></i>
+              <span style="font-size:12px;font-weight:600;color:var(--white)" id="dash-qa-title">Actions rapides</span>
+            </div>
+            <div class="qa-grid">
+              <div class="qa-btn" onclick="showTab(1,document.querySelectorAll('.sidebar-link')[1])">
+                <i class="ti ti-camera"></i><span id="qa-capture">Capturer un incident</span>
+              </div>
+              <div class="qa-btn" onclick="showTab(4,document.querySelectorAll('.sidebar-link')[4])">
+                <i class="ti ti-robot"></i><span id="qa-bace">Demander à Bace IA</span>
+              </div>
+              <div class="qa-btn" onclick="showTab(7,document.querySelectorAll('.sidebar-link')[7])">
+                <i class="ti ti-file-upload"></i><span id="qa-doc">Importer un plan</span>
+              </div>
+            </div>
+          </div>
         </div>
         <div id="tab-1" class="tab">
           <div class="capture-grid">
@@ -1857,15 +1949,54 @@ async function toggleStatus(id){
 }
 
 function renderDash(){
-  document.getElementById("kv-tot").textContent=entries.length;
-  document.getElementById("kv-res").textContent=entries.filter(function(e){return e.status==="resolved";}).length;
-  document.getElementById("kv-crit").textContent=entries.filter(function(e){return e.sev==="critical";}).length;
-  document.getElementById("kv-cats").textContent=new Set(entries.map(function(e){return e.cat;})).size;
-  var w=document.getElementById("dash-out");
-  if(!entries.length){w.innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F4CB;</div><div class='empty-text'>Aucune capture.</div></div>";return;}
   var S=STRINGS[lang];
-  var th="<tr><th>"+(S.thTitle||"Titre")+"</th><th>"+(S.thProj||"Projet")+"</th><th>"+(S.thCat||"Cat")+"</th><th>"+(S.thSev||"Sev")+"</th><th>"+(S.thDate||"Date")+"</th><th>"+(S.thStatus||"Status")+"</th><th></th></tr>";
-  w.innerHTML="<div class='table-wrap'><table><thead>"+th+"</thead><tbody>"+entries.slice(0,10).map(function(e){return rowHTML(e,true);}).join("")+"</tbody></table></div>";
+  var criticals=entries.filter(function(e){return e.sev==="critical"&&e.status!=="resolved";});
+  var resolved=entries.filter(function(e){return e.status==="resolved";});
+  document.getElementById("kv-tot").textContent=entries.length;
+  document.getElementById("kv-res").textContent=resolved.length;
+  document.getElementById("kv-crit").textContent=criticals.length;
+  document.getElementById("kv-cats").textContent=new Set(entries.map(function(e){return e.cat;})).size;
+  // Alert bar
+  var alertEl=document.getElementById("dash-alert");
+  var alertText=document.getElementById("dash-alert-text");
+  if(alertEl){
+    if(criticals.length>0){
+      var msg=lang===1?criticals.length+" critical incident(s) open — action required":lang===2?criticals.length+" incidente(s) crítico(s) aberto(s) — ação necessária":criticals.length+" incident(s) critique(s) ouvert(s) — action requise";
+      if(alertText)alertText.innerHTML="<b>"+msg+"</b>";
+      alertEl.style.display="flex";
+    }else{alertEl.style.display="none";}
+  }
+  // Bell dot
+  var bellDot=document.getElementById("bell-dot");
+  if(bellDot)bellDot.style.display=criticals.length>0?"block":"none";
+  // Site chip label
+  var chipLabel=document.getElementById("site-chip-label");
+  if(chipLabel)chipLabel.textContent=projects.length>0?projects[0].name:(lang===1?"All sites":lang===2?"Todos os canteiros":"Tous les chantiers");
+  // Activity feed
+  var actEl=document.getElementById("dash-activity");
+  if(actEl){
+    if(!entries.length){actEl.innerHTML="<div style='padding:14px;text-align:center;font-size:11px;color:var(--text3)'>"+(lang===1?"No recent activity.":lang===2?"Nenhuma atividade recente.":"Aucune activité récente.")+"</div>";}
+    else{
+      actEl.innerHTML=entries.slice(0,5).map(function(e){
+        var initials=((e.author||me.name||"?").split(" ").map(function(w){return w[0]||"";}).join("").substring(0,2)||"?").toUpperCase();
+        var cl=["av-b","av-g","av-a"][(initials.charCodeAt(0)||65)%3];
+        var act=e.status==="resolved"?(lang===1?"resolved":lang===2?"resolveu":"a résolu"):(lang===1?"captured":lang===2?"capturou":"a capturé");
+        return "<div class='act-item'><div class='act-av "+cl+"'>"+initials+"</div><div style='flex:1'><div class='act-text'><b>"+(e.author||me.name)+"</b> "+act+" — "+e.title+"</div><div class='act-time'>"+e.date+"</div></div></div>";
+      }).join("");
+    }
+  }
+  // Quick action labels
+  var qa={capture:lang===1?"Capture an incident":lang===2?"Capturar incidente":"Capturer un incident",bace:lang===1?"Ask Bace IA":lang===2?"Perguntar à Bace IA":"Demander à Bace IA",doc:lang===1?"Import a plan":lang===2?"Importar planta":"Importer un plan",actTitle:lang===1?"Team activity":lang===2?"Atividade da equipe":"Activité de l'équipe",qaTitle:lang===1?"Quick actions":lang===2?"Ações rápidas":"Actions rapides"};
+  ["dash-act-title","dash-qa-title","qa-capture","qa-bace","qa-doc"].forEach(function(id,i){var el=document.getElementById(id);if(el)el.textContent=[qa.actTitle,qa.qaTitle,qa.capture,qa.bace,qa.doc][i];});
+  // Incidents list
+  var w=document.getElementById("dash-out");
+  if(!entries.length){w.innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F4CB;</div><div class='empty-text'>"+(S.dashEmpty||"Aucune capture.")+"</div></div>";return;}
+  var sevColor={critical:"#e24b4a",high:"#ef9f27",medium:"#378add",low:"#639922",critical:"#e24b4a"};
+  w.innerHTML=entries.slice(0,5).map(function(e){
+    var sc=sevColor[e.sev]||"#378add";
+    var pill=e.status==="resolved"?"<span class='inc-pill pill-done'>"+(S.statusResolved||"Résolu")+"</span>":"<span class='inc-pill pill-open'>"+(S.statusOpen||"Ouvert")+"</span>";
+    return "<div class='inc-item'><div class='inc-sev' style='background:"+sc+"'></div><div class='inc-body'><div class='inc-name'>"+e.title+"</div><div class='inc-meta2'>"+(e.cat||"")+" · "+(e.date||"")+"</div></div>"+pill+"</div>";
+  }).join("");
 }
 
 function renderCounts(){var _nc=function(s){return (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z]/g,"");};CATS.forEach(function(c,i){var n=entries.filter(function(e){return _nc(e.cat)===_nc(c);}).length;var el=document.getElementById("fc-"+i);if(el)el.textContent=n+" "+(STRINGS[lang].folderFiles||"fichier(s)");});}
