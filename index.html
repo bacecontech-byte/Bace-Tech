@@ -545,6 +545,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="sidebar-link" onclick="showTab(2,this)"><i class="ti ti-folder"></i><span id="nav-files">Mes dossiers</span></div>
       <div class="sidebar-link" onclick="showTab(3,this)"><i class="ti ti-database"></i><span id="nav-kb">Base de connaissances</span></div>
       <div class="sidebar-link" onclick="showTab(4,this)"><i class="ti ti-robot"></i><span id="nav-search">Bace IA</span></div>
+      <div class="sidebar-section"><span id="sidebar-site">Chantier</span></div>
       <div class="sidebar-link" onclick="showTab(5,this)"><i class="ti ti-users"></i><span id="nav-comm">Communauté</span></div>
       <div class="sidebar-link" onclick="showTab(6,this)"><i class="ti ti-building-skyscraper"></i><span id="nav-proj">Mes projets</span></div>
       <div class="sidebar-link" onclick="showTab(7,this)"><i class="ti ti-files"></i><span id="nav-docs">Documents</span></div>
@@ -963,7 +964,7 @@ function applyLang(){
     // Loading/notif
     "load-txt-default":"loadDefault","notif-title":"notifTitle","notif-clear-txt":"notifClear","notif-clear-lnk":"notifClear",
     // Sidebar sections
-    "sidebar-main":"sidebarMain","sidebar-account":"sidebarAccount",
+    "sidebar-main":"sidebarMain","sidebar-account":"sidebarAccount","sidebar-site":"sidebarSite",
     // AI solution box
     "lbl-ai-photo":"lblAiPhoto","lbl-cause":"lblCauseBox","lbl-solution":"lblSolutionBox",
     "lbl-normes":"lblNormesBox","lbl-accept":"lblAccept","lbl-edit":"lblEdit","lbl-decline":"lblDecline",
@@ -1010,7 +1011,7 @@ function applyLang(){
     "chat-status":"chatStatus",
     // Notif
     "notif-empty-txt":"notifEmpty"
-  ,chatHeaderName:"Bace IA — Assistant chantier",autoFiling:"Classement automatique",chatHeaderName:"Bace AI — Site assistant",autoFiling:"Automatic filing",chatHeaderName:"Bace IA — Assistente de obra",autoFiling:"Arquivamento automático",docFieldScale:"Échelle",docFieldRooms:"Pièces / Espaces",docFieldScale:"Scale",docFieldRooms:"Rooms / Spaces",docFieldScale:"Escala",docFieldRooms:"Cômodos / Espaços"};
+  ,chatHeaderName:"Bace IA — Assistant chantier",autoFiling:"Classement automatique",chatHeaderName:"Bace AI — Site assistant",autoFiling:"Automatic filing",chatHeaderName:"Bace IA — Assistente de obra",autoFiling:"Arquivamento automático",docFieldScale:"Échelle",docFieldRooms:"Pièces / Espaces",docFieldScale:"Scale",docFieldRooms:"Rooms / Spaces",docFieldScale:"Escala",docFieldRooms:"Cômodos / Espaços",sidebarSite:"Chantier",sidebarSite:"Site",sidebarSite:"Canteiro"};
   Object.keys(ids).forEach(function(id){
     var el=document.getElementById(id);
     if(el&&S[ids[id]])el.textContent=S[ids[id]];
