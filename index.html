@@ -717,9 +717,9 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               <input type="text" id="kb-search-input" placeholder="" oninput="filterKBSearch(this.value)" style="background:none;border:none;outline:none;width:100%;font-size:13px;color:var(--white);font-family:inherit;">
           </div>
             <select id="kb-sort" onchange="kbSort=this.value;renderKB();" style="background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--text2);font-family:inherit;cursor:pointer;">
-              <option value="date-desc" id="ks-date">Date ↓</option>
-              <option value="sev-desc" id="ks-sev">Severity ↓</option>
-              <option value="title-asc" id="ks-title">Title A-Z</option>
+              <option value="date-desc" id="ks-date"></option>
+              <option value="sev-desc" id="ks-sev"></option>
+              <option value="title-asc" id="ks-title"></option>
             </select></div>
           <div class="kb-controls" id="kb-controls">
             <div class="kb-filter active" onclick="filterKB(-1,this)" id="kbf-all">Tout</div>
@@ -2062,6 +2062,12 @@ var kbSearchQuery="";
 var kbSort="date-desc";
 function filterKBSearch(val){kbSearchQuery=(val||"").toLowerCase().trim();renderKB();}
 function renderKB(){
+  // Always apply sort labels in current language
+  var S=STRINGS[lang];
+  var ksD=document.getElementById("ks-date");if(ksD&&S.ksDate)ksD.textContent=S.ksDate;
+  var ksV=document.getElementById("ks-sev");if(ksV&&S.ksSev)ksV.textContent=S.ksSev;
+  var ksT=document.getElementById("ks-title");if(ksT&&S.ksTitle)ksT.textContent=S.ksTitle;
+  var kbSrch=document.getElementById("kb-search-input");if(kbSrch&&S.kbSearchPlaceholder)kbSrch.placeholder=S.kbSearchPlaceholder;
   var normCat=function(s){return (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z]/g,"");};
   var filtered=kbIdx<0?entries:entries.filter(function(e){return normCat(e.cat)===CATS_NORM[kbIdx];});
   if(kbSearchQuery){var q=kbSearchQuery;filtered=filtered.filter(function(e){return (e.title||"").toLowerCase().includes(q)||(e.desc||"").toLowerCase().includes(q)||(e.action||"").toLowerCase().includes(q)||(e.cat||"").toLowerCase().includes(q)||(e.project||"").toLowerCase().includes(q);});}
