@@ -716,10 +716,10 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               <i class="ti ti-search" style="font-size:14px;color:var(--text3);flex-shrink:0;"></i>
               <input type="text" id="kb-search-input" placeholder="" oninput="filterKBSearch(this.value)" style="background:none;border:none;outline:none;width:100%;font-size:13px;color:var(--white);font-family:inherit;">
             </div>
-            <select id="kb-sort" onchange="kbSort=this.value;renderKB();" style="background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--text2);font-family:inherit;cursor:pointer;flex-shrink:0;">
-              <option value="date-desc" id="ks-date"></option>
-              <option value="sev-desc" id="ks-sev"></option>
-              <option value="title-asc" id="ks-title"></option>
+            <select id="kb-sort" onchange="kbSort=this.value;renderKB();" style="background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--text2);font-family:inherit;cursor:pointer;flex-shrink:0;min-width:110px;">
+              <option value="date-desc" id="ks-date">Date ↓</option>
+              <option value="sev-desc" id="ks-sev">Severity ↓</option>
+              <option value="title-asc" id="ks-title">Title A-Z</option>
             </select>
           </div>
           <div class="kb-controls" id="kb-controls">
@@ -731,7 +731,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <div class="kb-filter" onclick="filterKB(4,this)" id="kbf-4">Équipement</div>
             <div class="kb-filter" onclick="filterKB(5,this)" id="kbf-5">Documentation</div>
           </div>
-          <div id="kb-out"><div class="empty-state"><div class="empty-icon">&#x1F5C2;&#xFE0F;</div><div class="empty-text" id="kb-empty">Aucune entrée.</div></div></div>
+          <div id="kb-out"><div class="empty-state"><div class="empty-icon">&#x1F5C2;&#xFE0F;</div><div class="empty-text" id="kb-empty"></div></div></div>
         </div>
         <div id="tab-4" class="tab">
           <div class="chat-wrap">
@@ -2078,7 +2078,7 @@ function renderKB(){
   else if(kbSort==="title-asc")filtered=filtered.slice().sort(function(a,b){return (a.title||"").localeCompare(b.title||"");});
   // default: date-desc (already newest first)
   var w=document.getElementById("kb-out");
-  if(!filtered.length){w.innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F5C2;&#xFE0F;</div><div class='empty-text'>Aucune entrée.</div></div>";return;}
+  if(!filtered.length){w.innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F5C2;&#xFE0F;</div><div class='empty-text'>"+(STRINGS[lang].kbEmpty||"Aucune entrée.")+"</div></div>";return;}
   var S=STRINGS[lang];
   var th="<tr><th>"+(S.thTitle||"Titre")+"</th><th>"+(S.thProj||"Projet")+"</th><th>"+(S.thCat||"Cat")+"</th><th>"+(S.thSev||"Sev")+"</th><th>"+(S.thDate||"Date")+"</th><th></th></tr>";
   w.innerHTML="<div class='table-wrap'><table><thead>"+th+"</thead><tbody>"+filtered.map(function(e){return rowHTML(e,false);}).join("")+"</tbody></table></div>";
