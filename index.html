@@ -715,12 +715,13 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <div style="display:flex;align-items:center;gap:8px;background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;flex:1;">
               <i class="ti ti-search" style="font-size:14px;color:var(--text3);flex-shrink:0;"></i>
               <input type="text" id="kb-search-input" placeholder="" oninput="filterKBSearch(this.value)" style="background:none;border:none;outline:none;width:100%;font-size:13px;color:var(--white);font-family:inherit;">
-          </div>
-            <select id="kb-sort" onchange="kbSort=this.value;renderKB();" style="background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--text2);font-family:inherit;cursor:pointer;">
+            </div>
+            <select id="kb-sort" onchange="kbSort=this.value;renderKB();" style="background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--text2);font-family:inherit;cursor:pointer;flex-shrink:0;">
               <option value="date-desc" id="ks-date"></option>
               <option value="sev-desc" id="ks-sev"></option>
               <option value="title-asc" id="ks-title"></option>
-            </select></div>
+            </select>
+          </div>
           <div class="kb-controls" id="kb-controls">
             <div class="kb-filter active" onclick="filterKB(-1,this)" id="kbf-all">Tout</div>
             <div class="kb-filter" onclick="filterKB(0,this)" id="kbf-0">Structure</div>
@@ -1990,7 +1991,7 @@ function rowHTML(e,ws){
   delBtn.setAttribute("onclick","deleteEntry('"+eid+"')");
   delBtn.style.cssText="background:none;border:none;color:#4a5a72;cursor:pointer;font-size:15px;padding:2px 4px";
   delBtn.innerHTML="&#x1F5D1;";
-  return "<tr><td style='font-weight:500;color:var(--white)'>"+cleanTitle(e.title)+"</td><td>"+e.project+"</td><td>"+e.cat+"</td><td><span class='badge "+sc+"'>"+sl+"</span></td><td>"+e.date+"</td>"+statusCell+"<td style='white-space:nowrap'>"+resBtn.outerHTML+editBtn.outerHTML+delBtn.outerHTML+"</td></tr>";
+  return "<tr><td style='font-weight:500;color:var(--white)'>"+cleanTitle(e.title)+"</td><td>"+e.project+"</td><td>"+(function(){var i=CATS_NORM.indexOf(normCat(e.cat));return(STRINGS[lang].cats&&STRINGS[lang].cats[i])||e.cat;}())+"</td><td><span class='badge "+sc+"'>"+sl+"</span></td><td>"+e.date+"</td>"+statusCell+"<td style='white-space:nowrap'>"+resBtn.outerHTML+editBtn.outerHTML+delBtn.outerHTML+"</td></tr>";
 }
 
 async function toggleStatus(id){
