@@ -1574,11 +1574,11 @@ function openIncModal(id){
   document.getElementById("imd-sev-dot").style.background=sevColors[e.sev]||"#378add";
   document.getElementById("imd-title").textContent=e.title||"";
   // Meta tags
-  var catLabel=(function(){var i=CATS_NORM.indexOf(normCat(e.cat));return(S.cats&&S.cats[i])||e.cat;})();
+  var catLabelStr=catLabel(e.cat);
   var sevLabel2={critical:S.sevCrit||"Critique",high:S.sevHigh||"Élevé",medium:S.sevMed||"Moyen",low:S.sevLow||"Faible"}[e.sev]||e.sev;
   var statusLabel=e.status==="resolved"?(S.statusResolved||"Résolu"):(S.statusOpen||"Ouvert");
   document.getElementById("imd-meta").innerHTML=
-    "<span class='inc-modal-tag'>"+catLabel+"</span>"+
+    "<span class='inc-modal-tag'>"+catLabelStr+"</span>"+
     "<span class='inc-modal-tag badge "+(e.sev==="critical"?"b-crit":e.sev==="high"?"b-high":e.sev==="medium"?"b-med":"b-low")+"'>"+sevLabel2+"</span>"+
     "<span class='inc-modal-tag'>"+(e.project||S.noProject||"Aucun projet")+"</span>"+
     "<span class='inc-modal-tag'>"+e.date+"</span>"+
@@ -2151,7 +2151,7 @@ function renderDash(){
   w.innerHTML=entries.slice(0,5).map(function(e){
     var sc=sevColor[e.sev]||"#378add";
     var pill=e.status==="resolved"?"<span class='inc-pill pill-done'>"+(S.statusResolved||"Résolu")+"</span>":"<span class='inc-pill pill-open'>"+(S.statusOpen||"Ouvert")+"</span>";
-    return "<div class='inc-item'><div class='inc-sev' style='background:"+sc+"'></div><div class='inc-body'><div class='inc-name'>"+e.title+"</div><div class='inc-meta2'>"+(e.cat||"")+" · "+(e.date||"")+"</div></div>"+pill+"</div>";
+    return "<div class='inc-item'><div class='inc-sev' style='background:"+sc+"'></div><div class='inc-body'><div class='inc-name'>"+e.title+"</div><div class='inc-meta2'>"+catLabel(e.cat||"")+" · "+(e.date||"")+"</div></div>"+pill+"</div>";
   }).join("");
 }
 
@@ -2160,6 +2160,11 @@ function renderCounts(){var _nc=function(s){return (s||"").toLowerCase().normali
 function openFolder(i){kbIdx=i;document.querySelectorAll(".kb-filter").forEach(function(b,j){b.classList.toggle("active",j===i+1);});if(document.querySelector(".kb-filter"))document.querySelector(".kb-filter").classList.remove("active");showTab(3,document.querySelectorAll(".sidebar-link")[3]);renderKB();}
 function filterKB(i,btn){kbIdx=i;document.querySelectorAll(".kb-filter").forEach(function(b){b.classList.remove("active");});btn.classList.add("active");renderKB();}
 var kbSearchQuery="";
+// Returns the translated category label for display
+function catLabel(cat){
+  var i=CATS_NORM.indexOf(normCat(cat));
+  return(STRINGS[lang].cats&&STRINGS[lang].cats[i])||cat;
+}
 var kbSort="date-desc";
 function filterKBSearch(val){kbSearchQuery=(val||"").toLowerCase().trim();renderKB();}
 function renderKB(){
