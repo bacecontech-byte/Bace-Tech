@@ -1651,11 +1651,9 @@ async function connectDB(){
 
 async function loadDB(){
   var r=await db.from("captures").select("*").eq("company_id",dbCoId).order("created_at",{ascending:false}).limit(200);
-  if(r.data&&r.data.length>0){
-    entries=r.data.map(function(d){return{id:d.id,title:d.title,project:d.project||"",cat:canonCat(d.category||"Structure"),sev:d.severity||"medium",desc:d.description||"",action:d.action||"",date:new Date(d.created_at).toLocaleDateString("fr-FR"),status:d.status||"open"};});
-    renderDash();renderKB();renderCounts();
-    toast(entries.length+" incident(s) charge(s)");
-  }
+  // Always reset entries — even if empty, so stale data never shows
+  entries=r.data?r.data.map(function(d){return{id:d.id,title:d.title,project:d.project||"",cat:canonCat(d.category||"Structure"),sev:d.severity||"medium",desc:d.description||"",action:d.action||"",date:new Date(d.created_at).toLocaleDateString("fr-FR"),status:d.status||"open",author:d.uploaded_by||""};}):[]; 
+  renderDash();renderKB();renderCounts();
 }
 
 async function saveDB(e){
@@ -1739,10 +1737,22 @@ function startRealtime(){
     .on("postgres_changes",{event:"INSERT",schema:"public",table:"captures",filter:"company_id=eq."+dbCoId},function(payload){
       var d=payload.new;
       if(d.user_name===me.name)return;
-      entries.unshift({id:d.id,title:d.title,project:d.project||"",cat:canonCat(d.category||"Structure"),sev:d.severity||"medium",desc:d.description||"",action:d.action||"",date:new Date(d.created_at).toLocaleDateString("fr-FR"),status:d.status||"open"});
+      entries.unshift({id:d.id,title:d.title,project:d.project||"",cat:canonCat(d.category||"Structure"),sev:d.severity||"medium",desc:d.description||"",action:d.action||"",date:new Date(d.created_at).toLocaleDateString("fr-FR"),status:d.status||"open",author:d.user_name||""});
       renderDash();renderKB();renderCounts();
-      addNotif("<strong>"+d.user_name+"</strong> a capture : "+d.title);
+      addNotif("<strong>"+d.user_name+"</strong> a capturé : "+d.title);
       toast(d.user_name+" : "+d.title);
+    })
+    .on("postgres_changes",{event:"DELETE",schema:"public",table:"captures",filter:"company_id=eq."+dbCoId},function(payload){
+      var id=payload.old&&payload.old.id;
+      if(!id)return;
+      entries=entries.filter(function(e){return String(e.id)!==String(id);});
+      renderDash();renderKB();renderCounts();
+    })
+    .on("postgres_changes",{event:"UPDATE",schema:"public",table:"captures",filter:"company_id=eq."+dbCoId},function(payload){
+      var d=payload.new;
+      var idx=entries.findIndex(function(e){return String(e.id)===String(d.id);});
+      if(idx>=0){entries[idx]={id:d.id,title:d.title,project:d.project||"",cat:canonCat(d.category||"Structure"),sev:d.severity||"medium",desc:d.description||"",action:d.action||"",date:entries[idx].date,status:d.status||"open",author:d.user_name||""};}
+      renderDash();renderKB();renderCounts();
     })
     .on("postgres_changes",{event:"INSERT",schema:"public",table:"community_posts",filter:"company_id=eq."+dbCoId},function(payload){
       var d=payload.new;
