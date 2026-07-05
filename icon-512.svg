@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0B1120"/>
+  <text x="256" y="200" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="120" font-weight="800" fill="#ffffff">Bace</text>
+  <text x="256" y="310" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="120" font-weight="800" fill="#378add">Tech</text>
+  <rect x="140" y="350" width="232" height="4" rx="2" fill="#378add" opacity="0.4"/>
+  <text x="256" y="410" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="40" fill="#4a6a8a">⚡ IA</text>
+</svg>
