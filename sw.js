@@ -1,5 +1,5 @@
 // BaceTech Service Worker — cache shell for fast loading
-var CACHE_NAME = 'bacetech-v1';
+var CACHE_NAME = 'bacetech-v2';
 var SHELL_URLS = [
   '/',
   '/index.html'
