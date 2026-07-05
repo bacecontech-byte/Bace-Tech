@@ -9,27 +9,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
 // ── Mobile menu toggle ───────────────────────────────────────────────────
-function toggleMobileMenu(){
-  var sb=document.querySelector('.sidebar');
-  var ov=document.getElementById('sidebar-overlay');
-  if(!sb)return;
-  var isOpen=sb.style.left==='0px';
-  sb.style.left=isOpen?'-280px':'0px';
-  sb.style.zIndex='9999';
-  sb.style.position='fixed';
-  sb.style.top='0';
-  sb.style.height='100vh';
-  sb.style.width='260px';
-  sb.style.transition='left 0.25s ease';
-  sb.style.boxShadow=isOpen?'none':'4px 0 30px rgba(0,0,0,0.5)';
-  if(ov){
-    ov.style.display=isOpen?'none':'block';
-    ov.style.position='fixed';
-    ov.style.inset='0';
-    ov.style.background='rgba(0,0,0,0.5)';
-    ov.style.zIndex='9998';
-  }
-}
+
 
 // ── PWA: Service Worker Registration ─────────────────────────────────────
 if('serviceWorker' in navigator){
@@ -111,16 +91,48 @@ window.addEventListener('appinstalled',function(){
 :root{--navy:#06111f;--navy2:#0d1e33;--navy3:#162840;--blue:#1E6FFF;--blue2:#3d83ff;--blue-light:rgba(30,111,255,0.08);--white:#fff;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);--text:#e8edf5;--text2:#8a9ab5;--text3:#4a5a72;--green:#10b981;--orange:#f59e0b;--red:#ef4444;--font-d:"Syne",sans-serif;--font-b:"DM Sans",sans-serif;}
 body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-height:100vh;}
 .screen{display:none;}.screen.active{display:block;}
+
+/* ── Mobile bottom tab bar ── */
+.mobile-tabs{
+  display:none;position:fixed;bottom:0;left:0;right:0;height:56px;
+  background:var(--navy2);border-top:1px solid var(--border2);
+  justify-content:space-around;align-items:center;z-index:300;
+  padding:0 4px;padding-bottom:env(safe-area-inset-bottom,0);
+}
+.mob-tab{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;padding:6px 0;flex:1;cursor:pointer;border:none;background:none;
+  -webkit-tap-highlight-color:rgba(55,138,221,0.2);
+}
+.mob-tab i{font-size:20px;color:var(--text3);transition:color 0.15s;}
+.mob-tab span{font-size:9px;color:var(--text3);transition:color 0.15s;}
+.mob-tab.active i,.mob-tab.active span{color:#378add;}
 @media(max-width:768px){
-  .auth-mobile-grid{grid-template-columns:1fr !important;}
-  .auth-right-panel{display:none !important;}
-  .auth-left-panel{padding:32px 20px 40px !important;justify-content:flex-start !important;min-height:100vh;}
-  .auth-headline{font-size:22px !important;}
-  .auth-tab-btn{padding:8px 10px !important;font-size:12px !important;}
+  .auth-left{display:none;}
+  /* Hide sidebar on mobile — bottom tab replaces it */
+  .sidebar{display:none !important;}
+  .app-main{margin-left:0 !important;}
+  /* Bottom tab bar */
+  .mobile-tabs{display:flex !important;}
+  .app-main{padding-bottom:60px;}
+  /* Grids */
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .capture-grid{grid-template-columns:1fr;}
+  .dash-cols{grid-template-columns:1fr !important;}
+  .files-grid{grid-template-columns:1fr 1fr;}
+  .proj-grid{grid-template-columns:1fr;}
   .form-row{flex-direction:column !important;gap:0 !important;}
-  .form-input{font-size:16px !important;}
-  #form-login,#form-signup{max-width:100% !important;}
-  .auth-msg{max-width:100% !important;}
+  .app-topbar{padding:0 10px;}
+  .notif-panel{right:8px;left:8px;width:auto;}
+  #kb-controls{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
+  .kb-filter{white-space:nowrap;flex-shrink:0;}
+  .kb-table th,.kb-table td{font-size:11px;padding:8px 6px;}
+  .chat-wrap{height:calc(100vh - 180px);}
+  .doc-viewer-overlay{align-items:flex-end;}
+  .doc-viewer-panel{width:100% !important;max-width:100% !important;height:90vh;border-radius:16px 16px 0 0;}
+  .capture-panel{padding:16px;}
+  .inc-modal{max-width:100%;border-radius:16px 16px 0 0;}
+  .inc-modal-overlay{align-items:flex-end;padding:0;}
 }
 .tab{display:none;}.tab.active{display:block;}
 .auth-wrap{min-height:100vh;display:flex;}
@@ -212,11 +224,7 @@ body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-heig
 .user-name{font-size:12px;font-weight:500;color:var(--text);}
 .user-company{font-size:11px;color:var(--text3);}
 .app-main{flex:1;margin-left:220px;display:flex;flex-direction:column;min-height:100vh;}
-.mobile-menu-btn{
-  display:none;background:none;border:none;color:var(--white);font-size:24px;
-  cursor:pointer;padding:6px 10px;margin-right:4px;align-items:center;justify-content:center;
-  -webkit-tap-highlight-color:rgba(55,138,221,0.3);
-}
+
 .app-topbar{height:54px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 20px;background:var(--navy);position:sticky;top:0;z-index:50;}
 .topbar-title{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--white);}
 .topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;}
@@ -698,10 +706,10 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         </div>
       </div>
     </div>
-    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleMobileMenu()"></div>
+    
     <div class="app-main">
       <div class="app-topbar">
-        <button class="mobile-menu-btn" onclick="toggleMobileMenu()"><i class="ti ti-menu-2"></i></button>
+        
         <div class="topbar-title" id="top-title">Dashboard</div>
         <div class="topbar-right">
           <div class="site-chip" id="site-chip" onclick="showTab(6,document.querySelectorAll('.sidebar-link')[6])">
@@ -2543,9 +2551,7 @@ function initChat(){
 function getTabNames(){var S=STRINGS[lang];return["Dashboard",S.navCap||"Capture",S.navFiles||"My folders",S.navKb||"Knowledge base","Bace IA",S.navComm||"Community",S.navProj||"My projects",S.navDocs||"Plans & Documents","API"];}
 function showTab(i,btn){
   // Close mobile menu when switching tabs
-  var sb=document.querySelector('.sidebar');
-  var ov=document.getElementById('sidebar-overlay');
-  if(sb&&sb.style.left==='0px'){sb.style.left='-280px';sb.style.boxShadow='none';if(ov)ov.style.display='none';}
+
   for(var j=0;j<8;j++){var el=document.getElementById("tab-"+j);if(el)el.classList.toggle("active",j===i);}
   document.querySelectorAll(".sidebar-link").forEach(function(b){b.classList.remove("active");});
   if(btn)btn.classList.add("active");
@@ -3227,6 +3233,58 @@ document.addEventListener("keydown",function(e){
   }
   if(e.shiftKey&&e.altKey&&e.key==="K"&&document.getElementById("s-app").classList.contains("active"))showTab(8);
 });
+
+// ── Mobile bottom tab bar ────────────────────────────────────────────────
+function mobileTab(idx,btn){
+  if(idx===9){showMoreMenu();return;}
+  hideMoreMenu();
+  document.querySelectorAll('.mob-tab').forEach(function(t){t.classList.remove('active');});
+  if(btn)btn.classList.add('active');
+  showTab(idx,null);
+}
+
+function showMoreMenu(){
+  if(document.getElementById('mob-more-menu')){hideMoreMenu();return;}
+  var S=STRINGS[lang];
+  var items=[
+    {icon:'ti-folder',label:S.navFiles||'Meus arquivos',tab:2},
+    {icon:'ti-users',label:S.navComm||'Comunidade',tab:5},
+    {icon:'ti-building-skyscraper',label:S.navProj||'Meus projetos',tab:6},
+    {icon:'ti-file-text',label:S.navDocs||'Plantas & Documentos',tab:7},
+  ];
+  var menu=document.createElement('div');
+  menu.id='mob-more-menu';
+  menu.style.cssText='position:fixed;bottom:60px;right:8px;background:var(--navy2);border:1px solid var(--border2);border-radius:12px;padding:6px 0;z-index:301;box-shadow:0 -8px 30px rgba(0,0,0,0.4);min-width:200px;';
+  menu.innerHTML=items.map(function(it){
+    return '<button onclick="pickMoreTab('+it.tab+')" style="display:flex;align-items:center;gap:10px;width:100%;padding:12px 16px;background:none;border:none;color:var(--text2);font-size:13px;cursor:pointer;font-family:inherit;text-align:left;"><i class="ti '+it.icon+'" style="font-size:18px;color:#378add;width:20px;text-align:center;"></i>'+it.label+'</button>';
+  }).join('');
+  document.body.appendChild(menu);
+  // Close on outside tap
+  setTimeout(function(){
+    document.addEventListener('click',closeMoreOnOutside);
+  },100);
+}
+
+function closeMoreOnOutside(e){
+  var menu=document.getElementById('mob-more-menu');
+  var btn=document.getElementById('mt-more');
+  if(menu&&!menu.contains(e.target)&&e.target!==btn&&!btn.contains(e.target)){
+    hideMoreMenu();
+  }
+}
+
+function hideMoreMenu(){
+  var menu=document.getElementById('mob-more-menu');
+  if(menu)menu.remove();
+  document.removeEventListener('click',closeMoreOnOutside);
+}
+
+function pickMoreTab(tabIdx){
+  hideMoreMenu();
+  document.querySelectorAll('.mob-tab').forEach(function(t){t.classList.remove('active');});
+  document.getElementById('mt-more').classList.add('active');
+  showTab(tabIdx,null);
+}
 </script>
 
 <div class="inc-modal-overlay" id="inc-modal-overlay" onclick="if(event.target===this)closeIncModal()">
@@ -3261,6 +3319,14 @@ document.addEventListener("keydown",function(e){
       <button class="inc-modal-btn imb-delete" id="imd-btn-delete" onclick="closeIncModal();deleteEntry(window._incModalId)">🗑 <span id="imd-lbl-delete">Supprimer</span></button>
     </div>
   </div>
+</div>
+
+<div class="mobile-tabs" id="mobile-tabs">
+  <button class="mob-tab active" onclick="mobileTab(0,this)" id="mt-0"><i class="ti ti-layout-dashboard"></i><span>Dashboard</span></button>
+  <button class="mob-tab" onclick="mobileTab(1,this)" id="mt-1"><i class="ti ti-camera"></i><span id="mt-cap">Capturar</span></button>
+  <button class="mob-tab" onclick="mobileTab(3,this)" id="mt-3"><i class="ti ti-database"></i><span id="mt-kb">Base</span></button>
+  <button class="mob-tab" onclick="mobileTab(4,this)" id="mt-4"><i class="ti ti-robot"></i><span>Bace IA</span></button>
+  <button class="mob-tab" onclick="mobileTab(9,this)" id="mt-more"><i class="ti ti-dots"></i><span id="mt-more-label">Mais</span></button>
 </div>
 </body>
 </html>
