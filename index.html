@@ -14,94 +14,19 @@
 :root{--navy:#06111f;--navy2:#0d1e33;--navy3:#162840;--blue:#1E6FFF;--blue2:#3d83ff;--blue-light:rgba(30,111,255,0.08);--white:#fff;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);--text:#e8edf5;--text2:#8a9ab5;--text3:#4a5a72;--green:#10b981;--orange:#f59e0b;--red:#ef4444;--font-d:"Syne",sans-serif;--font-b:"DM Sans",sans-serif;}
 body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-height:100vh;}
 .screen{display:none;}.screen.active{display:block;}
-/* ── Mobile bottom tab bar + FAB ── */
-.mobile-tabs{
-  display:none;position:fixed;bottom:0;left:0;right:0;height:52px;
-  background:rgba(10,15,26,0.97);border-top:1px solid rgba(255,255,255,0.06);
-  justify-content:space-around;align-items:center;z-index:300;
-  padding:0 4px;padding-bottom:env(safe-area-inset-bottom,0);
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-}
-.mob-tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 0;flex:1;cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:rgba(55,138,221,0.2);}
-.mob-tab i{font-size:20px;color:#3a5a78;transition:color 0.15s;}
-.mob-tab span{font-size:9px;color:#3a5a78;transition:color 0.15s;}
-.mob-tab.active i,.mob-tab.active span{color:#378add;}
-.mob-tab-spacer{width:56px;flex-shrink:0;}
-.capture-fab{
-  display:none;position:fixed;bottom:26px;left:50%;transform:translateX(-50%);
-  width:52px;height:52px;border-radius:50%;z-index:301;cursor:pointer;border:none;
-  background:linear-gradient(135deg,#378add,#2a6db5);
-  box-shadow:0 4px 20px rgba(55,138,221,0.4);
-  align-items:center;justify-content:center;
-  -webkit-tap-highlight-color:transparent;
-}
-.capture-fab i{font-size:24px;color:#fff;}
-.ia-bubble{
-  display:none;position:fixed;bottom:60px;right:10px;width:32px;height:32px;
-  border-radius:50%;background:#14243d;border:1.5px solid rgba(55,138,221,0.25);
-  align-items:center;justify-content:center;z-index:301;cursor:pointer;
-  -webkit-tap-highlight-color:transparent;
-}
-.ia-bubble svg{width:18px;height:18px;stroke:#378add;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
-.ia-bubble .ia-dot{position:absolute;top:-1px;right:-1px;width:7px;height:7px;border-radius:50%;background:#639922;border:1.5px solid #0B1120;}
-.ia-bubble.open{background:#1e3a5e;border-color:#378add;}
-.ia-bubble.open svg{stroke:#fff;}
-.ia-mini-chat{
-  display:none;position:fixed;bottom:98px;right:10px;width:260px;
-  background:#111827;border:1px solid rgba(55,138,221,0.15);border-radius:14px;
-  padding:12px;z-index:302;box-shadow:0 8px 30px rgba(0,0,0,0.5);
-}
-.ia-mini-chat.show{display:block;}
-.ia-mini-header{display:flex;align-items:center;gap:6px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.06);}
-.ia-mini-header svg{width:16px;height:16px;stroke:#378add;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
-.ia-mini-name{font-size:12px;font-weight:600;color:var(--white);}
-.ia-mini-close{margin-left:auto;background:none;border:none;color:#3a5a78;font-size:16px;cursor:pointer;padding:2px;}
-.ia-mini-msg{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:8px;}
-.ia-mini-chips{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;}
-.ia-mini-chip{font-size:10px;padding:4px 8px;border-radius:8px;background:rgba(55,138,221,0.08);color:#378add;border:1px solid rgba(55,138,221,0.15);cursor:pointer;}
-.ia-mini-input{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;}
-.ia-mini-input input{background:none;border:none;outline:none;flex:1;font-size:12px;color:var(--white);font-family:inherit;}
-.ia-mini-input button{background:none;border:none;color:#378add;font-size:16px;cursor:pointer;}
-.capture-menu{
-  display:none;position:fixed;bottom:84px;left:50%;transform:translateX(-50%);
-  background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:14px;
-  padding:8px;width:200px;z-index:302;box-shadow:0 8px 30px rgba(0,0,0,0.5);
-}
-.capture-menu.show{display:flex;flex-direction:column;gap:4px;}
-.cap-menu-opt{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;background:rgba(255,255,255,0.03);cursor:pointer;border:none;width:100%;font-family:inherit;text-align:left;}
-.cap-menu-opt:active{background:rgba(55,138,221,0.1);}
-.cap-menu-opt i{font-size:18px;color:#378add;}
-.cap-menu-opt span{font-size:13px;color:var(--white);}
-.mob-profile{
-  display:none;position:fixed;top:44px;right:8px;width:220px;
-  background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:14px;
-  padding:12px;z-index:400;box-shadow:0 8px 30px rgba(0,0,0,0.5);
-}
-.mob-profile.show{display:block;}
 @media(max-width:768px){
-  .auth-left{display:none;}
-  .sidebar{display:none !important;}
-  .app-main{margin-left:0 !important;}
-  .mobile-tabs,.capture-fab,.ia-bubble{display:flex !important;}
-  .app-main{padding-bottom:60px;}
-  .app-topbar .bell-btn{display:flex !important;}
-  .kpi-grid{grid-template-columns:1fr 1fr;}
-  .capture-grid{grid-template-columns:1fr;}
-  .dash-cols{grid-template-columns:1fr !important;}
-  .files-grid{grid-template-columns:1fr 1fr;}
-  .proj-grid{grid-template-columns:1fr;}
+  .mobile-logo{display:flex !important;align-items:center;gap:0;margin-right:auto;}
+  .mobile-avatar{display:block !important;}
+
+  .auth-mobile-grid{grid-template-columns:1fr !important;}
+  .auth-right-panel{display:none !important;}
+  .auth-left-panel{padding:32px 20px 40px !important;justify-content:flex-start !important;min-height:100vh;}
+  .auth-headline{font-size:22px !important;}
+  .auth-tab-btn{padding:8px 10px !important;font-size:12px !important;}
   .form-row{flex-direction:column !important;gap:0 !important;}
-  .app-topbar{padding:0 10px;}
-  .notif-panel{right:8px;left:8px;width:auto;}
-  #kb-controls{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
-  .kb-filter{white-space:nowrap;flex-shrink:0;}
-  .kb-table th,.kb-table td{font-size:11px;padding:8px 6px;}
-  .chat-wrap{height:calc(100vh - 180px);}
-  .doc-viewer-overlay{align-items:flex-end;}
-  .doc-viewer-panel{width:100% !important;max-width:100% !important;height:90vh;border-radius:16px 16px 0 0;}
-  .capture-panel{padding:16px;}
-  .inc-modal{max-width:100%;border-radius:16px 16px 0 0;}
-  .inc-modal-overlay{align-items:flex-end;padding:0;}
+  .form-input{font-size:16px !important;}
+  #form-login,#form-signup{max-width:100% !important;}
+  .auth-msg{max-width:100% !important;}
 }
 .tab{display:none;}.tab.active{display:block;}
 .auth-wrap{min-height:100vh;display:flex;}
@@ -186,9 +111,7 @@ body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-heig
 .sidebar-link{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;color:var(--text2);cursor:pointer;transition:all 0.12s;border-left:2px solid transparent;}
 .sidebar-link:hover{color:var(--text);background:rgba(255,255,255,0.03);}
 .sidebar-link.active{color:var(--white);background:var(--blue-light);border-left-color:var(--blue);}
-.worker-ico{display:inline-flex;vertical-align:middle;margin-right:0;color:inherit;}
-.worker-ico svg{width:18px;height:18px;}
-.sidebar-link i,font-size:16px;width:18px;}
+.sidebar-link i{font-size:16px;width:18px;}
 .sidebar-bottom{margin-top:auto;border-top:1px solid var(--border);padding:16px 20px;}
 .user-chip{display:flex;align-items:center;gap:8px;}
 .user-avatar{width:30px;height:30px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;font-family:var(--font-d);flex-shrink:0;}
@@ -587,7 +510,10 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 </head>
 <body>
 <div class="loading-overlay" id="loading"><div class="loading-spinner"></div><div class="loading-text" id="load-txt"><span id="load-txt-default">Chargement...</span></div></div>
-<div class="notif-panel" id="notif-panel">
+<button class="mobile-avatar" id="mobile-avatar-btn" onclick="toggleMobileProfile()" style="display:none;background:none;border:none;cursor:pointer;margin-left:4px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:rgba(55,138,221,0.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#378add;" id="mob-av-initials">DM</div>
+        </button>
+        <div class="notif-panel" id="notif-panel">
   <div class="notif-header"><div class="notif-header-title"><span id="notif-title">Notifications</span></div><div class="notif-clear" onclick="clearNotifs()"><span id="notif-clear-txt">Effacer</span></div></div>
   <div class="notif-list" id="notif-list"><div class="notif-empty"><span id="notif-empty-txt">Aucune notification</span></div></div>
 </div>
@@ -670,7 +596,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="sidebar-link" onclick="showTab(1,this)"><i class="ti ti-camera"></i><span id="nav-cap">Capturer</span></div>
       <div class="sidebar-link" onclick="showTab(2,this)"><i class="ti ti-folder"></i><span id="nav-files">Mes dossiers</span></div>
       <div class="sidebar-link" onclick="showTab(3,this)"><i class="ti ti-database"></i><span id="nav-kb">Base de connaissances</span></div>
-      <div class="sidebar-link" onclick="showTab(4,this)"><span class="worker-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C9.5 2 7.5 3.5 7 5.5L6 9h12l-1-3.5C16.5 3.5 14.5 2 12 2z"/><path d="M4 9h16v1a2 2 0 01-2 2H6a2 2 0 01-2-2V9z"/><circle cx="12" cy="16" r="4"/><path d="M10 15.5l1 1.5 2.5-2.5" stroke-width="1.2"/></svg></span><span id="nav-search">Bace IA</span></div>
+      <div class="sidebar-link" onclick="showTab(4,this)"><i class="ti ti-robot"></i><span id="nav-search">Bace IA</span></div>
       <div class="sidebar-section"><span id="sidebar-site">Chantier</span></div>
       <div class="sidebar-link" onclick="showTab(5,this)"><i class="ti ti-users"></i><span id="nav-comm">Communauté</span></div>
       <div class="sidebar-link" onclick="showTab(6,this)"><i class="ti ti-building-skyscraper"></i><span id="nav-proj">Mes projets</span></div>
@@ -687,6 +613,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
     </div>
     <div class="app-main">
       <div class="app-topbar">
+        <div class="mobile-logo" style="display:none;"><span style="font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--white);">Bace</span><span style="font-family:var(--font-d);font-size:16px;font-weight:700;color:#378add;">Tech</span></div>
         <div class="topbar-title" id="top-title">Dashboard</div>
         <div class="topbar-right">
           <div class="site-chip" id="site-chip" onclick="showTab(6,document.querySelectorAll('.sidebar-link')[6])">
@@ -744,7 +671,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
                 <i class="ti ti-camera"></i><span id="qa-capture">Capturer un incident</span>
               </div>
               <div class="qa-btn" onclick="showTab(4,document.querySelectorAll('.sidebar-link')[4])">
-                <span class="worker-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C9.5 2 7.5 3.5 7 5.5L6 9h12l-1-3.5C16.5 3.5 14.5 2 12 2z"/><path d="M4 9h16v1a2 2 0 01-2 2H6a2 2 0 01-2-2V9z"/><circle cx="12" cy="16" r="4"/><path d="M10 15.5l1 1.5 2.5-2.5" stroke-width="1.2"/></svg></span><span id="qa-bace">Demander à Bace IA</span>
+                <i class="ti ti-robot"></i><span id="qa-bace">Demander à Bace IA</span>
               </div>
               <div class="qa-btn" onclick="showTab(7,document.querySelectorAll('.sidebar-link')[7])">
                 <i class="ti ti-file-upload"></i><span id="qa-doc">Importer un plan</span>
@@ -1055,9 +982,9 @@ var CATS_NORM=CATS.map(function(c){return c.toLowerCase().normalize("NFD").repla
 var LANGNAMES=["Francais","English","Portugues"];
 
 var STRINGS=[
-  {tabA:"Connexion",tabB:"Créer un compte",lbEmail:"Email",lbPass:"Mot de passe",btnLogin:"Se connecter",noAcc:"Pas encore de compte ?",lnkSignup:"Créer votre espace",lbFirst:"Prénom",lbLast:"Nom",lbSemail:"Email professionnel",lbCo:"Entreprise",lbSpass:"Mot de passe",btnSignup:"Créer mon compte",haveAcc:"Déjà un compte ?",lnkLogin:"Se connecter",lnkReset:"Mot de passe oublié ?",navDash:"Dashboard",navCap:"Capturer",navFiles:"Mes dossiers",navKb:"Base de connaissances",navSearch:"Bace IA",navComm:"Communauté",navProj:"Mes projets",navDocs:"Plans & Documents",navProfile:"Profil",ppLangLabel:"Langue de l'interface",ppAiStatus:"IA active et sécurisée",ppLogout:"Déconnexion",navLogout:"Déconnexion",settingsLangLabel:"Langue de l'interface",settingsAiLabel:"Bace IA",settingsAccountLabel:"Compte",btnCap:"Capturer",utPhoto:"Importer",utCamera:"Prendre une photo",utGallery:"Depuis la galerie",utVoice:"Appuyer pour enregistrer",klTot:"Total captures",ksTot:"ce mois-ci",klRes:"Résolus",ksRes:"incidents traités",klCrit:"Critiques",ksCrit:"nécessitent action",klCats:"Catégories",ksCats:"types",stRec:"Incidents récents",slAll:"Voir tout",statusOpen:"Ouvert",statusResolved:"Résolu",sevLow:"Faible",sevMed:"Moyen",sevHigh:"Élevé",sevCrit:"Critique",thTitle:"Titre",thProj:"Projet",thCat:"Cat",thSev:"Sév",thDate:"Date",thStatus:"Status",kbAll:"Tout",kbSearchPlaceholder:"Rechercher incidents, normes, solutions…",cats:["Structure","Électricité","Plomberie","Sécurité","Équipement","Documentation"],folders:["Structure","Électricité","Plomberie","Sécurité","Équipement","Documentation"],aiHint:"L'IA analysera selon le projet sélectionné",chatSugg:["Dernier incident critique ?","Problèmes non résolus ?","Résumé par chantier ?","Incidents cette semaine ?"],chatStatus:"En ligne — Base de connaissances connectée",docsTitle:"Plans & Documents",docsSub:"L'IA lit et indexe vos plans et spécifications",docsProjLabel:"Chantier :",docsUploadTitle:"Glissez vos fichiers ici",docsUploadSub:"Plans PDF, spécifications, rapports d'étude, calculs structurels...",docsEmpty:"Aucun document. Importez vos plans et spécifications.",docsIndexed:"Indexé par Bace IA",docsDelete:"Supprimer ce document ?",docsProcessing:"Traitement en cours...",docsSuccess:"analysé et indexé",docsError:"Erreur lors du traitement de",docsAllSites:"Tous les chantiers",lblTitle:"Titre",lblSev:"Sévérité",lblCat:"Catégorie",lblDesc:"Description",lblAction:"Action recommandée",panelCaptureTitle:"Capture & Bace IA",projSectionTitle:"Mes projets & chantiers",btnSave:"Enregistrer & Classer",foldersTitle:"Dossiers par catégorie",commTitle:"Communauté du chantier",commSub:"Posez vos problèmes, partagez vos solutions",postPlaceholder:"Décrivez votre problème...",tagProblem:"Problème",tagSolved:"Résolu",projAddTitle:"Ajouter un chantier",projLblName:"Nom du chantier",projLblLoc:"Localisation",projLblOwner:"Maître d'œuvre",projBtnAdd:"+ Ajouter",projPlaceholderName:"Ex: Tour Horizon...",projPlaceholderLoc:"Ex: Paris...",projPlaceholderOwner:"Ex: Ing. Jean Dupont...",settingsTitle:"Configuration Bace IA",settingsSub:"La clé API est gérée côté serveur. Aucune configuration nécessaire.",settingsStatus:"✅ IA active et sécurisée",notifEmpty:"Aucune notification",kbEmpty:"Aucune entrée.",sevLowOpt:"Faible",sevMedOpt:"Moyen",sevHighOpt:"Élevé",sevCritOpt:"Critique",aTagline:"La mémoire intelligente de vos chantiers",aSub:"Capturez chaque incident en quelques secondes.",aF1:"Capture photo et vocale par IA",aF2:"Notifications en temps réel",aF3:"Communauté par chantier",aF4:"Classement automatique",aClients:"Pour les entreprises de construction",folderFiles:"fichier(s)",loadDefault:"Chargement...",notifTitle:"Notifications",notifClear:"Effacer",sidebarMain:"Principal",sidebarAccount:"Compte",sidebarSite:"Chantier",lblAiPhoto:"Analyse photo",lblCauseBox:"Cause probable",lblSolutionBox:"Solution recommandée",lblNormesBox:"Normes applicables",lblAccept:"Accepter",lblEdit:"Modifier",lblDecline:"Refuser",lblAiVoice:"Analyse vocale",lblDetails:"Détails",lblProj:"Projet",lblNoProj:"Aucun projet",lblSignupLang:"Langue de l'interface",lblCameraSub:"Caméra",lblPublish:"Publier",commEmpty:"Aucune discussion.",viewerNext:"Suiv. →",viewerPrev:"← Préc.",toastWelcome:"Bienvenue sur BaceTech !",toastAddProj:"Chantier ajouté !",toastDelProj:"Chantier supprimé",toastConfirmProj:"Supprimer ce chantier ?",toastErrDel:"Erreur lors de la suppression",toastAIPhoto:"Analyse IA complète — vérifiez la solution",toastAIVoice:"Note vocale analysée — vérifiez la solution",toastAccept:"✅ Solution acceptée",toastEdit:"✏️ Modifiez la solution",toastDecline:"Solution refusée — remplissez manuellement",toastNoTitle:"Ajoutez un titre",toastSaved:"Enregistré et classé !",toastConfirmIncident:"Supprimer cet incident ?",toastDelIncident:"Incident supprimé",toastReopened:"Incident réouvert",toastResolved:"✅ Marqué comme résolu !",toastNoPost:"Écrivez quelque chose",toastNoDB:"Connexion requise",toastPosted:"Publication envoyée !",toastReplied:"Réponse envoyée !",toastMicError:"Microphone non disponible",toastErrServer:"❌ Erreur serveur",toastErrLimit:"❌ Limite API atteinte — réessayez",toastErrNet:"❌ Erreur de connexion",toastDocDel:"Document supprimé",btnView:"Voir",cmvVoice:"Note vocale",chatPlaceholder:"Posez votre question...",lblSaveChat:"Sauvegarder",lblNewChat:"Nouvelle conversation",lblHistory:"Historique",toastChatSaved:"✅ Conversation sauvegardée",toastChatEmpty:"Aucun message à sauvegarder",toastChatLoaded:"Conversation chargée",toastChatDel:"Conversation supprimée",confirmNewChat:"Commencer une nouvelle conversation ?",noSavedChats:"Aucune conversation sauvegardée",cmvStop:"Stop",cmbCamera:"Photo",cmbGallery:"Galerie",cmbDoc:"Document",cmbVideo:"Vidéo",docFieldPurpose:"Objet",docFieldSpecs:"Spécifications",docFieldElements:"Éléments critiques",docFieldNorms:"Normes",docFieldNotes:"Notes",docViewerClose:"✕ Fermer",docViewerNoFile:"Fichier non disponible. Re-importez pour l'afficher.",docViewerLoading:"Chargement...",docViewerPrev:"← Préc.",docViewerNext:"Suiv. →",expandMore:"▼ Voir plus",expandLess:"▲ Voir moins",ksDate:"Date ↓",ksSev:"Sévérité ↓",ksTitle:"Titre A-Z",chatSugg0:"Dernier incident critique ?",chatSugg1:"Problèmes non résolus ?",chatSugg2:"Résumé par chantier ?",chatSugg3:"Incidents cette semaine ?",chatSugg0:"Last critical incident?",chatSugg1:"Unresolved issues?",chatSugg2:"Summary by site?",chatSugg3:"Incidents this week?",chatHeaderName:"Bace IA — Assistant chantier",lblNorms:"Normes applicables",btnReopen:"Réouvrir",btnResolve:"Résoudre",btnDelete:"Supprimer",dashEmpty:"Aucune capture.",noProject:"Aucun projet",btnEdit:"Modifier",chatWelcome:"Bonjour {name} ! Je suis Bace IA. J'ai accès à {n} incident(s). Posez vos questions !",docFieldRooms:"Pièces / Espaces",docFieldScale:"Échelle",docNoSummary:"Analyse non disponible — réimportez le document.",markedResolved:"Marqué résolu",mtHome:"Accueil",mtBase:"Base",mtProj:"Projets",mtMore:"Plus",cmPhoto:"Prendre une photo",cmGallery:"Galerie",cmVoice:"Enregistrer voix",cmFile:"Importer fichier"},
-  {tabA:"Sign in",tabB:"Create account",lbEmail:"Email",lbPass:"Password",btnLogin:"Sign in",noAcc:"No account yet?",lnkSignup:"Create your workspace",lbFirst:"First name",lbLast:"Last name",lbSemail:"Work email",lbCo:"Company",lbSpass:"Password",btnSignup:"Create my account",haveAcc:"Already have an account?",lnkLogin:"Sign in",lnkReset:"Forgot password?",navDash:"Dashboard",navCap:"Capture",navFiles:"My folders",navKb:"Knowledge base",navSearch:"Bace AI",navComm:"Community",navProj:"My projects",navDocs:"Plans & Documents",navProfile:"Profile",ppLangLabel:"Interface language",ppAiStatus:"AI active and secured",ppLogout:"Sign out",navLogout:"Sign out",settingsLangLabel:"Interface language",settingsAiLabel:"Bace AI",settingsAccountLabel:"Account",btnCap:"Capture",utPhoto:"Import",utCamera:"Take a photo",utGallery:"Import from gallery",utVoice:"Tap to record",klTot:"Total captures",ksTot:"this month",klRes:"Resolved",ksRes:"issues handled",klCrit:"Critical",ksCrit:"need action",klCats:"Categories",ksCats:"types",stRec:"Recent incidents",slAll:"View all",statusOpen:"Open",statusResolved:"Resolved",sevLow:"Low",sevMed:"Medium",sevHigh:"High",sevCrit:"Critical",thTitle:"Title",thProj:"Project",thCat:"Cat",thSev:"Sev",thDate:"Date",thStatus:"Status",kbAll:"All",kbSearchPlaceholder:"Search incidents, norms, solutions…",cats:["Structure","Electrical","Plumbing","Safety","Equipment","Documentation"],folders:["Structure","Electrical","Plumbing","Safety","Equipment","Documentation"],aiHint:"AI will analyze based on selected project",chatSugg:["Last critical incident?","Unresolved issues?","Summary by site?","Incidents this week?"],chatStatus:"Online — Knowledge base connected",docsTitle:"Plans & Documents",docsSub:"AI reads and indexes your plans and specifications",docsProjLabel:"Site:",docsUploadTitle:"Drop your files here",docsUploadSub:"PDF plans, specifications, study reports, structural calculations...",docsEmpty:"No documents. Upload your plans and specifications.",docsIndexed:"Indexed by Bace AI",docsDelete:"Delete this document?",docsProcessing:"Processing...",docsSuccess:"analyzed and indexed",docsError:"Error processing",docsAllSites:"All sites",lblTitle:"Title",lblSev:"Severity",lblCat:"Category",lblDesc:"Description",lblAction:"Recommended action",panelCaptureTitle:"Capture & Bace AI",projSectionTitle:"My projects & sites",btnSave:"Save & File",foldersTitle:"Folders by category",commTitle:"Site community",commSub:"Post your issues, share your solutions",postPlaceholder:"Describe your issue...",tagProblem:"Problem",tagSolved:"Solved",projAddTitle:"Add a site",projLblName:"Site name",projLblLoc:"Location",projLblOwner:"Site manager",projBtnAdd:"+ Add",projPlaceholderName:"E.g. Tower Horizon...",projPlaceholderLoc:"E.g. Paris...",projPlaceholderOwner:"E.g. Eng. John Smith...",settingsTitle:"BaceTech AI Configuration",settingsSub:"The API key is securely managed server-side. No configuration needed.",settingsStatus:"✅ AI active and secured",notifEmpty:"No notifications",kbEmpty:"No entries.",sevLowOpt:"Low",sevMedOpt:"Medium",sevHighOpt:"High",sevCritOpt:"Critical",aTagline:"The intelligent memory of your construction sites",aSub:"Capture every incident in seconds.",aF1:"AI-powered photo and voice capture",aF2:"Real-time notifications",aF3:"Community per site",aF4:"Automatic filing",aClients:"For construction companies",folderFiles:"file(s)",loadDefault:"Loading...",notifTitle:"Notifications",notifClear:"Clear",sidebarMain:"Main",sidebarAccount:"Account",sidebarSite:"Site",lblAiPhoto:"Photo analysis",lblCauseBox:"Probable cause",lblSolutionBox:"Recommended solution",lblNormesBox:"Applicable standards",lblAccept:"Accept",lblEdit:"Edit",lblDecline:"Decline",lblAiVoice:"Voice analysis",lblDetails:"Details",lblProj:"Project",lblNoProj:"No project",lblSignupLang:"Interface language",lblCameraSub:"Camera",lblPublish:"Publish",commEmpty:"No discussions.",viewerNext:"Next →",viewerPrev:"← Prev",toastWelcome:"Welcome to BaceTech!",toastAddProj:"Site added!",toastDelProj:"Site deleted",toastConfirmProj:"Delete this site?",toastErrDel:"Error deleting",toastAIPhoto:"AI analysis complete — review the solution",toastAIVoice:"Voice note analyzed — review the solution",toastAccept:"✅ Solution accepted",toastEdit:"✏️ Edit the solution below",toastDecline:"Solution declined — fill in manually",toastNoTitle:"Add a title",toastSaved:"Saved and filed!",toastConfirmIncident:"Delete this incident?",toastDelIncident:"Incident deleted",toastReopened:"Incident reopened",toastResolved:"✅ Marked as resolved!",toastNoPost:"Write something first",toastNoDB:"Connection required",toastPosted:"Post published!",toastReplied:"Reply sent!",toastMicError:"Microphone not available",toastErrServer:"❌ Server error",toastErrLimit:"❌ API limit reached — try again",toastErrNet:"❌ Connection error",toastDocDel:"Document deleted",btnView:"View",cmvVoice:"Voice note",chatPlaceholder:"Ask your question...",lblSaveChat:"Save",lblNewChat:"New conversation",lblHistory:"History",toastChatSaved:"✅ Conversation saved",toastChatEmpty:"No messages to save",toastChatLoaded:"Conversation loaded",toastChatDel:"Conversation deleted",confirmNewChat:"Start a new conversation?",noSavedChats:"No saved conversations",cmvStop:"Stop",cmbCamera:"Photo",cmbGallery:"Gallery",cmbDoc:"Document",cmbVideo:"Video",docFieldPurpose:"Purpose",docFieldSpecs:"Specifications",docFieldElements:"Critical elements",docFieldNorms:"Standards",docFieldNotes:"Notes",docViewerClose:"✕ Close",docViewerNoFile:"File not available. Re-upload the document to view it.",docViewerLoading:"Loading...",docViewerPrev:"← Prev",docViewerNext:"Next →",expandMore:"▼ See more",expandLess:"▲ See less",ksDate:"Date ↓",ksSev:"Severity ↓",ksTitle:"Title A-Z",chatSugg0:"Last critical incident?",chatSugg1:"Unresolved issues?",chatSugg2:"Summary by site?",chatSugg3:"Incidents this week?",chatHeaderName:"Bace IA — Site assistant",lblNorms:"Applicable norms",btnReopen:"Reopen",btnResolve:"Resolve",btnDelete:"Delete",dashEmpty:"No captures yet.",mtHome:"Home",mtBase:"Base",mtProj:"Projects",mtMore:"More",cmPhoto:"Take photo",cmGallery:"Gallery",cmVoice:"Record voice",cmFile:"Import file"},
-  {tabA:"Entrar",tabB:"Criar conta",lbEmail:"E-mail",lbPass:"Senha",btnLogin:"Entrar",noAcc:"Não tem conta?",lnkSignup:"Criar seu espaço",lbFirst:"Nome",lbLast:"Sobrenome",lbSemail:"E-mail profissional",lbCo:"Empresa",lbSpass:"Senha",btnSignup:"Criar minha conta",haveAcc:"Já tem conta?",lnkLogin:"Entrar",lnkReset:"Esqueceu a senha?",navDash:"Dashboard",navCap:"Capturar",navFiles:"Meus arquivos",navKb:"Base de conhecimento",navSearch:"Bace IA",navComm:"Comunidade",navProj:"Meus projetos",navDocs:"Plantas & Documentos",navProfile:"Perfil",ppLangLabel:"Idioma da interface",ppAiStatus:"IA ativa e segura",ppLogout:"Sair",navLogout:"Sair",settingsLangLabel:"Idioma da interface",settingsAiLabel:"Bace IA",settingsAccountLabel:"Conta",btnCap:"Capturar",utPhoto:"Importar",utCamera:"Tirar uma foto",utGallery:"Importar da galeria",utVoice:"Toque para gravar",klTot:"Total de capturas",ksTot:"este mês",klRes:"Resolvidos",ksRes:"incidentes tratados",klCrit:"Críticos",ksCrit:"precisam de ação",klCats:"Categorias",ksCats:"tipos",stRec:"Incidentes recentes",slAll:"Ver tudo",statusOpen:"Aberto",statusResolved:"Resolvido",sevLow:"Baixa",sevMed:"Média",sevHigh:"Alta",sevCrit:"Crítica",thTitle:"Título",thProj:"Projeto",thCat:"Cat",thSev:"Sev",thDate:"Data",thStatus:"Status",kbAll:"Tudo",kbSearchPlaceholder:"Pesquisar incidentes, normas, soluções…",cats:["Estrutura","Elétrica","Hidráulica","Segurança","Equipamento","Documentação"],folders:["Estrutura","Elétrica","Hidráulica","Segurança","Equipamento","Documentação"],aiHint:"A IA analisará com base no projeto selecionado",chatSugg:["Último incidente crítico?","Problemas não resolvidos?","Resumo por canteiro?","Incidentes esta semana?"],chatStatus:"Online — Base de conhecimento conectada",docsTitle:"Plantas & Documentos",docsSub:"A IA lê e indexa seus projetos e especificações",docsProjLabel:"Canteiro:",docsUploadTitle:"Arraste seus arquivos aqui",docsUploadSub:"Plantas PDF, especificações, laudos, cálculos estruturais...",docsEmpty:"Nenhum documento. Importe suas plantas e especificações.",docsIndexed:"Indexado pela Bace IA",docsDelete:"Excluir este documento?",docsProcessing:"Processando...",docsSuccess:"analisado e indexado",docsError:"Erro ao processar",docsAllSites:"Todos os canteiros",lblTitle:"Título",lblSev:"Severidade",lblCat:"Categoria",lblDesc:"Descrição",lblAction:"Ação recomendada",panelCaptureTitle:"Captura & Bace IA",projSectionTitle:"Meus projetos & canteiros",btnSave:"Salvar & Arquivar",foldersTitle:"Pastas por categoria",commTitle:"Comunidade do canteiro",commSub:"Publique seus problemas, compartilhe soluções",postPlaceholder:"Descreva o seu problema...",tagProblem:"Problema",tagSolved:"Resolvido",projAddTitle:"Adicionar um canteiro",projLblName:"Nome do canteiro",projLblLoc:"Localização",projLblOwner:"Responsável técnico",projBtnAdd:"+ Adicionar",projPlaceholderName:"Ex: Torre Horizon...",projPlaceholderLoc:"Ex: São Paulo...",projPlaceholderOwner:"Ex: Eng. João Silva...",settingsTitle:"Configuração Bace IA",settingsSub:"A chave API é gerida pelo servidor. Nenhuma configuração necessária.",settingsStatus:"✅ IA ativa e segura",notifEmpty:"Sem notificações",kbEmpty:"Nenhuma entrada.",sevLowOpt:"Baixa",sevMedOpt:"Média",sevHighOpt:"Alta",sevCritOpt:"Crítica",aTagline:"A memória inteligente dos seus canteiros",aSub:"Capture cada incidente em segundos.",aF1:"Captura por foto e voz com IA",aF2:"Notificações em tempo real",aF3:"Comunidade por canteiro",aF4:"Arquivamento automático",aClients:"Para empresas de construção civil",folderFiles:"arquivo(s)",loadDefault:"Carregando...",notifTitle:"Notificações",notifClear:"Limpar",sidebarMain:"Principal",sidebarAccount:"Conta",sidebarSite:"Canteiro",lblAiPhoto:"Análise de foto",lblCauseBox:"Causa provável",lblSolutionBox:"Solução recomendada",lblNormesBox:"Normas aplicáveis",lblAccept:"Aceitar",lblEdit:"Editar",lblDecline:"Recusar",lblAiVoice:"Análise de voz",lblDetails:"Detalhes",lblProj:"Projeto",lblNoProj:"Nenhum projeto",lblSignupLang:"Idioma da interface",lblCameraSub:"Câmera",lblPublish:"Publicar",commEmpty:"Nenhuma discussão.",viewerNext:"Próx. →",viewerPrev:"← Ant.",toastWelcome:"Bem-vindo ao BaceTech!",toastAddProj:"Canteiro adicionado!",toastDelProj:"Canteiro excluído",toastConfirmProj:"Excluir este canteiro?",toastErrDel:"Erro ao excluir",toastAIPhoto:"Análise IA completa — verifique a solução",toastAIVoice:"Nota de voz analisada — verifique a solução",toastAccept:"✅ Solução aceita",toastEdit:"✏️ Edite a solução abaixo",toastDecline:"Solução recusada — preencha manualmente",toastNoTitle:"Adicione um título",toastSaved:"Salvo e arquivado!",toastConfirmIncident:"Excluir este incidente?",toastDelIncident:"Incidente excluído",toastReopened:"Incidente reaberto",toastResolved:"✅ Marcado como resolvido!",toastNoPost:"Escreva algo primeiro",toastNoDB:"Conexão necessária",toastPosted:"Publicação enviada!",toastReplied:"Resposta enviada!",toastMicError:"Microfone não disponível",toastErrServer:"❌ Erro no servidor",toastErrLimit:"❌ Limite da API atingido",toastErrNet:"❌ Erro de conexão",toastDocDel:"Documento excluído",btnView:"Ver",cmvVoice:"Nota de voz",chatPlaceholder:"Faça sua pergunta...",lblSaveChat:"Salvar",lblNewChat:"Nova conversa",lblHistory:"Histórico",toastChatSaved:"✅ Conversa salva",toastChatEmpty:"Nenhuma mensagem para salvar",toastChatLoaded:"Conversa carregada",toastChatDel:"Conversa excluída",confirmNewChat:"Iniciar uma nova conversa?",noSavedChats:"Nenhuma conversa salva",cmvStop:"Parar",cmbCamera:"Foto",cmbGallery:"Galeria",cmbDoc:"Documento",cmbVideo:"Vídeo",docFieldPurpose:"Objeto",docFieldSpecs:"Especificações",docFieldElements:"Elementos críticos",docFieldNorms:"Normas",docFieldNotes:"Notas",docViewerClose:"✕ Fechar",docViewerNoFile:"Arquivo não disponível. Re-importe para visualizar.",docViewerLoading:"Carregando...",docViewerPrev:"← Ant.",docViewerNext:"Próx. →",expandMore:"▼ Ver mais",expandLess:"▲ Ver menos",chatSugg0:"Último incidente crítico?",chatSugg1:"Problemas não resolvidos?",chatSugg2:"Resumo por canteiro?",chatSugg3:"Incidentes esta semana?",chatHeaderName:"Bace IA — Assistente de obra",lblNorms:"Normas aplicáveis",btnReopen:"Reabrir",btnResolve:"Resolver",btnDelete:"Excluir",noProject:"Nenhum projeto",btnEdit:"Editar",chatWelcome:"Olá {name}! Sou a Bace IA. Tenho acesso a {n} incidente(s). Faça suas perguntas!",docFieldRooms:"Cômodos / Espaços",docFieldScale:"Escala",docNoSummary:"Análise indisponível — reimporte o documento.",markedResolved:"Marcado como resolvido",dashEmpty:"Nenhuma captura ainda.",mtHome:"Início",mtBase:"Base",mtProj:"Projetos",mtMore:"Mais",cmPhoto:"Tirar foto",cmGallery:"Galeria",cmVoice:"Gravar voz",cmFile:"Importar arquivo"}
+  {tabA:"Connexion",tabB:"Créer un compte",lbEmail:"Email",lbPass:"Mot de passe",btnLogin:"Se connecter",noAcc:"Pas encore de compte ?",lnkSignup:"Créer votre espace",lbFirst:"Prénom",lbLast:"Nom",lbSemail:"Email professionnel",lbCo:"Entreprise",lbSpass:"Mot de passe",btnSignup:"Créer mon compte",haveAcc:"Déjà un compte ?",lnkLogin:"Se connecter",lnkReset:"Mot de passe oublié ?",navDash:"Dashboard",navCap:"Capturer",navFiles:"Mes dossiers",navKb:"Base de connaissances",navSearch:"Bace IA",navComm:"Communauté",navProj:"Mes projets",navDocs:"Plans & Documents",navProfile:"Profil",ppLangLabel:"Langue de l'interface",ppAiStatus:"IA active et sécurisée",ppLogout:"Déconnexion",navLogout:"Déconnexion",settingsLangLabel:"Langue de l'interface",settingsAiLabel:"Bace IA",settingsAccountLabel:"Compte",btnCap:"Capturer",utPhoto:"Importer",utCamera:"Prendre une photo",utGallery:"Depuis la galerie",utVoice:"Appuyer pour enregistrer",klTot:"Total captures",ksTot:"ce mois-ci",klRes:"Résolus",ksRes:"incidents traités",klCrit:"Critiques",ksCrit:"nécessitent action",klCats:"Catégories",ksCats:"types",stRec:"Incidents récents",slAll:"Voir tout",statusOpen:"Ouvert",statusResolved:"Résolu",sevLow:"Faible",sevMed:"Moyen",sevHigh:"Élevé",sevCrit:"Critique",thTitle:"Titre",thProj:"Projet",thCat:"Cat",thSev:"Sév",thDate:"Date",thStatus:"Status",kbAll:"Tout",kbSearchPlaceholder:"Rechercher incidents, normes, solutions…",cats:["Structure","Électricité","Plomberie","Sécurité","Équipement","Documentation"],folders:["Structure","Électricité","Plomberie","Sécurité","Équipement","Documentation"],aiHint:"L'IA analysera selon le projet sélectionné",chatSugg:["Dernier incident critique ?","Problèmes non résolus ?","Résumé par chantier ?","Incidents cette semaine ?"],chatStatus:"En ligne — Base de connaissances connectée",docsTitle:"Plans & Documents",docsSub:"L'IA lit et indexe vos plans et spécifications",docsProjLabel:"Chantier :",docsUploadTitle:"Glissez vos fichiers ici",docsUploadSub:"Plans PDF, spécifications, rapports d'étude, calculs structurels...",docsEmpty:"Aucun document. Importez vos plans et spécifications.",docsIndexed:"Indexé par Bace IA",docsDelete:"Supprimer ce document ?",docsProcessing:"Traitement en cours...",docsSuccess:"analysé et indexé",docsError:"Erreur lors du traitement de",docsAllSites:"Tous les chantiers",lblTitle:"Titre",lblSev:"Sévérité",lblCat:"Catégorie",lblDesc:"Description",lblAction:"Action recommandée",panelCaptureTitle:"Capture & Bace IA",projSectionTitle:"Mes projets & chantiers",btnSave:"Enregistrer & Classer",foldersTitle:"Dossiers par catégorie",commTitle:"Communauté du chantier",commSub:"Posez vos problèmes, partagez vos solutions",postPlaceholder:"Décrivez votre problème...",tagProblem:"Problème",tagSolved:"Résolu",projAddTitle:"Ajouter un chantier",projLblName:"Nom du chantier",projLblLoc:"Localisation",projLblOwner:"Maître d'œuvre",projBtnAdd:"+ Ajouter",projPlaceholderName:"Ex: Tour Horizon...",projPlaceholderLoc:"Ex: Paris...",projPlaceholderOwner:"Ex: Ing. Jean Dupont...",settingsTitle:"Configuration Bace IA",settingsSub:"La clé API est gérée côté serveur. Aucune configuration nécessaire.",settingsStatus:"✅ IA active et sécurisée",notifEmpty:"Aucune notification",kbEmpty:"Aucune entrée.",sevLowOpt:"Faible",sevMedOpt:"Moyen",sevHighOpt:"Élevé",sevCritOpt:"Critique",aTagline:"La mémoire intelligente de vos chantiers",aSub:"Capturez chaque incident en quelques secondes.",aF1:"Capture photo et vocale par IA",aF2:"Notifications en temps réel",aF3:"Communauté par chantier",aF4:"Classement automatique",aClients:"Pour les entreprises de construction",folderFiles:"fichier(s)",loadDefault:"Chargement...",notifTitle:"Notifications",notifClear:"Effacer",sidebarMain:"Principal",sidebarAccount:"Compte",sidebarSite:"Chantier",lblAiPhoto:"Analyse photo",lblCauseBox:"Cause probable",lblSolutionBox:"Solution recommandée",lblNormesBox:"Normes applicables",lblAccept:"Accepter",lblEdit:"Modifier",lblDecline:"Refuser",lblAiVoice:"Analyse vocale",lblDetails:"Détails",lblProj:"Projet",lblNoProj:"Aucun projet",lblSignupLang:"Langue de l'interface",lblCameraSub:"Caméra",lblPublish:"Publier",commEmpty:"Aucune discussion.",viewerNext:"Suiv. →",viewerPrev:"← Préc.",toastWelcome:"Bienvenue sur BaceTech !",toastAddProj:"Chantier ajouté !",toastDelProj:"Chantier supprimé",toastConfirmProj:"Supprimer ce chantier ?",toastErrDel:"Erreur lors de la suppression",toastAIPhoto:"Analyse IA complète — vérifiez la solution",toastAIVoice:"Note vocale analysée — vérifiez la solution",toastAccept:"✅ Solution acceptée",toastEdit:"✏️ Modifiez la solution",toastDecline:"Solution refusée — remplissez manuellement",toastNoTitle:"Ajoutez un titre",toastSaved:"Enregistré et classé !",toastConfirmIncident:"Supprimer cet incident ?",toastDelIncident:"Incident supprimé",toastReopened:"Incident réouvert",toastResolved:"✅ Marqué comme résolu !",toastNoPost:"Écrivez quelque chose",toastNoDB:"Connexion requise",toastPosted:"Publication envoyée !",toastReplied:"Réponse envoyée !",toastMicError:"Microphone non disponible",toastErrServer:"❌ Erreur serveur",toastErrLimit:"❌ Limite API atteinte — réessayez",toastErrNet:"❌ Erreur de connexion",toastDocDel:"Document supprimé",btnView:"Voir",cmvVoice:"Note vocale",chatPlaceholder:"Posez votre question...",lblSaveChat:"Sauvegarder",lblNewChat:"Nouvelle conversation",lblHistory:"Historique",toastChatSaved:"✅ Conversation sauvegardée",toastChatEmpty:"Aucun message à sauvegarder",toastChatLoaded:"Conversation chargée",toastChatDel:"Conversation supprimée",confirmNewChat:"Commencer une nouvelle conversation ?",noSavedChats:"Aucune conversation sauvegardée",cmvStop:"Stop",cmbCamera:"Photo",cmbGallery:"Galerie",cmbDoc:"Document",cmbVideo:"Vidéo",docFieldPurpose:"Objet",docFieldSpecs:"Spécifications",docFieldElements:"Éléments critiques",docFieldNorms:"Normes",docFieldNotes:"Notes",docViewerClose:"✕ Fermer",docViewerNoFile:"Fichier non disponible. Re-importez pour l'afficher.",docViewerLoading:"Chargement...",docViewerPrev:"← Préc.",docViewerNext:"Suiv. →",expandMore:"▼ Voir plus",expandLess:"▲ Voir moins",ksDate:"Date ↓",ksSev:"Sévérité ↓",ksTitle:"Titre A-Z",chatSugg0:"Dernier incident critique ?",chatSugg1:"Problèmes non résolus ?",chatSugg2:"Résumé par chantier ?",chatSugg3:"Incidents cette semaine ?",chatSugg0:"Last critical incident?",chatSugg1:"Unresolved issues?",chatSugg2:"Summary by site?",chatSugg3:"Incidents this week?",chatHeaderName:"Bace IA — Assistant chantier",lblNorms:"Normes applicables",btnReopen:"Réouvrir",btnResolve:"Résoudre",btnDelete:"Supprimer",dashEmpty:"Aucune capture.",noProject:"Aucun projet",btnEdit:"Modifier",chatWelcome:"Bonjour {name} ! Je suis Bace IA. J'ai accès à {n} incident(s). Posez vos questions !",docFieldRooms:"Pièces / Espaces",docFieldScale:"Échelle",docNoSummary:"Analyse non disponible — réimportez le document.",markedResolved:"Marqué résolu"},
+  {tabA:"Sign in",tabB:"Create account",lbEmail:"Email",lbPass:"Password",btnLogin:"Sign in",noAcc:"No account yet?",lnkSignup:"Create your workspace",lbFirst:"First name",lbLast:"Last name",lbSemail:"Work email",lbCo:"Company",lbSpass:"Password",btnSignup:"Create my account",haveAcc:"Already have an account?",lnkLogin:"Sign in",lnkReset:"Forgot password?",navDash:"Dashboard",navCap:"Capture",navFiles:"My folders",navKb:"Knowledge base",navSearch:"Bace AI",navComm:"Community",navProj:"My projects",navDocs:"Plans & Documents",navProfile:"Profile",ppLangLabel:"Interface language",ppAiStatus:"AI active and secured",ppLogout:"Sign out",navLogout:"Sign out",settingsLangLabel:"Interface language",settingsAiLabel:"Bace AI",settingsAccountLabel:"Account",btnCap:"Capture",utPhoto:"Import",utCamera:"Take a photo",utGallery:"Import from gallery",utVoice:"Tap to record",klTot:"Total captures",ksTot:"this month",klRes:"Resolved",ksRes:"issues handled",klCrit:"Critical",ksCrit:"need action",klCats:"Categories",ksCats:"types",stRec:"Recent incidents",slAll:"View all",statusOpen:"Open",statusResolved:"Resolved",sevLow:"Low",sevMed:"Medium",sevHigh:"High",sevCrit:"Critical",thTitle:"Title",thProj:"Project",thCat:"Cat",thSev:"Sev",thDate:"Date",thStatus:"Status",kbAll:"All",kbSearchPlaceholder:"Search incidents, norms, solutions…",cats:["Structure","Electrical","Plumbing","Safety","Equipment","Documentation"],folders:["Structure","Electrical","Plumbing","Safety","Equipment","Documentation"],aiHint:"AI will analyze based on selected project",chatSugg:["Last critical incident?","Unresolved issues?","Summary by site?","Incidents this week?"],chatStatus:"Online — Knowledge base connected",docsTitle:"Plans & Documents",docsSub:"AI reads and indexes your plans and specifications",docsProjLabel:"Site:",docsUploadTitle:"Drop your files here",docsUploadSub:"PDF plans, specifications, study reports, structural calculations...",docsEmpty:"No documents. Upload your plans and specifications.",docsIndexed:"Indexed by Bace AI",docsDelete:"Delete this document?",docsProcessing:"Processing...",docsSuccess:"analyzed and indexed",docsError:"Error processing",docsAllSites:"All sites",lblTitle:"Title",lblSev:"Severity",lblCat:"Category",lblDesc:"Description",lblAction:"Recommended action",panelCaptureTitle:"Capture & Bace AI",projSectionTitle:"My projects & sites",btnSave:"Save & File",foldersTitle:"Folders by category",commTitle:"Site community",commSub:"Post your issues, share your solutions",postPlaceholder:"Describe your issue...",tagProblem:"Problem",tagSolved:"Solved",projAddTitle:"Add a site",projLblName:"Site name",projLblLoc:"Location",projLblOwner:"Site manager",projBtnAdd:"+ Add",projPlaceholderName:"E.g. Tower Horizon...",projPlaceholderLoc:"E.g. Paris...",projPlaceholderOwner:"E.g. Eng. John Smith...",settingsTitle:"BaceTech AI Configuration",settingsSub:"The API key is securely managed server-side. No configuration needed.",settingsStatus:"✅ AI active and secured",notifEmpty:"No notifications",kbEmpty:"No entries.",sevLowOpt:"Low",sevMedOpt:"Medium",sevHighOpt:"High",sevCritOpt:"Critical",aTagline:"The intelligent memory of your construction sites",aSub:"Capture every incident in seconds.",aF1:"AI-powered photo and voice capture",aF2:"Real-time notifications",aF3:"Community per site",aF4:"Automatic filing",aClients:"For construction companies",folderFiles:"file(s)",loadDefault:"Loading...",notifTitle:"Notifications",notifClear:"Clear",sidebarMain:"Main",sidebarAccount:"Account",sidebarSite:"Site",lblAiPhoto:"Photo analysis",lblCauseBox:"Probable cause",lblSolutionBox:"Recommended solution",lblNormesBox:"Applicable standards",lblAccept:"Accept",lblEdit:"Edit",lblDecline:"Decline",lblAiVoice:"Voice analysis",lblDetails:"Details",lblProj:"Project",lblNoProj:"No project",lblSignupLang:"Interface language",lblCameraSub:"Camera",lblPublish:"Publish",commEmpty:"No discussions.",viewerNext:"Next →",viewerPrev:"← Prev",toastWelcome:"Welcome to BaceTech!",toastAddProj:"Site added!",toastDelProj:"Site deleted",toastConfirmProj:"Delete this site?",toastErrDel:"Error deleting",toastAIPhoto:"AI analysis complete — review the solution",toastAIVoice:"Voice note analyzed — review the solution",toastAccept:"✅ Solution accepted",toastEdit:"✏️ Edit the solution below",toastDecline:"Solution declined — fill in manually",toastNoTitle:"Add a title",toastSaved:"Saved and filed!",toastConfirmIncident:"Delete this incident?",toastDelIncident:"Incident deleted",toastReopened:"Incident reopened",toastResolved:"✅ Marked as resolved!",toastNoPost:"Write something first",toastNoDB:"Connection required",toastPosted:"Post published!",toastReplied:"Reply sent!",toastMicError:"Microphone not available",toastErrServer:"❌ Server error",toastErrLimit:"❌ API limit reached — try again",toastErrNet:"❌ Connection error",toastDocDel:"Document deleted",btnView:"View",cmvVoice:"Voice note",chatPlaceholder:"Ask your question...",lblSaveChat:"Save",lblNewChat:"New conversation",lblHistory:"History",toastChatSaved:"✅ Conversation saved",toastChatEmpty:"No messages to save",toastChatLoaded:"Conversation loaded",toastChatDel:"Conversation deleted",confirmNewChat:"Start a new conversation?",noSavedChats:"No saved conversations",cmvStop:"Stop",cmbCamera:"Photo",cmbGallery:"Gallery",cmbDoc:"Document",cmbVideo:"Video",docFieldPurpose:"Purpose",docFieldSpecs:"Specifications",docFieldElements:"Critical elements",docFieldNorms:"Standards",docFieldNotes:"Notes",docViewerClose:"✕ Close",docViewerNoFile:"File not available. Re-upload the document to view it.",docViewerLoading:"Loading...",docViewerPrev:"← Prev",docViewerNext:"Next →",expandMore:"▼ See more",expandLess:"▲ See less",ksDate:"Date ↓",ksSev:"Severity ↓",ksTitle:"Title A-Z",chatSugg0:"Last critical incident?",chatSugg1:"Unresolved issues?",chatSugg2:"Summary by site?",chatSugg3:"Incidents this week?",chatHeaderName:"Bace IA — Site assistant",lblNorms:"Applicable norms",btnReopen:"Reopen",btnResolve:"Resolve",btnDelete:"Delete",dashEmpty:"No captures yet."},
+  {tabA:"Entrar",tabB:"Criar conta",lbEmail:"E-mail",lbPass:"Senha",btnLogin:"Entrar",noAcc:"Não tem conta?",lnkSignup:"Criar seu espaço",lbFirst:"Nome",lbLast:"Sobrenome",lbSemail:"E-mail profissional",lbCo:"Empresa",lbSpass:"Senha",btnSignup:"Criar minha conta",haveAcc:"Já tem conta?",lnkLogin:"Entrar",lnkReset:"Esqueceu a senha?",navDash:"Dashboard",navCap:"Capturar",navFiles:"Meus arquivos",navKb:"Base de conhecimento",navSearch:"Bace IA",navComm:"Comunidade",navProj:"Meus projetos",navDocs:"Plantas & Documentos",navProfile:"Perfil",ppLangLabel:"Idioma da interface",ppAiStatus:"IA ativa e segura",ppLogout:"Sair",navLogout:"Sair",settingsLangLabel:"Idioma da interface",settingsAiLabel:"Bace IA",settingsAccountLabel:"Conta",btnCap:"Capturar",utPhoto:"Importar",utCamera:"Tirar uma foto",utGallery:"Importar da galeria",utVoice:"Toque para gravar",klTot:"Total de capturas",ksTot:"este mês",klRes:"Resolvidos",ksRes:"incidentes tratados",klCrit:"Críticos",ksCrit:"precisam de ação",klCats:"Categorias",ksCats:"tipos",stRec:"Incidentes recentes",slAll:"Ver tudo",statusOpen:"Aberto",statusResolved:"Resolvido",sevLow:"Baixa",sevMed:"Média",sevHigh:"Alta",sevCrit:"Crítica",thTitle:"Título",thProj:"Projeto",thCat:"Cat",thSev:"Sev",thDate:"Data",thStatus:"Status",kbAll:"Tudo",kbSearchPlaceholder:"Pesquisar incidentes, normas, soluções…",cats:["Estrutura","Elétrica","Hidráulica","Segurança","Equipamento","Documentação"],folders:["Estrutura","Elétrica","Hidráulica","Segurança","Equipamento","Documentação"],aiHint:"A IA analisará com base no projeto selecionado",chatSugg:["Último incidente crítico?","Problemas não resolvidos?","Resumo por canteiro?","Incidentes esta semana?"],chatStatus:"Online — Base de conhecimento conectada",docsTitle:"Plantas & Documentos",docsSub:"A IA lê e indexa seus projetos e especificações",docsProjLabel:"Canteiro:",docsUploadTitle:"Arraste seus arquivos aqui",docsUploadSub:"Plantas PDF, especificações, laudos, cálculos estruturais...",docsEmpty:"Nenhum documento. Importe suas plantas e especificações.",docsIndexed:"Indexado pela Bace IA",docsDelete:"Excluir este documento?",docsProcessing:"Processando...",docsSuccess:"analisado e indexado",docsError:"Erro ao processar",docsAllSites:"Todos os canteiros",lblTitle:"Título",lblSev:"Severidade",lblCat:"Categoria",lblDesc:"Descrição",lblAction:"Ação recomendada",panelCaptureTitle:"Captura & Bace IA",projSectionTitle:"Meus projetos & canteiros",btnSave:"Salvar & Arquivar",foldersTitle:"Pastas por categoria",commTitle:"Comunidade do canteiro",commSub:"Publique seus problemas, compartilhe soluções",postPlaceholder:"Descreva o seu problema...",tagProblem:"Problema",tagSolved:"Resolvido",projAddTitle:"Adicionar um canteiro",projLblName:"Nome do canteiro",projLblLoc:"Localização",projLblOwner:"Responsável técnico",projBtnAdd:"+ Adicionar",projPlaceholderName:"Ex: Torre Horizon...",projPlaceholderLoc:"Ex: São Paulo...",projPlaceholderOwner:"Ex: Eng. João Silva...",settingsTitle:"Configuração Bace IA",settingsSub:"A chave API é gerida pelo servidor. Nenhuma configuração necessária.",settingsStatus:"✅ IA ativa e segura",notifEmpty:"Sem notificações",kbEmpty:"Nenhuma entrada.",sevLowOpt:"Baixa",sevMedOpt:"Média",sevHighOpt:"Alta",sevCritOpt:"Crítica",aTagline:"A memória inteligente dos seus canteiros",aSub:"Capture cada incidente em segundos.",aF1:"Captura por foto e voz com IA",aF2:"Notificações em tempo real",aF3:"Comunidade por canteiro",aF4:"Arquivamento automático",aClients:"Para empresas de construção civil",folderFiles:"arquivo(s)",loadDefault:"Carregando...",notifTitle:"Notificações",notifClear:"Limpar",sidebarMain:"Principal",sidebarAccount:"Conta",sidebarSite:"Canteiro",lblAiPhoto:"Análise de foto",lblCauseBox:"Causa provável",lblSolutionBox:"Solução recomendada",lblNormesBox:"Normas aplicáveis",lblAccept:"Aceitar",lblEdit:"Editar",lblDecline:"Recusar",lblAiVoice:"Análise de voz",lblDetails:"Detalhes",lblProj:"Projeto",lblNoProj:"Nenhum projeto",lblSignupLang:"Idioma da interface",lblCameraSub:"Câmera",lblPublish:"Publicar",commEmpty:"Nenhuma discussão.",viewerNext:"Próx. →",viewerPrev:"← Ant.",toastWelcome:"Bem-vindo ao BaceTech!",toastAddProj:"Canteiro adicionado!",toastDelProj:"Canteiro excluído",toastConfirmProj:"Excluir este canteiro?",toastErrDel:"Erro ao excluir",toastAIPhoto:"Análise IA completa — verifique a solução",toastAIVoice:"Nota de voz analisada — verifique a solução",toastAccept:"✅ Solução aceita",toastEdit:"✏️ Edite a solução abaixo",toastDecline:"Solução recusada — preencha manualmente",toastNoTitle:"Adicione um título",toastSaved:"Salvo e arquivado!",toastConfirmIncident:"Excluir este incidente?",toastDelIncident:"Incidente excluído",toastReopened:"Incidente reaberto",toastResolved:"✅ Marcado como resolvido!",toastNoPost:"Escreva algo primeiro",toastNoDB:"Conexão necessária",toastPosted:"Publicação enviada!",toastReplied:"Resposta enviada!",toastMicError:"Microfone não disponível",toastErrServer:"❌ Erro no servidor",toastErrLimit:"❌ Limite da API atingido",toastErrNet:"❌ Erro de conexão",toastDocDel:"Documento excluído",btnView:"Ver",cmvVoice:"Nota de voz",chatPlaceholder:"Faça sua pergunta...",lblSaveChat:"Salvar",lblNewChat:"Nova conversa",lblHistory:"Histórico",toastChatSaved:"✅ Conversa salva",toastChatEmpty:"Nenhuma mensagem para salvar",toastChatLoaded:"Conversa carregada",toastChatDel:"Conversa excluída",confirmNewChat:"Iniciar uma nova conversa?",noSavedChats:"Nenhuma conversa salva",cmvStop:"Parar",cmbCamera:"Foto",cmbGallery:"Galeria",cmbDoc:"Documento",cmbVideo:"Vídeo",docFieldPurpose:"Objeto",docFieldSpecs:"Especificações",docFieldElements:"Elementos críticos",docFieldNorms:"Normas",docFieldNotes:"Notas",docViewerClose:"✕ Fechar",docViewerNoFile:"Arquivo não disponível. Re-importe para visualizar.",docViewerLoading:"Carregando...",docViewerPrev:"← Ant.",docViewerNext:"Próx. →",expandMore:"▼ Ver mais",expandLess:"▲ Ver menos",chatSugg0:"Último incidente crítico?",chatSugg1:"Problemas não resolvidos?",chatSugg2:"Resumo por canteiro?",chatSugg3:"Incidentes esta semana?",chatHeaderName:"Bace IA — Assistente de obra",lblNorms:"Normas aplicáveis",btnReopen:"Reabrir",btnResolve:"Resolver",btnDelete:"Excluir",noProject:"Nenhum projeto",btnEdit:"Editar",chatWelcome:"Olá {name}! Sou a Bace IA. Tenho acesso a {n} incidente(s). Faça suas perguntas!",docFieldRooms:"Cômodos / Espaços",docFieldScale:"Escala",docNoSummary:"Análise indisponível — reimporte o documento.",markedResolved:"Marcado como resolvido",dashEmpty:"Nenhuma captura ainda."}
 ];
 
 try{db=supabase.createClient(SB_URL,SB_KEY);}catch(e){console.error(e);}
@@ -1321,6 +1248,10 @@ function enterApp(user){
   document.getElementById("u-co").textContent=me.co;
   document.getElementById("s-login").classList.remove("active");
   document.getElementById("s-app").classList.add("active");
+  document.body.classList.add("logged-in");
+  // Set mobile avatar initials
+  var mobAv=document.getElementById("mob-av-initials");
+  if(mobAv)mobAv.textContent=(me.name||"??").split(" ").map(function(w){return w[0];}).join("").toUpperCase().slice(0,2);
   applyLang();
   toast(STRINGS[lang].toastWelcome||"Bienvenue sur BaceTech !");
   connectDB();
@@ -1329,6 +1260,7 @@ function enterApp(user){
 async function doLogout(){
   if(rtChannel)db.removeChannel(rtChannel);
   await db.auth.signOut();
+  document.body.classList.remove("logged-in");
   entries=[];dbCoId=null;dbOk=false;notifs=[];projects=[];chatHistory=[];
   document.getElementById("s-app").classList.remove("active");
   document.getElementById("s-login").classList.add("active");
@@ -3193,122 +3125,40 @@ document.addEventListener("keydown",function(e){
   if(e.shiftKey&&e.altKey&&e.key==="K"&&document.getElementById("s-app").classList.contains("active"))showTab(8);
 });
 
-// ── Mobile tab bar ───────────────────────────────────────────────────────
-function mobileTab(idx,btn){
-  if(idx===9){showMoreMenu();return;}
-  hideMoreMenu();closeCaptureFab();closeIaBubble();
-  document.querySelectorAll('.mob-tab').forEach(function(t){t.classList.remove('active');});
-  if(btn)btn.classList.add('active');
-  showTab(idx,null);
-}
-
-function showMoreMenu(){
-  if(document.getElementById('mob-more-menu')){hideMoreMenu();return;}
-  var S=STRINGS[lang];
-  var items=[
-    {icon:'ti-folder',label:S.navFiles||'Meus arquivos',tab:2},
-    {icon:'ti-camera',label:S.navCap||'Capturar',tab:1},
-    {icon:'ti-users',label:S.navComm||'Comunidade',tab:5},
-    {icon:'ti-file-text',label:S.navDocs||'Plantas & Documentos',tab:7},
-  ];
-  var menu=document.createElement('div');
-  menu.id='mob-more-menu';
-  menu.style.cssText='position:fixed;bottom:58px;right:8px;background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:6px 0;z-index:350;box-shadow:0 -8px 30px rgba(0,0,0,0.4);min-width:210px;';
-  menu.innerHTML=items.map(function(it){
-    return '<button onclick="pickMoreTab('+it.tab+')" style="display:flex;align-items:center;gap:10px;width:100%;padding:12px 16px;background:none;border:none;color:var(--text2);font-size:13px;cursor:pointer;font-family:inherit;text-align:left;"><i class="ti '+it.icon+'" style="font-size:18px;color:#378add;width:22px;text-align:center;"></i>'+it.label+'</button>';
-  }).join('');
-  document.body.appendChild(menu);
-  setTimeout(function(){document.addEventListener('click',closeMoreOutside);},50);
-}
-function closeMoreOutside(e){
-  var m=document.getElementById('mob-more-menu');
-  var b=document.getElementById('mt-more');
-  if(m&&!m.contains(e.target)&&!b.contains(e.target))hideMoreMenu();
-}
-function hideMoreMenu(){
-  var m=document.getElementById('mob-more-menu');if(m)m.remove();
-  document.removeEventListener('click',closeMoreOutside);
-}
-function pickMoreTab(t){
-  hideMoreMenu();
-  document.querySelectorAll('.mob-tab').forEach(function(b){b.classList.remove('active');});
-  document.getElementById('mt-more').classList.add('active');
-  showTab(t,null);
-}
-
-// ── Capture FAB ──────────────────────────────────────────────────────────
-function toggleCaptureFab(){
-  var menu=document.getElementById('capture-menu');
-  var fab=document.getElementById('capture-fab');
-  var icon=document.getElementById('fab-icon');
-  if(menu.classList.contains('show')){
-    closeCaptureFab();
+// ── Mobile profile panel ─────────────────────────────────────────────────
+function toggleMobileProfile(){
+  var panel=document.getElementById('mob-profile-panel');
+  if(panel.classList.contains('show')){
+    closeMobileProfile();
   } else {
-    menu.classList.add('show');
-    fab.style.background='linear-gradient(135deg,#e24b4a,#c93535)';
-    fab.style.boxShadow='0 4px 20px rgba(226,75,74,0.4)';
-    icon.className='ti ti-x';
-    closeIaBubble();hideMoreMenu();
+    panel.classList.add('show');
+    closeCaptureFab();closeIaBubble();hideMoreMenu();
+    // Update profile info
+    var nameEl=document.getElementById('mob-prof-name');if(nameEl)nameEl.textContent=me.name||'';
+    var coEl=document.getElementById('mob-prof-co');if(coEl)coEl.textContent=me.co||'';
+    var avEl=document.getElementById('mob-prof-av');
+    if(avEl)avEl.textContent=(me.name||'??').split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+    // Update lang buttons
+    [0,1,2].forEach(function(i){
+      var btn=document.getElementById('mob-lang-'+i);
+      if(btn){
+        if(i===lang){btn.style.background='rgba(55,138,221,0.15)';btn.style.color='#378add';btn.style.borderColor='rgba(55,138,221,0.3)';}
+        else{btn.style.background='none';btn.style.color='#4a6a8a';btn.style.borderColor='rgba(255,255,255,0.08)';}
+      }
+    });
+    // Close on outside click
+    setTimeout(function(){document.addEventListener('click',closeProfOutside);},50);
   }
 }
-function closeCaptureFab(){
-  var menu=document.getElementById('capture-menu');
-  var fab=document.getElementById('capture-fab');
-  var icon=document.getElementById('fab-icon');
-  if(menu)menu.classList.remove('show');
-  if(fab){fab.style.background='linear-gradient(135deg,#378add,#2a6db5)';fab.style.boxShadow='0 4px 20px rgba(55,138,221,0.4)';}
-  if(icon)icon.className='ti ti-camera-plus';
+function closeProfOutside(e){
+  var panel=document.getElementById('mob-profile-panel');
+  var btn=document.getElementById('mobile-avatar-btn');
+  if(panel&&!panel.contains(e.target)&&!btn.contains(e.target))closeMobileProfile();
 }
-function capMenuAction(type){
-  closeCaptureFab();
-  // Switch to capture tab
-  document.querySelectorAll('.mob-tab').forEach(function(b){b.classList.remove('active');});
-  showTab(1,null);
-  // Trigger specific action
-  if(type==='photo'){var el=document.getElementById('photo-input');if(el){el.setAttribute('capture','environment');el.click();}}
-  else if(type==='gallery'){var el=document.getElementById('photo-input');if(el){el.removeAttribute('capture');el.click();}}
-}
-
-// ── Bace IA bubble ───────────────────────────────────────────────────────
-function toggleIaBubble(){
-  var chat=document.getElementById('ia-mini-chat');
-  var bub=document.getElementById('ia-bubble');
-  if(chat.classList.contains('show')){
-    closeIaBubble();
-  } else {
-    chat.classList.add('show');
-    bub.classList.add('open');
-    closeCaptureFab();hideMoreMenu();
-    // Update greeting
-    var S=STRINGS[lang];
-    var msg=document.getElementById('ia-mini-msg');
-    if(msg)msg.textContent=(S.chatWelcome||'Olá! Como posso ajudar?').replace('{name}',me.name||'').replace('{n}',entries.length);
-    var inp=document.getElementById('ia-mini-input-field');
-    if(inp)inp.placeholder=S.chatPlaceholder||'Pergunte algo...';
-  }
-}
-function closeIaBubble(){
-  var chat=document.getElementById('ia-mini-chat');
-  var bub=document.getElementById('ia-bubble');
-  if(chat)chat.classList.remove('show');
-  if(bub)bub.classList.remove('open');
-}
-function iaMiniSugg(text){
-  closeIaBubble();
-  document.querySelectorAll('.mob-tab').forEach(function(b){b.classList.remove('active');});
-  showTab(4,null);
-  // Send the suggestion to chat
-  setTimeout(function(){sendSugg(text);},300);
-}
-function iaMiniSend(){
-  var inp=document.getElementById('ia-mini-input-field');
-  if(!inp||!inp.value.trim())return;
-  var text=inp.value.trim();
-  inp.value='';
-  closeIaBubble();
-  document.querySelectorAll('.mob-tab').forEach(function(b){b.classList.remove('active');});
-  showTab(4,null);
-  setTimeout(function(){sendSugg(text);},300);
+function closeMobileProfile(){
+  var panel=document.getElementById('mob-profile-panel');
+  if(panel)panel.classList.remove('show');
+  document.removeEventListener('click',closeProfOutside);
 }
 </script>
 
@@ -3346,52 +3196,22 @@ function iaMiniSend(){
   </div>
 </div>
 
-<!-- Mobile bottom tab bar -->
-<div class="mobile-tabs" id="mobile-tabs">
-  <button class="mob-tab active" onclick="mobileTab(0,this)" id="mt-0"><i class="ti ti-layout-dashboard"></i><span>Home</span></button>
-  <button class="mob-tab" onclick="mobileTab(3,this)" id="mt-3"><i class="ti ti-database"></i><span id="mt-kb-label">Base</span></button>
-  <div class="mob-tab-spacer"></div>
-  <button class="mob-tab" onclick="mobileTab(6,this)" id="mt-6"><i class="ti ti-building-skyscraper"></i><span id="mt-proj-label">Projetos</span></button>
-  <button class="mob-tab" onclick="mobileTab(9,this)" id="mt-more"><i class="ti ti-dots"></i><span id="mt-more-label">Mais</span></button>
-</div>
-
-<!-- Capture FAB -->
-<button class="capture-fab" id="capture-fab" onclick="toggleCaptureFab()">
-  <i class="ti ti-camera-plus" id="fab-icon"></i>
-</button>
-
-<!-- Capture menu -->
-<div class="capture-menu" id="capture-menu">
-  <button class="cap-menu-opt" onclick="capMenuAction('photo')"><i class="ti ti-camera"></i><span id="cm-photo">Tirar foto</span></button>
-  <button class="cap-menu-opt" onclick="capMenuAction('gallery')"><i class="ti ti-photo"></i><span id="cm-gallery">Galeria</span></button>
-  <button class="cap-menu-opt" onclick="capMenuAction('voice')"><i class="ti ti-microphone"></i><span id="cm-voice">Gravar voz</span></button>
-  <button class="cap-menu-opt" onclick="capMenuAction('file')"><i class="ti ti-file-upload"></i><span id="cm-file">Importar arquivo</span></button>
-</div>
-
-<!-- Bace IA bubble -->
-<div class="ia-bubble" id="ia-bubble" onclick="toggleIaBubble()">
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#378add" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C9.5 2 7.5 3.5 7 5.5L6 9h12l-1-3.5C16.5 3.5 14.5 2 12 2z"/><path d="M4 9h16v1a2 2 0 01-2 2H6a2 2 0 01-2-2V9z"/><circle cx="12" cy="16" r="4"/><path d="M10 15.5l1 1.5 2.5-2.5" stroke-width="1.2"/></svg>
-  <div class="ia-dot"></div>
-</div>
-
-<!-- Bace IA mini chat -->
-<div class="ia-mini-chat" id="ia-mini-chat">
-  <div class="ia-mini-header">
-    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#378add" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C9.5 2 7.5 3.5 7 5.5L6 9h12l-1-3.5C16.5 3.5 14.5 2 12 2z"/><path d="M4 9h16v1a2 2 0 01-2 2H6a2 2 0 01-2-2V9z"/><circle cx="12" cy="16" r="4"/><path d="M10 15.5l1 1.5 2.5-2.5" stroke-width="1.2"/></svg>
-    <div class="ia-mini-name">Bace IA</div>
-    <button class="ia-mini-close" onclick="toggleIaBubble()"><i class="ti ti-x"></i></button>
+<!-- Mobile profile panel -->
+<div class="mob-profile" id="mob-profile-panel">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.06);">
+    <div style="width:32px;height:32px;border-radius:50%;background:rgba(55,138,221,0.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#378add;" id="mob-prof-av">DM</div>
+    <div><div style="font-size:13px;font-weight:600;color:var(--white);" id="mob-prof-name">Dyken M</div><div style="font-size:10px;color:var(--text3);" id="mob-prof-co">JL Eng</div></div>
   </div>
-  <div class="ia-mini-msg" id="ia-mini-msg">Olá! Como posso ajudar?</div>
-  <div class="ia-mini-chips" id="ia-mini-chips">
-    <div class="ia-mini-chip" onclick="iaMiniSugg(this.textContent)">Último crítico?</div>
-    <div class="ia-mini-chip" onclick="iaMiniSugg(this.textContent)">Não resolvidos?</div>
-    <div class="ia-mini-chip" onclick="iaMiniSugg(this.textContent)">Resumo?</div>
+  <div style="font-size:9px;color:#3a5a78;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;" id="mob-prof-lang-label">Idioma</div>
+  <div style="display:flex;gap:6px;margin-bottom:10px;">
+    <button onclick="changeLang(0)" class="mob-lang-btn" id="mob-lang-0" style="padding:4px 10px;border-radius:6px;font-size:10px;border:1px solid rgba(255,255,255,0.08);color:#4a6a8a;background:none;cursor:pointer;">FR</button>
+    <button onclick="changeLang(1)" class="mob-lang-btn" id="mob-lang-1" style="padding:4px 10px;border-radius:6px;font-size:10px;border:1px solid rgba(255,255,255,0.08);color:#4a6a8a;background:none;cursor:pointer;">EN</button>
+    <button onclick="changeLang(2)" class="mob-lang-btn" id="mob-lang-2" style="padding:4px 10px;border-radius:6px;font-size:10px;border:1px solid rgba(55,138,221,0.3);color:#378add;background:rgba(55,138,221,0.15);cursor:pointer;">PT</button>
   </div>
-  <div class="ia-mini-input">
-    <input type="text" id="ia-mini-input-field" placeholder="Pergunte algo..." onkeydown="if(event.key==='Enter')iaMiniSend()">
-    <button onclick="iaMiniSend()"><i class="ti ti-send"></i></button>
-  </div>
+  <div onclick="closeMobileProfile();pickMoreTab(2)" style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px;color:var(--text2);cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);"><i class="ti ti-folder" style="font-size:16px;color:#4a6a8a;width:20px;text-align:center;"></i> <span id="mob-prof-files">Meus arquivos</span></div>
+  <div onclick="closeMobileProfile();pickMoreTab(7)" style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px;color:var(--text2);cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);"><i class="ti ti-file-text" style="font-size:16px;color:#4a6a8a;width:20px;text-align:center;"></i> <span id="mob-prof-docs">Plantas e documentos</span></div>
+  <div onclick="installPWA();closeMobileProfile()" id="mob-prof-install" style="display:none;align-items:center;gap:8px;padding:8px 0;font-size:12px;color:var(--text2);cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);"><i class="ti ti-download" style="font-size:16px;color:#4a6a8a;width:20px;text-align:center;"></i> <span>Instalar app</span></div>
+  <div onclick="closeMobileProfile();doLogout()" style="display:flex;align-items:center;gap:8px;padding:8px 0;margin-top:4px;font-size:12px;color:#e24b4a;cursor:pointer;"><i class="ti ti-logout" style="font-size:16px;color:#e24b4a;width:20px;text-align:center;"></i> <span id="mob-prof-logout">Sair</span></div>
 </div>
-
 </body>
 </html>
