@@ -504,6 +504,12 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   .user-chip{max-width:120px;overflow:hidden;}
 }
 </style>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0B1120">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BaceTech">
+<link rel="apple-touch-icon" sizes="192x192" href="https://api.iconify.design/material-symbols:construction.svg?color=%23378add&width=192&height=192">
 </head>
 <body>
 <div class="loading-overlay" id="loading"><div class="loading-spinner"></div><div class="loading-text" id="load-txt"><span id="load-txt-default">Chargement...</span></div></div>
@@ -3147,5 +3153,66 @@ document.addEventListener("keydown",function(e){
     </div>
   </div>
 </div>
+<script>
+// ── PWA: Service Worker Registration ─────────────────────────────────────
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('/sw.js').then(function(reg){
+      console.log('SW registered, scope:',reg.scope);
+    }).catch(function(err){console.log('SW registration failed:',err);});
+  });
+}
+
+// ── PWA: Install Prompt ──────────────────────────────────────────────────
+var deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();
+  deferredPrompt=e;
+  showInstallBanner();
+});
+
+function showInstallBanner(){
+  if(document.getElementById('pwa-banner'))return;
+  var S=STRINGS[lang];
+  var banner=document.createElement('div');
+  banner.id='pwa-banner';
+  banner.style.cssText='position:fixed;bottom:0;left:0;right:0;background:var(--navy2);border-top:1px solid var(--border2);padding:12px 16px;display:flex;align-items:center;gap:12px;z-index:500;box-shadow:0 -4px 20px rgba(0,0,0,0.3);';
+  var texts={
+    fr:{title:"Installer BaceTech",desc:"Accédez rapidement depuis votre écran d'accueil",btn:"Installer",dismiss:"Plus tard"},
+    en:{title:"Install BaceTech",desc:"Quick access from your home screen",btn:"Install",dismiss:"Later"},
+    pt:{title:"Instalar BaceTech",desc:"Acesso rápido pela tela inicial",btn:"Instalar",dismiss:"Depois"}
+  };
+  var t=texts[lang===1?"en":lang===2?"pt":"fr"];
+  banner.innerHTML='<div style="width:36px;height:36px;border-radius:8px;background:rgba(55,138,221,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:20px;color:#378add">📱</span></div>'
+    +'<div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--white)">'+t.title+'</div><div style="font-size:11px;color:var(--text3)">'+t.desc+'</div></div>'
+    +'<button onclick="installPWA()" style="background:#378add;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit">'+t.btn+'</button>'
+    +'<button onclick="dismissInstall()" style="background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;padding:4px">'+t.dismiss+'</button>';
+  document.body.appendChild(banner);
+}
+
+function installPWA(){
+  var banner=document.getElementById('pwa-banner');
+  if(banner)banner.remove();
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function(choice){
+      console.log('PWA install:',choice.outcome);
+      deferredPrompt=null;
+    });
+  }
+}
+
+function dismissInstall(){
+  var banner=document.getElementById('pwa-banner');
+  if(banner)banner.remove();
+  localStorage.setItem('pwa-dismissed','1');
+}
+
+window.addEventListener('appinstalled',function(){
+  console.log('BaceTech installed as PWA');
+  var banner=document.getElementById('pwa-banner');
+  if(banner)banner.remove();
+});
+</script>
 </body>
 </html>
