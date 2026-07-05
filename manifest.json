@@ -1,7 +1,7 @@
 {
   "name": "BaceTech — Gestão inteligente de canteiros",
   "short_name": "BaceTech",
-  "description": "Capture, diagnostique e compartilhe incidentes de obra com IA. Plataforma trilíngue FR/EN/PT.",
+  "description": "Capture, diagnostique e compartilhe incidentes de obra com IA.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0B1120",
@@ -9,34 +9,31 @@
   "orientation": "any",
   "scope": "/",
   "lang": "pt-BR",
-  "categories": ["business", "productivity", "utilities"],
+  "categories": ["business", "productivity"],
   "icons": [
     {
-      "src": "https://api.iconify.design/material-symbols:construction.svg?color=%23378add&width=192&height=192",
+      "src": "/icon-192.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "https://api.iconify.design/material-symbols:construction.svg?color=%23378add&width=512&height=512",
+      "src": "/icon-512.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ],
-  "screenshots": [],
   "shortcuts": [
     {
       "name": "Capturar incidente",
       "short_name": "Capturar",
-      "url": "/?tab=capture",
-      "icons": [{"src": "https://api.iconify.design/material-symbols:photo-camera.svg?color=%23378add&width=96&height=96", "sizes": "96x96"}]
+      "url": "/"
     },
     {
       "name": "Bace IA",
       "short_name": "Bace IA",
-      "url": "/?tab=chat",
-      "icons": [{"src": "https://api.iconify.design/material-symbols:smart-toy.svg?color=%23378add&width=96&height=96", "sizes": "96x96"}]
+      "url": "/"
     }
   ]
 }
