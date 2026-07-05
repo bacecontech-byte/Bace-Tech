@@ -14,7 +14,9 @@
 :root{--navy:#06111f;--navy2:#0d1e33;--navy3:#162840;--blue:#1E6FFF;--blue2:#3d83ff;--blue-light:rgba(30,111,255,0.08);--white:#fff;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);--text:#e8edf5;--text2:#8a9ab5;--text3:#4a5a72;--green:#10b981;--orange:#f59e0b;--red:#ef4444;--font-d:"Syne",sans-serif;--font-b:"DM Sans",sans-serif;}
 body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-height:100vh;}
 .screen{display:none;}.screen.active{display:block;}
+.mob-profile.show{display:block;}
 @media(max-width:768px){
+  body.logged-in .mobile-tabs,body.logged-in .capture-fab,body.logged-in .ia-bubble{display:flex !important;}
   .mobile-logo{display:flex !important;align-items:center;gap:0;margin-right:auto;}
   .mobile-avatar{display:block !important;}
 
@@ -510,10 +512,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 </head>
 <body>
 <div class="loading-overlay" id="loading"><div class="loading-spinner"></div><div class="loading-text" id="load-txt"><span id="load-txt-default">Chargement...</span></div></div>
-<button class="mobile-avatar" id="mobile-avatar-btn" onclick="toggleMobileProfile()" style="display:none;background:none;border:none;cursor:pointer;margin-left:4px;">
-          <div style="width:28px;height:28px;border-radius:50%;background:rgba(55,138,221,0.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#378add;" id="mob-av-initials">DM</div>
-        </button>
-        <div class="notif-panel" id="notif-panel">
+<div class="notif-panel" id="notif-panel">
   <div class="notif-header"><div class="notif-header-title"><span id="notif-title">Notifications</span></div><div class="notif-clear" onclick="clearNotifs()"><span id="notif-clear-txt">Effacer</span></div></div>
   <div class="notif-list" id="notif-list"><div class="notif-empty"><span id="notif-empty-txt">Aucune notification</span></div></div>
 </div>
@@ -626,6 +625,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <div class="bell-dot" id="bell-dot" style="display:none;"></div>
           </div>
           <button class="btn-capture" onclick="showTab(1,document.querySelectorAll('.sidebar-link')[1])"><i class="ti ti-plus"></i><span id="btn-cap">Capturer</span></button>
+        <button class="mobile-avatar" id="mobile-avatar-btn" onclick="toggleMobileProfile()" style="display:none;background:none;border:none;cursor:pointer;margin-left:4px;"><div style="width:28px;height:28px;border-radius:50%;background:rgba(55,138,221,0.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#378add;" id="mob-av-initials">DM</div></button>
         </div>
       </div>
       <div class="app-content">
@@ -3196,22 +3196,50 @@ function closeMobileProfile(){
   </div>
 </div>
 
-<!-- Mobile profile panel -->
+
+<!-- ═══ Mobile UI elements (only visible when logged in + on mobile) ═══ -->
+<div class="mobile-tabs" id="mobile-tabs">
+  <button class="mob-tab active" onclick="mobileTab(0,this)" id="mt-0"><i class="ti ti-layout-dashboard"></i><span>Home</span></button>
+  <button class="mob-tab" onclick="mobileTab(3,this)" id="mt-3"><i class="ti ti-database"></i><span>Base</span></button>
+  <div class="mob-tab-spacer" style="width:56px;flex-shrink:0;"></div>
+  <button class="mob-tab" onclick="mobileTab(6,this)" id="mt-6"><i class="ti ti-building-skyscraper"></i><span>Projetos</span></button>
+  <button class="mob-tab" onclick="mobileTab(9,this)" id="mt-more"><i class="ti ti-dots"></i><span>Mais</span></button>
+</div>
+<button class="capture-fab" id="capture-fab" onclick="toggleCaptureFab()"><i class="ti ti-camera-plus" id="fab-icon"></i></button>
+<div class="capture-menu" id="capture-menu">
+  <button class="cap-menu-opt" onclick="capMenuAction('photo')"><i class="ti ti-camera"></i><span>Tirar foto</span></button>
+  <button class="cap-menu-opt" onclick="capMenuAction('gallery')"><i class="ti ti-photo"></i><span>Galeria</span></button>
+  <button class="cap-menu-opt" onclick="capMenuAction('voice')"><i class="ti ti-microphone"></i><span>Gravar voz</span></button>
+  <button class="cap-menu-opt" onclick="capMenuAction('file')"><i class="ti ti-file-upload"></i><span>Importar arquivo</span></button>
+</div>
+<div class="ia-bubble" id="ia-bubble" onclick="toggleIaBubble()"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#378add" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C9.5 2 7.5 3.5 7 5.5L6 9h12l-1-3.5C16.5 3.5 14.5 2 12 2z"/><path d="M4 9h16v1a2 2 0 01-2 2H6a2 2 0 01-2-2V9z"/><circle cx="12" cy="16" r="4"/><path d="M10 15.5l1 1.5 2.5-2.5" stroke-width="1.2"/></svg><div class="ia-dot"></div></div>
+<div class="ia-mini-chat" id="ia-mini-chat">
+  <div class="ia-mini-header"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#378add" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C9.5 2 7.5 3.5 7 5.5L6 9h12l-1-3.5C16.5 3.5 14.5 2 12 2z"/><path d="M4 9h16v1a2 2 0 01-2 2H6a2 2 0 01-2-2V9z"/><circle cx="12" cy="16" r="4"/><path d="M10 15.5l1 1.5 2.5-2.5" stroke-width="1.2"/></svg><div class="ia-mini-name">Bace IA</div><button class="ia-mini-close" onclick="toggleIaBubble()"><i class="ti ti-x"></i></button></div>
+  <div class="ia-mini-msg" id="ia-mini-msg">Olá! Como posso ajudar?</div>
+  <div class="ia-mini-chips" id="ia-mini-chips">
+    <div class="ia-mini-chip" onclick="iaMiniSugg(this.textContent)">Último crítico?</div>
+    <div class="ia-mini-chip" onclick="iaMiniSugg(this.textContent)">Não resolvidos?</div>
+    <div class="ia-mini-chip" onclick="iaMiniSugg(this.textContent)">Resumo?</div>
+  </div>
+  <div class="ia-mini-input">
+    <input type="text" id="ia-mini-input-field" placeholder="Pergunte algo..." onkeydown="if(event.key==='Enter')iaMiniSend()">
+    <button onclick="iaMiniSend()"><i class="ti ti-send"></i></button>
+  </div>
+</div>
 <div class="mob-profile" id="mob-profile-panel">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.06);">
     <div style="width:32px;height:32px;border-radius:50%;background:rgba(55,138,221,0.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#378add;" id="mob-prof-av">DM</div>
-    <div><div style="font-size:13px;font-weight:600;color:var(--white);" id="mob-prof-name">Dyken M</div><div style="font-size:10px;color:var(--text3);" id="mob-prof-co">JL Eng</div></div>
+    <div><div style="font-size:13px;font-weight:600;color:var(--white);" id="mob-prof-name">User</div><div style="font-size:10px;color:var(--text3);" id="mob-prof-co">Company</div></div>
   </div>
-  <div style="font-size:9px;color:#3a5a78;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;" id="mob-prof-lang-label">Idioma</div>
+  <div style="font-size:9px;color:#3a5a78;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Idioma</div>
   <div style="display:flex;gap:6px;margin-bottom:10px;">
-    <button onclick="changeLang(0)" class="mob-lang-btn" id="mob-lang-0" style="padding:4px 10px;border-radius:6px;font-size:10px;border:1px solid rgba(255,255,255,0.08);color:#4a6a8a;background:none;cursor:pointer;">FR</button>
-    <button onclick="changeLang(1)" class="mob-lang-btn" id="mob-lang-1" style="padding:4px 10px;border-radius:6px;font-size:10px;border:1px solid rgba(255,255,255,0.08);color:#4a6a8a;background:none;cursor:pointer;">EN</button>
-    <button onclick="changeLang(2)" class="mob-lang-btn" id="mob-lang-2" style="padding:4px 10px;border-radius:6px;font-size:10px;border:1px solid rgba(55,138,221,0.3);color:#378add;background:rgba(55,138,221,0.15);cursor:pointer;">PT</button>
+    <button onclick="changeLang(0);closeMobileProfile();" style="padding:4px 10px;border-radius:6px;font-size:10px;border:1px solid rgba(255,255,255,0.08);color:#4a6a8a;background:none;cursor:pointer;" id="mob-lang-0">FR</button>
+    <button onclick="changeLang(1);closeMobileProfile();" style="padding:4px 10px;border-radius:6px;font-size:10px;border:1px solid rgba(255,255,255,0.08);color:#4a6a8a;background:none;cursor:pointer;" id="mob-lang-1">EN</button>
+    <button onclick="changeLang(2);closeMobileProfile();" style="padding:4px 10px;border-radius:6px;font-size:10px;border:1px solid rgba(55,138,221,0.3);color:#378add;background:rgba(55,138,221,0.15);cursor:pointer;" id="mob-lang-2">PT</button>
   </div>
-  <div onclick="closeMobileProfile();pickMoreTab(2)" style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px;color:var(--text2);cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);"><i class="ti ti-folder" style="font-size:16px;color:#4a6a8a;width:20px;text-align:center;"></i> <span id="mob-prof-files">Meus arquivos</span></div>
-  <div onclick="closeMobileProfile();pickMoreTab(7)" style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px;color:var(--text2);cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);"><i class="ti ti-file-text" style="font-size:16px;color:#4a6a8a;width:20px;text-align:center;"></i> <span id="mob-prof-docs">Plantas e documentos</span></div>
-  <div onclick="installPWA();closeMobileProfile()" id="mob-prof-install" style="display:none;align-items:center;gap:8px;padding:8px 0;font-size:12px;color:var(--text2);cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);"><i class="ti ti-download" style="font-size:16px;color:#4a6a8a;width:20px;text-align:center;"></i> <span>Instalar app</span></div>
-  <div onclick="closeMobileProfile();doLogout()" style="display:flex;align-items:center;gap:8px;padding:8px 0;margin-top:4px;font-size:12px;color:#e24b4a;cursor:pointer;"><i class="ti ti-logout" style="font-size:16px;color:#e24b4a;width:20px;text-align:center;"></i> <span id="mob-prof-logout">Sair</span></div>
+  <div onclick="closeMobileProfile();pickMoreTab(2)" style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px;color:var(--text2);cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);"><i class="ti ti-folder" style="font-size:16px;color:#4a6a8a;width:20px;text-align:center;"></i> Meus arquivos</div>
+  <div onclick="closeMobileProfile();pickMoreTab(7)" style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px;color:var(--text2);cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);"><i class="ti ti-file-text" style="font-size:16px;color:#4a6a8a;width:20px;text-align:center;"></i> Plantas e documentos</div>
+  <div onclick="closeMobileProfile();doLogout()" style="display:flex;align-items:center;gap:8px;padding:8px 0;margin-top:4px;font-size:12px;color:#e24b4a;cursor:pointer;"><i class="ti ti-logout" style="font-size:16px;color:#e24b4a;width:20px;text-align:center;"></i> Sair</div>
 </div>
 </body>
 </html>
