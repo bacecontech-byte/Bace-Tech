@@ -7,7 +7,95 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+// ── Mobile menu toggle ───────────────────────────────────────────────────
+function toggleMobileMenu(){
+  var sb=document.querySelector('.sidebar');
+  var ov=document.getElementById('sidebar-overlay');
+  if(!sb)return;
+  if(sb.classList.contains('open')){
+    sb.classList.remove('open');
+    if(ov)ov.classList.remove('show');
+  } else {
+    sb.classList.add('open');
+    if(ov)ov.classList.add('show');
+  }
+}
+
+// ── PWA: Service Worker Registration ─────────────────────────────────────
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('/sw.js').then(function(reg){
+      console.log('SW registered');
+    }).catch(function(err){console.log('SW failed:',err);});
+  });
+}
+
+// ── PWA: Install Prompt ──────────────────────────────────────────────────
+var deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();
+  deferredPrompt=e;
+  showInstallBanner();
+});
+
+function showInstallBanner(){
+  var loginBtn=document.getElementById('pwa-login-install');
+  if(loginBtn)loginBtn.style.display='block';
+  var settingsBtn=document.getElementById('pwa-settings-install');
+  if(settingsBtn)settingsBtn.style.display='block';
+  var loginText=document.getElementById('pwa-login-text');
+  if(loginText){
+    var t={0:"Installer l'application",1:'Install app',2:'Instalar aplicativo'};
+    loginText.textContent=t[lang]||t[2];
+  }
+  var settingsText=document.getElementById('pwa-settings-text');
+  if(settingsText){
+    var t2={0:"Installer l'application",1:'Install app',2:'Instalar aplicativo'};
+    settingsText.textContent=t2[lang]||t2[2];
+  }
+  if(localStorage.getItem('pwa-dismissed')==='1')return;
+  if(document.getElementById('pwa-banner'))return;
+  var texts={
+    fr:{title:"Installer BaceTech",desc:"Accédez rapidement depuis votre écran d'accueil",btn:"Installer",dismiss:"Plus tard"},
+    en:{title:"Install BaceTech",desc:"Quick access from your home screen",btn:"Install",dismiss:"Later"},
+    pt:{title:"Instalar BaceTech",desc:"Acesso rápido pela tela inicial",btn:"Instalar",dismiss:"Depois"}
+  };
+  var t3=texts[lang===1?"en":lang===2?"pt":"fr"];
+  var banner=document.createElement('div');
+  banner.id='pwa-banner';
+  banner.style.cssText='position:fixed;bottom:0;left:0;right:0;background:var(--navy2);border-top:1px solid var(--border2);padding:12px 16px;display:flex;align-items:center;gap:12px;z-index:500;box-shadow:0 -4px 20px rgba(0,0,0,0.3);';
+  banner.innerHTML='<div style="width:36px;height:36px;border-radius:8px;background:rgba(55,138,221,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:20px;color:#378add">📱</span></div>'
+    +'<div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--white)">'+t3.title+'</div><div style="font-size:11px;color:var(--text3)">'+t3.desc+'</div></div>'
+    +'<button onclick="installPWA()" style="background:#378add;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit">'+t3.btn+'</button>'
+    +'<button onclick="dismissInstall()" style="background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;padding:4px">'+t3.dismiss+'</button>';
+  document.body.appendChild(banner);
+}
+
+function installPWA(){
+  var banner=document.getElementById('pwa-banner');
+  if(banner)banner.remove();
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function(choice){
+      deferredPrompt=null;
+    });
+  }
+}
+
+function dismissInstall(){
+  var banner=document.getElementById('pwa-banner');
+  if(banner)banner.remove();
+  localStorage.setItem('pwa-dismissed','1');
+}
+
+window.addEventListener('appinstalled',function(){
+  ['pwa-banner','pwa-login-install','pwa-settings-install'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.remove();
+  });
+  localStorage.setItem('pwa-installed','1');
+});
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
