@@ -1054,6 +1054,17 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 </style>
 <div class="toast" id="toast"></div>
 <script>
+// Force-clear old service worker cache on every load
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(function(registrations){
+    registrations.forEach(function(reg){reg.unregister();});
+  });
+  caches.keys().then(function(names){
+    names.forEach(function(name){caches.delete(name);});
+  });
+}
+</script>
+<script>
 var SB_URL="https://rzdoeehbpdgjxtfbbmwp.supabase.co";
 var SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6ZG9lZWhicGRnanh0ZmJibXdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNjk0NzksImV4cCI6MjA5Njk0NTQ3OX0.XcysRlpgefqmw_zh7osXwqgL5-G71kFH-Uv-HuINLow";
 var GROQ="server";
