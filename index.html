@@ -103,6 +103,9 @@ body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-heig
   .notif-panel{right:8px;left:8px;width:auto;}
   #kb-controls{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
   .kb-filter{white-space:nowrap;flex-shrink:0;}
+  #tab-3{overflow-x:hidden;}
+  #tab-3>div:first-child{flex-direction:column !important;}
+  #tab-3>div:first-child>select{width:100% !important;min-width:unset !important;}
   .kb-table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
   .kb-table th,.kb-table td{font-size:11px;padding:8px 6px;white-space:nowrap;}
   .kb-table th:nth-child(2),.kb-table td:nth-child(2),
@@ -563,6 +566,9 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   /* ── KB filters ── */
   #kb-controls{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
   .kb-filter{white-space:nowrap;flex-shrink:0;}
+  #tab-3{overflow-x:hidden;}
+  #tab-3>div:first-child{flex-direction:column !important;}
+  #tab-3>div:first-child>select{width:100% !important;min-width:unset !important;}
   /* ── Chat ── */
   .chat-wrap{height:calc(100vh - 160px);}
   .chat-input-wrap{border-radius:8px;}
