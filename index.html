@@ -738,6 +738,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="sidebar-section"><span id="sidebar-account">Compte</span></div>
       <div class="sidebar-link" onclick="doLogout()"><i class="ti ti-logout"></i><span id="nav-logout">Déconnexion</span></div>
       <div class="sidebar-bottom">
+          <div id="pwa-install-sidebar" onclick="installPWA()" style="display:none;align-items:center;gap:8px;padding:8px 16px;margin-bottom:8px;font-size:12px;color:#378add;cursor:pointer;border-radius:8px;background:rgba(55,138,221,0.06);border:1px solid rgba(55,138,221,0.12);"><i class="ti ti-download" style="font-size:15px;"></i> <span id="pwa-install-sidebar-label">Instalar aplicativo</span></div>
         <div class="user-chip" onclick="openProfilePanel()" style="cursor:pointer;transition:opacity 0.12s" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1" title="Profil & Préférences">
           <div class="user-avatar" id="u-av">?</div>
           <div style="flex:1"><div class="user-name" id="u-name">...</div><div class="user-company" id="u-co">...</div></div>
@@ -3407,6 +3408,37 @@ function closeMobileProfile(){
   var p=document.getElementById('mob-profile-panel');if(p)p.classList.remove('show');
   document.removeEventListener('click',_closeProfOut);
 }
+
+// ── PWA Install ──────────────────────────────────────────────────────────
+var deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();
+  deferredPrompt=e;
+  // Show install buttons
+  var r=document.getElementById('pwa-install-row');if(r)r.style.display='flex';
+  var s=document.getElementById('pwa-install-sidebar');if(s)s.style.display='flex';
+  // Translate label
+  var labels={0:"Installer l'application",1:'Install app',2:'Instalar aplicativo'};
+  var lbl=labels[lang]||labels[2];
+  var l1=document.getElementById('pwa-install-label');if(l1)l1.textContent=lbl;
+  var l2=document.getElementById('pwa-install-sidebar-label');if(l2)l2.textContent=lbl;
+});
+function installPWA(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function(choice){
+      deferredPrompt=null;
+      if(choice.outcome==='accepted'){
+        var r=document.getElementById('pwa-install-row');if(r)r.style.display='none';
+        var s=document.getElementById('pwa-install-sidebar');if(s)s.style.display='none';
+      }
+    });
+  }
+}
+window.addEventListener('appinstalled',function(){
+  var r=document.getElementById('pwa-install-row');if(r)r.style.display='none';
+  var s=document.getElementById('pwa-install-sidebar');if(s)s.style.display='none';
+});
 </script>
 
 <div class="inc-modal-overlay" id="inc-modal-overlay" onclick="if(event.target===this)closeIncModal()">
@@ -3504,6 +3536,7 @@ function closeMobileProfile(){
   </div>
   <div onclick="closeMobileProfile();pickMoreTab(2)" style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px;color:var(--text2);cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);"><i class="ti ti-folder" style="font-size:16px;color:#4a6a8a;width:20px;text-align:center;"></i> Meus arquivos</div>
   <div onclick="closeMobileProfile();pickMoreTab(7)" style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px;color:var(--text2);cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);"><i class="ti ti-file-text" style="font-size:16px;color:#4a6a8a;width:20px;text-align:center;"></i> Plantas e documentos</div>
+  <div id="pwa-install-row" onclick="installPWA();closeMobileProfile()" style="display:none;align-items:center;gap:8px;padding:8px 0;font-size:12px;color:var(--text2);cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);"><i class="ti ti-download" style="font-size:16px;color:#378add;width:20px;text-align:center;"></i> <span id="pwa-install-label">Instalar aplicativo</span></div>
   <div onclick="closeMobileProfile();doLogout()" style="display:flex;align-items:center;gap:8px;padding:8px 0;margin-top:4px;font-size:12px;color:#e24b4a;cursor:pointer;"><i class="ti ti-logout" style="font-size:16px;color:#e24b4a;width:20px;text-align:center;"></i> Sair</div>
 </div>
 </body>
