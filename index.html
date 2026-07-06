@@ -1851,7 +1851,7 @@ async function deleteProject(id){
 
 function renderProjects(){
   var w=document.getElementById("proj-out");
-  if(!projects.length){w.innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F3D7;&#xFE0F;</div><div class='empty-text' id="proj-empty-text">Aucun chantier.</div></div>";return;}
+  if(!projects.length){w.innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F3D7;&#xFE0F;</div><div class='empty-text' id='proj-empty-text'>"+(STRINGS[lang].projEmptyText||"Aucun chantier.")+"</div></div>";return;}
   var html="<div class='proj-grid'>";
   projects.forEach(function(p){
     var count=entries.filter(function(e){return e.project===p.name;}).length;
