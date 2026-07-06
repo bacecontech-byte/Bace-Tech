@@ -81,7 +81,7 @@ body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-heig
 .mob-profile{display:none;position:fixed;top:44px;right:8px;width:220px;background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:12px;z-index:400;box-shadow:0 8px 30px rgba(0,0,0,0.5);}
 .mob-profile.show{display:block;}
 @media(max-width:768px){
-  .mobile-logo{display:flex !important;}
+  .mobile-logo-bar{display:flex !important;align-items:center;}
   .mobile-avatar{display:block !important;}
   body.logged-in .mobile-tabs,body.logged-in .capture-fab,body.logged-in .ia-bubble{display:flex !important;}
   .auth-left{display:none;}
@@ -695,8 +695,8 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       </div>
     </div>
     <div class="app-main">
+      <div class="mobile-logo-bar" style="display:none;padding:10px 14px 0;"><span style="font-family:var(--font-d);font-size:18px;font-weight:700;color:var(--white);">Bace</span><span style="font-family:var(--font-d);font-size:18px;font-weight:700;color:#378add;">Tech</span></div>
       <div class="app-topbar">
-        <div class="mobile-logo" style="display:none;align-items:center;gap:0;margin-right:auto;"><span style="font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--white);">Bace</span><span style="font-family:var(--font-d);font-size:16px;font-weight:700;color:#378add;">Tech</span></div>
         <div class="topbar-title" id="top-title">Dashboard</div>
         <div class="topbar-right">
           <div class="site-chip" id="site-chip" onclick="showTab(6,document.querySelectorAll('.sidebar-link')[6])">
@@ -708,7 +708,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <i class="ti ti-bell"></i>
             <div class="bell-dot" id="bell-dot" style="display:none;"></div>
           </div>
-          <button class="btn-capture" onclick="showTab(1,document.querySelectorAll('.sidebar-link')[1])"><i class="ti ti-plus"></i><span id="btn-cap">Capturer</span></button>
+          
         <button class="mobile-avatar" id="mobile-avatar-btn" onclick="toggleMobileProfile()" style="display:none;background:none;border:none;cursor:pointer;margin-left:4px;"><div style="width:28px;height:28px;border-radius:50%;background:rgba(55,138,221,0.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#378add;" id="mob-av-initials">DM</div></button>
         </div>
       </div>
