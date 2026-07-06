@@ -1385,6 +1385,12 @@ function enterApp(user){
   document.body.classList.add("logged-in");
   var mobAv=document.getElementById("mob-av-initials");if(mobAv)mobAv.textContent=(me.name||"??").split(" ").map(function(w){return w[0];}).join("").toUpperCase().slice(0,2);
   applyLang();
+  // Restore last tab
+  var savedTab=parseInt(localStorage.getItem("bace-tab"))||0;
+  showTab(savedTab,document.querySelectorAll(".sidebar-link")[savedTab]);
+  // Update mobile tab active state
+  var mtEl=document.getElementById("mt-"+savedTab);
+  if(mtEl){document.querySelectorAll(".mob-tab").forEach(function(t){t.classList.remove("active");});mtEl.classList.add("active");}
   toast(STRINGS[lang].toastWelcome||"Bienvenue sur BaceTech !");
   connectDB();
 }
@@ -2575,6 +2581,7 @@ function initChat(){
 
 function getTabNames(){var S=STRINGS[lang];return["Dashboard",S.navCap||"Capture",S.navFiles||"My folders",S.navKb||"Knowledge base","Bace IA",S.navComm||"Community",S.navProj||"My projects",S.navDocs||"Plans & Documents","API"];}
 function showTab(i,btn){
+  localStorage.setItem("bace-tab",i);
   for(var j=0;j<8;j++){var el=document.getElementById("tab-"+j);if(el)el.classList.toggle("active",j===i);}
   document.querySelectorAll(".sidebar-link").forEach(function(b){b.classList.remove("active");});
   if(btn)btn.classList.add("active");
