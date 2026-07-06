@@ -103,7 +103,12 @@ body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-heig
   .notif-panel{right:8px;left:8px;width:auto;}
   #kb-controls{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
   .kb-filter{white-space:nowrap;flex-shrink:0;}
-  .kb-table th,.kb-table td{font-size:11px;padding:8px 6px;}
+  .kb-table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .kb-table th,.kb-table td{font-size:11px;padding:8px 6px;white-space:nowrap;}
+  .kb-table th:nth-child(2),.kb-table td:nth-child(2),
+  .kb-table th:nth-child(3),.kb-table td:nth-child(3),
+  .kb-table th:nth-child(5),.kb-table td:nth-child(5){display:none;}
+  .kb-table td:first-child{white-space:normal;max-width:180px;}
   .chat-wrap{height:calc(100vh - 180px);}
   .doc-viewer-overlay{align-items:flex-end;}
   .doc-viewer-panel{width:100% !important;max-width:100% !important;height:90vh;border-radius:16px 16px 0 0;}
