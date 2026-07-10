@@ -82,6 +82,7 @@ body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-heig
 .mob-profile.show{display:block;}
 @media(max-width:768px){
   .mobile-logo-bar{display:flex !important;align-items:center;}
+  #hamburger-btn{display:flex !important;align-items:center;justify-content:center;}
   .mobile-avatar{display:block !important;}
   body.logged-in .mobile-tabs,body.logged-in .capture-fab,body.logged-in .ia-bubble{display:flex !important;}
   .auth-left{display:none;}
@@ -752,9 +753,11 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         </div>
       </div>
     </div>
+    <div id="sidebar-overlay" onclick="toggleSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9998;"></div>
     <div class="app-main">
       <div class="mobile-logo-bar" style="display:none;padding:10px 14px 0;"><span style="font-family:var(--font-d);font-size:18px;font-weight:700;color:var(--white);">Bace</span><span style="font-family:var(--font-d);font-size:18px;font-weight:700;color:#378add;">Tech</span></div>
       <div class="app-topbar">
+        <button id="hamburger-btn" onclick="toggleSidebar()" style="display:none;background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:4px 8px;margin-right:4px;-webkit-tap-highlight-color:rgba(55,138,221,0.3);"><i class="ti ti-menu-2"></i></button>
         <div class="topbar-title" id="top-title">Dashboard</div>
         <div class="topbar-right">
           <div class="site-chip" id="site-chip" onclick="showTab(6,document.querySelectorAll('.sidebar-link')[6])">
@@ -3489,6 +3492,28 @@ setInterval(function(){
     doLogout();
   }
 },60000); // check every minute
+
+// ── Hamburger sidebar toggle — pure inline styles ────────────────────────
+var _sidebarOpen=false;
+function toggleSidebar(){
+  var sb=document.querySelector('.sidebar');
+  var ov=document.getElementById('sidebar-overlay');
+  if(!sb||!ov)return;
+  _sidebarOpen=!_sidebarOpen;
+  if(_sidebarOpen){
+    sb.style.cssText='display:flex !important;position:fixed;top:0;left:0;width:260px;height:100vh;z-index:9999;flex-direction:column;background:#0d1629;border-right:1px solid rgba(255,255,255,0.06);padding:16px 12px;box-shadow:4px 0 30px rgba(0,0,0,0.5);overflow-y:auto;';
+    ov.style.display='block';
+  } else {
+    sb.style.cssText='';
+    ov.style.display='none';
+  }
+}
+// Close sidebar when a tab is clicked
+var _origShowTab=showTab;
+showTab=function(i,btn){
+  if(_sidebarOpen)toggleSidebar();
+  _origShowTab(i,btn);
+};
 </script>
 
 <div class="inc-modal-overlay" id="inc-modal-overlay" onclick="if(event.target===this)closeIncModal()">
