@@ -828,7 +828,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
           <div class="capture-grid">
             <div class="capture-panel">
               <div class="panel-title" id="panel-capture-title">Capture &amp; Bace IA</div>
-              <div style="background:var(--blue-light);border:1px solid rgba(30,111,255,0.2);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--blue);margin-bottom:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-map-pin" style="font-size:14px"></i><span id="ai-hint"><span id="ai-hint">L'IA analysera selon le projet sélectionné</span></span></div>
+              <div style="background:rgba(55,138,221,0.06);border:1px solid rgba(55,138,221,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:#378add;margin-bottom:14px;display:flex;align-items:center;gap:8px"><i class="ti ti-sparkles" style="font-size:16px"></i><span id="ai-hint"><span id="ai-hint">L'IA analysera selon le projet sélectionné</span></span></div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
                 <!-- TAKE PHOTO - opens camera directly -->
                 <label style="border:1.5px dashed var(--border2);border-radius:10px;padding:24px 16px;text-align:center;cursor:pointer;transition:all 0.15s;display:block;position:relative" onmouseover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-light)'" onmouseout="this.style.borderColor='var(--border2)';this.style.background='transparent'">
@@ -933,9 +933,15 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         </div>
         <div id="tab-4" class="tab">
           <div class="chat-wrap">
-            <div class="chat-header">
-              <div class="chat-avatar" style="display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#378add" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C9.5 2 7.5 3.5 7 5.5L6 9h12l-1-3.5C16.5 3.5 14.5 2 12 2z"/><path d="M4 9h16v1a2 2 0 01-2 2H6a2 2 0 01-2-2V9z"/><circle cx="12" cy="16" r="4"/><path d="M10 15.5l1 1.5 2.5-2.5" stroke-width="1.2"/></svg></div>
-              <div style="flex:1"><div class="chat-header-name" id="chat-header-name"></div><div class="chat-header-status" id="chat-status">En ligne — Base de connaissances connectée</div></div>
+            <div class="chat-header" style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);">
+          <span style="font-size:24px;">👷</span>
+          <div style="flex:1;">
+            <div class="chat-header-name" id="chat-header-name" style="font-size:15px;font-weight:600;color:var(--white);"></div>
+            <div class="chat-header-status" id="chat-status" style="font-size:11px;color:#639922;"></div>
+          </div>
+          <button class="btn-chat-new" onclick="newChat()"><i class="ti ti-plus" style="font-size:12px;"></i> <span id="lbl-new-chat">Nova conversa</span></button>
+          <button onclick="loadChatList()" style="background:none;border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;"><i class="ti ti-history" style="font-size:13px;"></i> <span id="lbl-history">Histórico</span></button>
+        </div></div>
             </div>
             <div class="chat-controls">
               
@@ -2382,8 +2388,19 @@ function renderKB(){
   var w=document.getElementById("kb-out");
   if(!filtered.length){w.innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F5C2;&#xFE0F;</div><div class='empty-text'>"+(STRINGS[lang].kbEmpty||"Aucune entrée.")+"</div></div>";return;}
   var S=STRINGS[lang];
-  var th="<tr><th>"+(S.thTitle||"Titre")+"</th><th>"+(S.thProj||"Projet")+"</th><th>"+(S.thCat||"Cat")+"</th><th>"+(S.thSev||"Sev")+"</th><th>"+(S.thDate||"Date")+"</th><th></th></tr>";
-  w.innerHTML="<div class='table-wrap'><table><thead>"+th+"</thead><tbody>"+filtered.map(function(e){return rowHTML(e,false);}).join("")+"</tbody></table></div>";
+  
+  w.innerHTML=filtered.map(function(e){
+    var S2=STRINGS[lang];
+    var sevColors={critical:"#e24b4a",high:"#ef9f27",medium:"#378add",low:"#639922"};
+    var sevLabels={critical:S2.sevCrit||"Critique",high:S2.sevHigh||"Élevé",medium:S2.sevMed||"Moyen",low:S2.sevLow||"Faible"};
+    var sc=sevColors[e.sev]||"#378add";
+    var sl=sevLabels[e.sev]||e.sev;
+    var statusTxt=e.status==="resolved"?(S2.statusResolved||"Résolu"):(S2.statusOpen||"Ouvert");
+    var statusBg=e.status==="resolved"?"rgba(99,153,34,0.1)":"rgba(55,138,221,0.1)";
+    var statusColor=e.status==="resolved"?"#639922":"#378add";
+    var eid=String(e.id);
+    return "<div onclick=\"openIncModal(\'"+eid+"\')\" style=\"background:var(--navy2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;\"><div style=\"display:flex;align-items:flex-start;gap:8px;\"><div style=\"width:6px;height:6px;border-radius:50%;background:"+sc+";margin-top:5px;flex-shrink:0;\"></div><div style=\"flex:1;\"><div style=\"font-size:13px;font-weight:500;color:var(--white);line-height:1.4;margin-bottom:4px;\">"+cleanTitle(e.title)+"</div><div style=\"font-size:11px;color:var(--text3);margin-bottom:6px;\">"+catLabel(e.cat||"")+" \u00b7 "+(e.date||"")+"</div><div style=\"display:flex;gap:4px;\"><span style=\"font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(55,138,221,0.08);color:"+sc+";\">"+sl+"</span><span style=\"font-size:10px;padding:2px 8px;border-radius:10px;background:"+statusBg+";color:"+statusColor+";\">"+statusTxt+"</span></div></div></div></div>";
+  }).join("");
 }
 
 async function loadPosts(){
