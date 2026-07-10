@@ -3310,48 +3310,17 @@ document.addEventListener("keydown",function(e){
 
 // ── Mobile tab bar ───────────────────────────────────────────────────────
 function mobileTab(idx,btn){
-  if(idx===9){showMoreMenu();return;}
-  hideMoreMenu();closeCaptureFab();closeIaBubble();
+
+  closeCaptureFab();closeIaBubble();
   document.querySelectorAll('.mob-tab').forEach(function(t){t.classList.remove('active');});
   if(btn)btn.classList.add('active');
   showTab(idx,null);
 }
 
-function showMoreMenu(){
-  if(document.getElementById('mob-more-menu')){hideMoreMenu();return;}
-  var S=STRINGS[lang];
-  var items=[
-    {icon:'ti-folder',label:S.navFiles||'Meus arquivos',tab:2},
-    {icon:'ti-camera',label:S.navCap||'Capturar',tab:1},
-    {icon:'ti-users',label:S.navComm||'Comunidade',tab:5},
-    {icon:'ti-file-text',label:S.navDocs||'Plantas & Documentos',tab:7},
-  ];
-  var menu=document.createElement('div');
-  menu.id='mob-more-menu';
-  menu.style.cssText='position:fixed;bottom:58px;right:8px;background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:6px 0;z-index:350;box-shadow:0 -8px 30px rgba(0,0,0,0.4);min-width:210px;';
-  menu.innerHTML=items.map(function(it){
-    return '<button onclick="pickMoreTab('+it.tab+')" style="display:flex;align-items:center;gap:10px;width:100%;padding:12px 16px;background:none;border:none;color:var(--text2);font-size:13px;cursor:pointer;font-family:inherit;text-align:left;"><i class="ti '+it.icon+'" style="font-size:18px;color:#378add;width:22px;text-align:center;"></i>'+it.label+'</button>';
-  }).join('');
-  document.body.appendChild(menu);
-  setTimeout(function(){document.addEventListener('click',closeMoreOutside);},50);
-}
-function closeMoreOutside(e){
-  var m=document.getElementById('mob-more-menu');
-  var b=document.getElementById('mt-more');
-  if(m&&!m.contains(e.target)&&!b.contains(e.target))hideMoreMenu();
-}
-function hideMoreMenu(){
-  var m=document.getElementById('mob-more-menu');if(m)m.remove();
-  document.removeEventListener('click',closeMoreOutside);
-}
-function pickMoreTab(t){
-  hideMoreMenu();
-  document.querySelectorAll('.mob-tab').forEach(function(b){b.classList.remove('active');});
-  document.getElementById('mt-more').classList.add('active');
-  showTab(t,null);
-}
 
-// ── Capture FAB ──────────────────────────────────────────────────────────
+
+
+
 function toggleCaptureFab(){
   var menu=document.getElementById('capture-menu');
   var fab=document.getElementById('capture-fab');
@@ -3363,7 +3332,7 @@ function toggleCaptureFab(){
     fab.style.background='linear-gradient(135deg,#e24b4a,#c93535)';
     fab.style.boxShadow='0 4px 20px rgba(226,75,74,0.4)';
     icon.className='ti ti-x';
-    closeIaBubble();hideMoreMenu();
+    closeIaBubble();
   }
 }
 function closeCaptureFab(){
@@ -3393,7 +3362,7 @@ function toggleIaBubble(){
   } else {
     chat.classList.add('show');
     bub.classList.add('open');
-    closeCaptureFab();hideMoreMenu();
+    closeCaptureFab();
     // Update greeting
     var S=STRINGS[lang];
     var msg=document.getElementById('ia-mini-msg');
@@ -3431,7 +3400,7 @@ function toggleMobileProfile(){
   if(!p)return;
   if(p.classList.contains('show')){closeMobileProfile();return;}
   p.classList.add('show');
-  closeCaptureFab();closeIaBubble();hideMoreMenu();
+  closeCaptureFab();closeIaBubble();
   document.getElementById('mob-prof-name').textContent=me.name||'';
   document.getElementById('mob-prof-co').textContent=me.co||'';
   document.getElementById('mob-prof-av').textContent=(me.name||'??').split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
@@ -3565,7 +3534,7 @@ showTab=function(i,btn){
   <button class="mob-tab" onclick="mobileTab(3,this)" id="mt-3"><i class="ti ti-database"></i><span id="mt-kb-label">Base</span></button>
   <div class="mob-tab-spacer"></div>
   <button class="mob-tab" onclick="mobileTab(6,this)" id="mt-6"><i class="ti ti-building-skyscraper"></i><span id="mt-proj-label">Projetos</span></button>
-  <button class="mob-tab" onclick="mobileTab(9,this)" id="mt-more"><i class="ti ti-dots"></i><span id="mt-more-label">Mais</span></button>
+  <button class="mob-tab" onclick="mobileTab(4,this)" id="mt-4b"><i class="ti ti-message-circle"></i><span>Bace IA</span></button>
 </div>
 
 <!-- Capture FAB -->
