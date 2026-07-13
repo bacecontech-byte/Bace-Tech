@@ -1790,6 +1790,15 @@ function openIncModal(id){
   document.getElementById("imd-lbl-edit").textContent=S.btnEdit||"Modifier";
   document.getElementById("imd-lbl-resolve").textContent=e.status==="resolved"?(S.btnReopen||"Réouvrir"):(S.btnResolve||"Résoudre");
   document.getElementById("imd-lbl-delete").textContent=S.btnDelete||"Supprimer";
+  // Photo
+  var photoWrap=document.getElementById("imd-photo-wrap");
+  var photoImg=document.getElementById("imd-photo");
+  if(e.photo_url||e.photo){
+    photoImg.src=e.photo_url||e.photo;
+    photoWrap.style.display="block";
+  } else {
+    photoWrap.style.display="none";
+  }
   // Show
   document.getElementById("inc-modal-overlay").classList.add("show");
   document.body.style.overflow="hidden";
@@ -2060,6 +2069,8 @@ async function handlePhoto(input){
   var prompt=PROMPT_PHOTO.replace("{PROJECT}",proj+locStr+(docContext?"\n\nAvailable project documents:"+docContext:"")).replace("{LANG}",langFull);
   var reader=new FileReader();
   reader.onload=async function(e){
+    window._lastPhotoData=e.target.result;
+    window._lastPhotoFile=input.files[0];
     var resp=await callAI([{img:e.target.result},{text:prompt}]);
     if(resp){
       var p=parseAI(resp);
@@ -2149,6 +2160,7 @@ function applyAIFields(p){
 function acceptAI(){
   var p=window._lastAI||{};
   applyAIFields(p);
+  window._lastPhotoData=null;window._lastPhotoFile=null;
   ["ai-photo","ai-voice"].forEach(function(id){document.getElementById(id).style.display="none";});
   toast(STRINGS[lang].toastAccept||"✅ Solution acceptée");
 }
@@ -2156,6 +2168,7 @@ function acceptAI(){
 function editAI(){
   var p=window._lastAI||{};
   applyAIFields(p);
+  window._lastPhotoData=null;window._lastPhotoFile=null;
   ["ai-photo","ai-voice"].forEach(function(id){document.getElementById(id).style.display="none";});
   // Focus the action field for editing
   var actionEl=document.getElementById("c-action");
@@ -2164,6 +2177,7 @@ function editAI(){
 }
 
 function declineAI(){
+  window._lastPhotoData=null;window._lastPhotoFile=null;
   ["ai-photo","ai-voice"].forEach(function(id){document.getElementById(id).style.display="none";});
   document.getElementById("c-desc").value="";
   document.getElementById("c-action").value="";
@@ -2204,8 +2218,24 @@ function saveEntry(){
   if(!title){toast(STRINGS[lang].toastNoTitle||"Ajoutez un titre");return;}
   var p=window._lastAI||{};
   var ai=p.solution||p.action||"";
-  var entry={id:Date.now(),title:title,project:document.getElementById("c-proj").value,cat:canonCat(document.getElementById("c-cat").value),sev:document.getElementById("c-sev").value,desc:document.getElementById("c-desc").value,action:document.getElementById("c-action").value,date:new Date().toLocaleDateString("fr-FR"),status:"open",ai:ai};
+  var entry={id:Date.now(),title:title,project:document.getElementById("c-proj").value,cat:canonCat(document.getElementById("c-cat").value),sev:document.getElementById("c-sev").value,desc:document.getElementById("c-desc").value,action:document.getElementById("c-action").value,date:new Date().toLocaleDateString("fr-FR"),status:"open",ai:ai,photo:window._lastPhotoData||null,photo_url:null};
+  // Upload photo to Supabase Storage
+  if(window._lastPhotoFile&&dbOk&&dbCoId){
+    try{
+      var slug=me.co.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"");
+      var catSlug=entry.cat.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"");
+      var ts=new Date().toISOString().replace(/[:.]/g,"-").substring(0,19);
+      var photoPath=slug+"/"+catSlug+"/"+ts+"_"+title.substring(0,30).replace(/[^a-z0-9]/gi,"-")+".jpg";
+      var photoUpload=await db.storage.from("captures").upload(photoPath,window._lastPhotoFile,{upsert:true,contentType:window._lastPhotoFile.type});
+      if(!photoUpload.error){
+        entry.photo_url=photoPath;
+        var pubUrl=db.storage.from("captures").getPublicUrl(photoPath);
+        if(pubUrl&&pubUrl.data)entry.photo_url=pubUrl.data.publicUrl;
+      }
+    }catch(photoErr){console.error("Photo upload:",photoErr);}
+  }
   entries.unshift(entry);
+  window._lastPhotoData=null;window._lastPhotoFile=null;
   ["ai-photo","ai-voice"].forEach(function(id){document.getElementById(id).style.display="none";});
   ["c-title","c-desc","c-action"].forEach(function(id){document.getElementById(id).value="";});
   toast(STRINGS[lang].toastSaved||"Enregistré et classé !");
@@ -3551,6 +3581,9 @@ showTab=function(i,btn){
     </div>
     <div class="inc-modal-meta" id="imd-meta"></div>
     <div class="inc-modal-body">
+      <div id="imd-photo-wrap" style="display:none;margin-bottom:12px;border-radius:8px;overflow:hidden;">
+        <img id="imd-photo" style="width:100%;max-height:300px;object-fit:cover;border-radius:8px;" alt="">
+      </div>
       <div class="inc-modal-field" id="imd-desc-wrap">
         <div class="inc-modal-label" id="imd-lbl-desc">Description</div>
         <div class="inc-modal-value" id="imd-desc"></div>
