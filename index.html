@@ -2195,7 +2195,7 @@ function canonCat(raw){
   if(s.match(/doc/))return "Documentation";
   return "Structure"; // safe fallback
 }
-function saveEntry(){
+async function saveEntry(){
   // If editing an existing entry, update it instead of creating new
   if(window._editingId){
     var existingEntry=entries.filter(function(x){return String(x.id)===String(window._editingId);})[0];
