@@ -1037,21 +1037,8 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         </div>
 
         <div id="tab-8" class="tab">
-          <div style="max-width:520px;padding:4px;">
+          <div style="max-width:560px;padding:4px;">
             <div style="font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--white);margin-bottom:20px" id="settings-title">Configurações</div>
-            <div style="margin-bottom:24px">
-              <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px" id="settings-lang-label">Idioma da interface</div>
-              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-                <button onclick="changeLang(0)" id="lang-pref-0" class="lang-pref-btn">&#x1F1EB;&#x1F1F7; Français</button>
-                <button onclick="changeLang(1)" id="lang-pref-1" class="lang-pref-btn">&#x1F1EC;&#x1F1E7; English</button>
-                <button onclick="changeLang(2)" id="lang-pref-2" class="lang-pref-btn">&#x1F1E7;&#x1F1F7; Português</button>
-              </div>
-            </div>
-            <div style="margin-bottom:24px">
-              <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px" id="settings-ai-label">Bace IA</div>
-              <div style="font-size:12px;color:var(--green);padding:10px 14px;border-radius:8px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2)" id="settings-status">✅ IA ativa e segura</div>
-              <div style="font-size:12px;color:var(--text3);margin-top:8px" id="settings-sub">A chave API é gerenciada pelo servidor. Nenhuma configuração necessária.</div>
-            </div>
             <div style="margin-bottom:24px">
               <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px" id="settings-cloud-label">Armazenamento em nuvem</div>
               <div id="cloud-connections-panel" style="background:var(--navy3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
@@ -1064,14 +1051,6 @@ tr:hover td{background:rgba(255,255,255,0.02);}
                   <button onclick="connectCloud('gcp')" class="cloud-btn" id="cloud-gcp" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid var(--border);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;"><i class="ti ti-cloud" style="font-size:18px;color:#4285f4;"></i> GCP Storage</button>
                   <button onclick="connectCloud('webdav')" class="cloud-btn" id="cloud-webdav" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid var(--border);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;"><i class="ti ti-server" style="font-size:18px;color:#8b5cf6;"></i> On-premise</button>
                 </div>
-              </div>
-            </div>
-            <div>
-              <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px" id="settings-account-label">Conta</div>
-              <div style="background:var(--navy3);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
-                <div style="font-size:13px;color:var(--white);font-weight:500" id="settings-user-name">...</div>
-                <div style="font-size:12px;color:var(--text3);margin-top:3px" id="settings-user-email">...</div>
-                <div style="font-size:12px;color:var(--text3);margin-top:2px" id="settings-user-co">...</div>
               </div>
             </div>
           </div>
@@ -2665,7 +2644,7 @@ function initChat(){
 function getTabNames(){var S=STRINGS[lang];return["Dashboard",S.navCap||"Capture",S.navFiles||"My folders",S.navKb||"Knowledge base","Bace IA",S.navComm||"Community",S.navProj||"My projects",S.navDocs||"Plans & Documents",S.navSettings||"Configurações"];}
 function showTab(i,btn){
   localStorage.setItem("bace-tab",i);
-  for(var j=0;j<8;j++){var el=document.getElementById("tab-"+j);if(el)el.classList.toggle("active",j===i);}
+  for(var j=0;j<9;j++){var el=document.getElementById("tab-"+j);if(el)el.classList.toggle("active",j===i);}
   document.querySelectorAll(".sidebar-link").forEach(function(b){b.classList.remove("active");});
   if(btn)btn.classList.add("active");
   document.getElementById("top-title").textContent=getTabNames()[i]||"";
