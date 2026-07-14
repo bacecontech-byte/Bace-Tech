@@ -1214,6 +1214,11 @@ function applyLang(){
     var el=document.getElementById(id);
     if(el&&S[ids[id]])el.textContent=S[ids[id]];
   });
+  // Update topbar title with current tab name
+  var savedTab=parseInt(localStorage.getItem("bace-tab"))||0;
+  var topTitle=document.getElementById("top-title");
+  if(topTitle)topTitle.textContent=getTabNames()[savedTab]||"";
+
 
   // Placeholders
   var placeholders={"c-title":"lblTitle","c-desc":"lblDesc","c-action":"lblAction","post-input":"postPlaceholder","proj-name":"projPlaceholderName","proj-loc":"projPlaceholderLoc","proj-owner":"projPlaceholderOwner"};
