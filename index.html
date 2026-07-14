@@ -3695,7 +3695,7 @@ async function syncToCloud(entry){
         body:JSON.stringify({
           company_id:dbCoId,
           provider:conn.provider,
-          project:entry.project||"General",
+          project:sanitizeProject(entry.project)||me.co||"General",
           category:entry.cat||"General",
           filename:filename,
           content:report,
@@ -3817,7 +3817,7 @@ async function syncAllToCloud(){
           body:JSON.stringify({
             company_id:dbCoId,
             provider:d.connections[c2].provider,
-            project:doc.project||"General",
+            project:sanitizeProject(doc.project)||me.co||"General",
             category:"Documentos",
             filename:docFilename+".txt",
             content:docContent,
@@ -3830,6 +3830,14 @@ async function syncAllToCloud(){
   }
 
   toast("✅ "+synced+" "+(S.filesSynced||"arquivos sincronizados")+"!");
+}
+
+// ── Sanitize project name for cloud folders ──────────────────────────────
+function sanitizeProject(proj){
+  if(!proj)return null;
+  var placeholders=["Tous les chantiers","Todos os canteiros","All sites","Nenhum projeto","No project","Aucun projet","General","—",""];
+  for(var i=0;i<placeholders.length;i++){if(proj===placeholders[i])return null;}
+  return proj;
 }
 </script>
 
