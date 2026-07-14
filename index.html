@@ -1235,7 +1235,7 @@ function applyLang(){
     "chat-status":"chatStatus",
     // Notif
     "notif-empty-txt":"notifEmpty"
-  ,"sev-low":"sevLow","sev-med":"sevMed","sev-high":"sevHigh","sev-crit":"sevCrit","tag-problem":"tagProblem","tag-question":"tagQuestion","tag-solved":"tagSolved","docs-upload-title":"docsUploadTitle","qa-capture":"qaCapture","qa-bace":"qaBace","qa-doc":"qaDoc","dash-qa-title":"qaTitle","dash-act-title":"actTitle","lbl-new-chat":"lblNewChat","lbl-history":"lblHistory","docs-all-sites-opt":"docsAllSites"};
+  ,"sev-low":"sevLow","sev-med":"sevMed","sev-high":"sevHigh","sev-crit":"sevCrit","tag-problem":"tagProblem","tag-question":"tagQuestion","tag-solved":"tagSolved","docs-upload-title":"docsUploadTitle","qa-capture":"qaCapture","qa-bace":"qaBace","qa-doc":"qaDoc","dash-qa-title":"qaTitle","dash-act-title":"actTitle","lbl-new-chat":"lblNewChat","lbl-history":"lblHistory","docs-all-sites-opt":"docsAllSites","nav-settings":"navSettings"};
   Object.keys(ids).forEach(function(id){
     var el=document.getElementById(id);
     if(el&&S[ids[id]])el.textContent=S[ids[id]];
@@ -2667,7 +2667,7 @@ function initChat(){
   addMsg("bot",welcomeMsg);}
 }
 
-function getTabNames(){var S=STRINGS[lang];return["Dashboard",S.navCap||"Capture",S.navFiles||"My folders",S.navKb||"Knowledge base","Bace IA",S.navComm||"Community",S.navProj||"My projects",S.navDocs||"Plans & Documents","API"];}
+function getTabNames(){var S=STRINGS[lang];return["Dashboard",S.navCap||"Capture",S.navFiles||"My folders",S.navKb||"Knowledge base","Bace IA",S.navComm||"Community",S.navProj||"My projects",S.navDocs||"Plans & Documents",S.navSettings||"Configurações"];}
 function showTab(i,btn){
   localStorage.setItem("bace-tab",i);
   for(var j=0;j<8;j++){var el=document.getElementById("tab-"+j);if(el)el.classList.toggle("active",j===i);}
