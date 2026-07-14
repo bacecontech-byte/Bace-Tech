@@ -3665,7 +3665,7 @@ async function loadCloudStatus(){
   }catch(e){console.error("Cloud status:",e);}
 }
 
-async function syncToCloud(entry){
+async async function syncToCloud(entry){
   if(!dbCoId)return;
   try{
     var r=await fetch("/api/cloud-sync?action=status",{
