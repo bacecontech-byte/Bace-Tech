@@ -1052,6 +1052,20 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               <div style="font-size:12px;color:var(--text3);margin-top:8px" id="settings-sub">La clé API est gérée côté serveur. Aucune configuration nécessaire.</div>
             </div>
             <div>
+              <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px" id="settings-cloud-label" style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px">Armazenamento em nuvem</div>
+              <div id="cloud-connections-panel" style="background:var(--navy3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:20px;">
+                <div style="font-size:12px;color:var(--text3);margin-bottom:12px" id="cloud-desc">Conecte o armazenamento da sua empresa para sincronizar automaticamente os incidentes.</div>
+                <div id="cloud-providers" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                  <button onclick="connectCloud('google')" class="cloud-btn" id="cloud-google" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid var(--border);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;"><i class="ti ti-brand-google-drive" style="font-size:18px;color:#34a853;"></i> Google Drive</button>
+                  <button onclick="connectCloud('onedrive')" class="cloud-btn" id="cloud-onedrive" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid var(--border);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;"><i class="ti ti-brand-onedrive" style="font-size:18px;color:#0078d4;"></i> OneDrive</button>
+                  <button onclick="connectCloud('dropbox')" class="cloud-btn" id="cloud-dropbox" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid var(--border);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;"><i class="ti ti-brand-dropbox" style="font-size:18px;color:#0061fe;"></i> Dropbox</button>
+                  <button onclick="connectCloud('s3')" class="cloud-btn" id="cloud-s3" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid var(--border);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;"><i class="ti ti-brand-aws" style="font-size:18px;color:#ff9900;"></i> AWS S3</button>
+                  <button onclick="connectCloud('gcp')" class="cloud-btn" id="cloud-gcp" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid var(--border);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;"><i class="ti ti-cloud" style="font-size:18px;color:#4285f4;"></i> GCP Storage</button>
+                  <button onclick="connectCloud('webdav')" class="cloud-btn" id="cloud-webdav" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid var(--border);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;"><i class="ti ti-server" style="font-size:18px;color:#8b5cf6;"></i> On-premise</button>
+                </div>
+              </div>
+            </div>
+            <div>
               <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px" id="settings-account-label">Compte</div>
               <div style="background:var(--navy3);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
                 <div style="font-size:13px;color:var(--white);font-weight:500" id="settings-user-name">...</div>
@@ -1426,6 +1440,7 @@ function enterApp(user){
   // Update mobile tab active state
   var mtEl=document.getElementById("mt-"+savedTab);
   if(mtEl){document.querySelectorAll(".mob-tab").forEach(function(t){t.classList.remove("active");});mtEl.classList.add("active");}
+  loadCloudStatus();
   toast(STRINGS[lang].toastWelcome||"Bienvenue sur BaceTech !");
   connectDB();
 }
@@ -3568,6 +3583,137 @@ showTab=function(i,btn){
   if(_sidebarOpen)toggleSidebar();
   _origShowTab(i,btn);
 };
+
+// ── Cloud Storage Sync ───────────────────────────────────────────────────
+async function connectCloud(provider){
+  if(!dbCoId){toast("Faça login primeiro");return;}
+  var oauthProviders=["google","onedrive","dropbox"];
+  if(oauthProviders.indexOf(provider)>=0){
+    // OAuth flow — get auth URL then open popup
+    try{
+      var r=await fetch("/api/cloud-sync?action=auth-url",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({provider:provider,company_id:dbCoId})
+      });
+      var d=await r.json();
+      if(d.url)window.open(d.url,"_blank","width=500,height=600");
+      else toast("\u274C "+d.error);
+    }catch(e){toast("\u274C Erro: "+e.message);}
+  } else {
+    // Static credentials — show form
+    showCredentialsForm(provider);
+  }
+}
+
+function showCredentialsForm(provider){
+  var labels={
+    s3:{title:"AWS S3",fields:[{key:"bucket",label:"Bucket"},{key:"region",label:"Region"},{key:"accessKeyId",label:"Access Key ID"},{key:"secretAccessKey",label:"Secret Access Key"}]},
+    gcp:{title:"GCP Cloud Storage",fields:[{key:"bucket",label:"Bucket"},{key:"serviceAccountKey",label:"Service Account JSON Key"}]},
+    webdav:{title:"On-premise (WebDAV)",fields:[{key:"url",label:"WebDAV URL"},{key:"username",label:"Username"},{key:"password",label:"Password"}]}
+  };
+  var cfg=labels[provider];if(!cfg)return;
+  var overlay=document.createElement("div");
+  overlay.id="cloud-creds-overlay";
+  overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;";
+  var html="<div style=\"background:#111827;border:1px solid rgba(55,138,221,0.2);border-radius:14px;padding:24px;width:360px;max-width:90vw;\"><div style=\"font-size:16px;font-weight:600;color:var(--white);margin-bottom:16px;\">"+cfg.title+"</div>";
+  cfg.fields.forEach(function(f){
+    var type=f.key.toLowerCase().includes("password")||f.key.toLowerCase().includes("secret")?"password":"text";
+    html+="<div style=\"margin-bottom:10px;\"><label style=\"font-size:11px;color:var(--text3);text-transform:uppercase;\">"+f.label+"</label><input id=\"cred-"+f.key+"\" type=\""+type+"\" style=\"width:100%;padding:8px;margin-top:4px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;color:var(--white);font-size:12px;box-sizing:border-box;font-family:inherit;\" placeholder=\""+f.label+"\"></div>";
+  });
+  html+="<div style=\"display:flex;gap:8px;margin-top:16px;\"><button onclick=\"saveCloudCredentials('"+provider+"')\" style=\"flex:1;padding:10px;background:#378add;border:none;border-radius:8px;color:#fff;font-size:13px;cursor:pointer;font-family:inherit;\">Conectar</button><button onclick=\"document.getElementById('cloud-creds-overlay').remove()\" style=\"padding:10px 16px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:13px;cursor:pointer;font-family:inherit;\">Cancelar</button></div></div>";
+  overlay.innerHTML=html;
+  overlay.onclick=function(e){if(e.target===overlay)overlay.remove();};
+  document.body.appendChild(overlay);
+}
+
+async function saveCloudCredentials(provider){
+  var fields={s3:["bucket","region","accessKeyId","secretAccessKey"],gcp:["bucket","serviceAccountKey"],webdav:["url","username","password"]};
+  var creds={};
+  fields[provider].forEach(function(f){
+    var el=document.getElementById("cred-"+f);
+    if(el)creds[f]=el.value;
+  });
+  try{
+    await fetch("/api/cloud-sync?action=save-credentials",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({company_id:dbCoId,provider:provider,credentials:creds})
+    });
+    document.getElementById("cloud-creds-overlay").remove();
+    toast("\u2705 "+provider.toUpperCase()+" conectado!");
+    loadCloudStatus();
+  }catch(e){toast("\u274C Erro: "+e.message);}
+}
+
+async function loadCloudStatus(){
+  if(!dbCoId)return;
+  try{
+    var r=await fetch("/api/cloud-sync?action=status",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({company_id:dbCoId})
+    });
+    var d=await r.json();
+    if(d.connections){
+      d.connections.forEach(function(c){
+        var btn=document.getElementById("cloud-"+c.provider);
+        if(btn){
+          btn.style.borderColor="rgba(99,153,34,0.4)";
+          btn.style.background="rgba(99,153,34,0.08)";
+          btn.innerHTML=btn.innerHTML.replace("</button>","")+"<i class=\"ti ti-check\" style=\"margin-left:auto;color:#639922;\"></i></button>";
+        }
+      });
+    }
+  }catch(e){console.error("Cloud status:",e);}
+}
+
+async function syncToCloud(entry){
+  if(!dbCoId)return;
+  try{
+    var r=await fetch("/api/cloud-sync?action=status",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({company_id:dbCoId})
+    });
+    var d=await r.json();
+    if(!d.connections||!d.connections.length)return;
+
+    var report="INCIDENTE — "+entry.title+"\n\n";
+    report+="Data: "+entry.date+"\n";
+    report+="Projeto: "+(entry.project||"—")+"\n";
+    report+="Categoria: "+catLabel(entry.cat)+"\n";
+    report+="Severidade: "+entry.sev+"\n";
+    report+="Status: "+entry.status+"\n\n";
+    report+="DESCRIÇÃO:\n"+(entry.desc||"—")+"\n\n";
+    report+="AÇÃO RECOMENDADA:\n"+(entry.action||"—")+"\n";
+
+    var ts=new Date().toISOString().substring(0,10);
+    var filename=ts+"_"+entry.title.substring(0,40).replace(/[^a-z0-9]/gi,"-")+".txt";
+
+    for(var i=0;i<d.connections.length;i++){
+      var conn=d.connections[i];
+      fetch("/api/cloud-sync?action=sync",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          company_id:dbCoId,
+          provider:conn.provider,
+          project:entry.project||"General",
+          category:entry.cat||"General",
+          filename:filename,
+          content:report,
+          contentType:"text/plain",
+          photoBase64:entry.photo||null
+        })
+      }).catch(function(e){console.error("Cloud sync "+conn.provider+":",e);});
+    }
+  }catch(e){console.error("syncToCloud:",e);}
+}
+
+// Check cloud status on login
+window.addEventListener("hashchange",function(){
+  if(location.hash.indexOf("cloud-connected")>=0){
+    toast("\u2705 Armazenamento conectado!");
+    loadCloudStatus();
+    location.hash="";
+  }
+});
 </script>
 
 <div class="inc-modal-overlay" id="inc-modal-overlay" onclick="if(event.target===this)closeIncModal()">
