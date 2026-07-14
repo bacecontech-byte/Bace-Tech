@@ -3747,6 +3747,7 @@ async function syncAllToCloud(){
 
   var S=STRINGS[lang];
   toast("⏳ "+(S.syncingAll||"Sincronizando tudo..."));
+  console.log("Syncing",entries.length,"captures and loading documents from DB...");
   var synced=0;
 
   // Sync all captures/incidents
@@ -3784,11 +3785,23 @@ async function syncAllToCloud(){
     }
   }
 
-  // Sync all documents
+  // Sync all documents — load directly from Supabase
   var allDocs=[];
+  if(dbOk&&dbCoId){
+    try{
+      var docRes=await db.from("project_documents").select("*").eq("company_id",dbCoId).order("created_at",{ascending:false}).limit(100);
+      if(docRes.data){
+        docRes.data.forEach(function(d){
+          allDocs.push({project:d.project||"General",name:d.name||"document",summary:d.summary||"",date:d.created_at?new Date(d.created_at).toLocaleDateString("fr-FR"):""});
+        });
+      }
+    }catch(docErr){console.error("Load docs for sync:",docErr);}
+  }
+  // Also add any local docs not in DB
   Object.keys(projectDocs).forEach(function(proj){
     (projectDocs[proj]||[]).forEach(function(doc){
-      allDocs.push({project:proj,name:doc.name,summary:doc.summary||"",date:doc.date||""});
+      var exists=allDocs.some(function(d){return d.name===doc.name&&d.project===proj;});
+      if(!exists)allDocs.push({project:proj,name:doc.name,summary:doc.summary||"",date:doc.date||""});
     });
   });
 
