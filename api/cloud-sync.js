@@ -114,7 +114,7 @@ export default async function handler(req, res) {
       }
 
       // Build folder path
-      const folderPath = "BaceTech/" + sanitize(project) + "/" + sanitize(category);
+      const folderPath = sanitize(project) + "/" + sanitize(category);
 
       // Upload based on provider
       let result;
