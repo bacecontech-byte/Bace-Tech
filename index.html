@@ -2253,6 +2253,7 @@ async function saveEntry(){
   ["c-title","c-desc","c-action"].forEach(function(id){document.getElementById(id).value="";});
   toast(STRINGS[lang].toastSaved||"Enregistré et classé !");
   renderDash();renderKB();renderCounts();
+  syncToCloud(entry);
   if(dbOk)saveDB(entry);
   setTimeout(function(){showTab(0,document.querySelectorAll(".sidebar-link")[0]);},700);
 }
@@ -3665,7 +3666,7 @@ async function loadCloudStatus(){
   }catch(e){console.error("Cloud status:",e);}
 }
 
-async async function syncToCloud(entry){
+async function syncToCloud(entry){
   if(!dbCoId)return;
   try{
     var r=await fetch("/api/cloud-sync?action=status",{
