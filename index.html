@@ -2444,7 +2444,7 @@ async function loadPosts(){
   var site=document.getElementById("site-sel").value;
   var r=await db.from("community_posts").select("*").eq("company_id",dbCoId).eq("project",site).order("created_at",{ascending:false}).limit(50);
   var out=document.getElementById("posts-out");
-  if(!r.data||!r.data.length){out.innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F4AC;</div><div class='empty-text'>Aucune discussion.</div></div>";return;}
+  if(!r.data||!r.data.length){out.innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F4AC;</div><div class='empty-text'>"+( STRINGS[lang].commEmptyText||"Aucune discussion.")+"</div></div>";return;}
   var rr=await db.from("community_replies").select("*").eq("company_id",dbCoId).in("post_id",r.data.map(function(p){return p.id;})).order("created_at",{ascending:true});
   var rep={};if(rr.data)rr.data.forEach(function(r){if(!rep[r.post_id])rep[r.post_id]=[];rep[r.post_id].push(r);});
   var tclass={problem:"tag-problem",question:"tag-question",info:"tag-info",solved:"tag-solved"};
