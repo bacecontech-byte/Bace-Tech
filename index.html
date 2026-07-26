@@ -1875,13 +1875,13 @@ async function connectDB(){
 async function loadDB(){
   var r=await db.from("captures").select("*").eq("company_id",dbCoId).order("created_at",{ascending:false}).limit(200);
   // Always reset entries — even if empty, so stale data never shows
-  entries=r.data?r.data.map(function(d){return{id:d.id,title:d.title,project:d.project||"",cat:canonCat(d.category||"Structure"),sev:d.severity||"medium",desc:d.description||"",action:d.action||"",date:new Date(d.created_at).toLocaleDateString("fr-FR"),status:d.status||"open",author:d.uploaded_by||""};}):[]; 
+  entries=r.data?r.data.map(function(d){return{id:d.id,title:d.title,project:d.project||"",cat:canonCat(d.category||"Structure"),sev:d.severity||"medium",desc:d.description||"",action:d.action||"",date:new Date(d.created_at).toLocaleDateString("fr-FR"),status:d.status||"open",author:d.uploaded_by||"",photo_url:d.photo_url||null};}):[]; 
   renderDash();renderKB();renderCounts();
 }
 
 async function saveDB(e){
   if(!dbOk||!dbCoId)return;
-  var r=await db.from("captures").insert({company_id:dbCoId,user_name:me.name,title:e.title,category:e.cat,severity:e.sev,description:e.desc,action:e.action,project:e.project,status:e.status,ai_analysis:e.ai||""});
+  var r=await db.from("captures").insert({company_id:dbCoId,user_name:me.name,title:e.title,category:e.cat,severity:e.sev,description:e.desc,action:e.action,project:e.project,status:e.status,photo_url:e.photo_url||null,ai_analysis:e.ai||""});
   if(!r.error)fileStorage(e);
 }
 
