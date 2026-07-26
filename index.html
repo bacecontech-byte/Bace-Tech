@@ -2200,10 +2200,10 @@ function applyAIFields(p){
     var sevEl=document.getElementById("c-sev");
     if(sevEl){
       var s=p.sev.toLowerCase();
-      if(s.match(/crit/))sevEl.value="Critique";
-      else if(s.match(/elev|high|alta/))sevEl.value="Élevée";
-      else if(s.match(/moyen|medium|media/))sevEl.value="Moyenne";
-      else sevEl.value="Faible";
+      if(s.match(/crit/))sevEl.value="critical";
+      else if(s.match(/elev|high|alta/))sevEl.value="high";
+      else if(s.match(/moyen|medium|media/))sevEl.value="medium";
+      else sevEl.value="low";
     }
   }
 }
@@ -2266,22 +2266,23 @@ async function saveEntry(){
   if(!title){toast(STRINGS[lang].toastNoTitle||"Ajoutez un titre");return;}
   var p=window._lastAI||{};
   var ai=JSON.stringify({solution:p.solution||p.action||"",cause:p.cause||"",normes:p.normes||""});
-  var entry={id:Date.now(),title:title,project:document.getElementById("c-proj").value,cat:canonCat(document.getElementById("c-cat").value),sev:document.getElementById("c-sev").value,desc:document.getElementById("c-desc").value,action:document.getElementById("c-action").value,date:new Date().toLocaleDateString("fr-FR"),status:"open",ai:ai,cause:p.cause||"",normes:p.normes||"",photo:window._lastPhotoData||null,photo_url:null};
-  // Upload photo to Supabase Storage (using base64 data for reliability)
+  var entry={id:Date.now(),title:title,project:document.getElementById("c-proj").value,cat:canonCat(document.getElementById("c-cat").value),sev:document.getElementById("c-sev").value||"medium",desc:document.getElementById("c-desc").value,action:document.getElementById("c-action").value,date:new Date().toLocaleDateString("fr-FR"),status:"open",ai:ai,cause:p.cause||"",normes:p.normes||"",photo:window._lastPhotoData||null,photo_url:null};
+  // Upload photo to Supabase Storage with timeout
   if(window._lastPhotoData&&dbOk&&dbCoId){
     try{
       var slug=me.co.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"");
       var catSlug=entry.cat.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"");
       var ts=new Date().toISOString().replace(/[:.]/g,"-").substring(0,19);
       var photoPath=slug+"/"+catSlug+"/"+ts+"_"+title.substring(0,30).replace(/[^a-z0-9]/gi,"-")+".jpg";
-      // Convert base64 to Blob
       var b64=window._lastPhotoData.split(",")[1];
       var byteStr=atob(b64);
       var ab=new ArrayBuffer(byteStr.length);
       var ia=new Uint8Array(ab);
       for(var pi=0;pi<byteStr.length;pi++)ia[pi]=byteStr.charCodeAt(pi);
       var photoBlob=new Blob([ab],{type:"image/jpeg"});
-      var photoUpload=await db.storage.from("captures").upload(photoPath,photoBlob,{upsert:true,contentType:"image/jpeg"});
+      var uploadPromise=db.storage.from("captures").upload(photoPath,photoBlob,{upsert:true,contentType:"image/jpeg"});
+      var timeoutPromise=new Promise(function(_,rej){setTimeout(function(){rej(new Error("Photo upload timeout"));},15000);});
+      var photoUpload=await Promise.race([uploadPromise,timeoutPromise]);
       if(photoUpload.error){
         console.error("Photo upload error:",photoUpload.error);
       }else{
