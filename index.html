@@ -1942,18 +1942,10 @@ function renderProjects(){
   var html="<div class='proj-grid'>";
   projects.forEach(function(p){
     var count=entries.filter(function(e){return e.project===p.name;}).length;
-    var btn=document.createElement("button");
-    btn.className="proj-del";
-    btn.setAttribute("onclick","event.stopPropagation();deleteProject('"+String(p.id)+"')");
-    btn.innerHTML="&#x1F5D1;";
+    var safeName=p.name.replace(/'/g,"\\'").replace(/"/g,"&quot;");
+    var delBtn="<button class='proj-del' onclick=\"event.stopPropagation();deleteProject('"+String(p.id)+"')\">&#x1F5D1;</button>";
     var ownerBadge=p.owner?"<div style='display:inline-flex;align-items:center;gap:5px;background:var(--blue-light);border:1px solid rgba(30,111,255,0.2);border-radius:5px;padding:3px 8px;font-size:11px;color:var(--blue);margin-top:6px;margin-bottom:6px'><i class='ti ti-hard-hat'></i>"+p.owner+"</div>":"";
-    var card=document.createElement("div");
-    card.className="proj-card";
-    card.style.cursor="pointer";
-    card.setAttribute("onclick","openProject('"+p.name.replace(/'/g,"\\'")+"')");
-    card.innerHTML="<div class='proj-card-name'>"+p.name+"</div><div class='proj-card-meta'>"+(p.location||"")+"</div>"+ownerBadge+"<div class='proj-card-count'>"+count+" incident(s)</div>";
-    card.insertBefore(btn,card.firstChild);
-    html+="<div class='proj-card'>"+card.innerHTML+"</div>";
+    html+="<div class='proj-card' onclick=\"openProject('"+safeName+"')\" style='cursor:pointer'>"+delBtn+"<div class='proj-card-name'>"+p.name+"</div><div class='proj-card-meta'>"+(p.location||"")+"</div>"+ownerBadge+"<div class='proj-card-count'>"+count+" incident(s)</div></div>";
   });
   html+="</div>";
   w.innerHTML=html;
