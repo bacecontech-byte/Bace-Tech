@@ -1960,7 +1960,7 @@ function startRealtime(){
     .on("postgres_changes",{event:"INSERT",schema:"public",table:"captures",filter:"company_id=eq."+dbCoId},function(payload){
       var d=payload.new;
       if(d.user_name===me.name)return;
-      entries.unshift({id:d.id,title:d.title,project:d.project||"",cat:canonCat(d.category||"Structure"),sev:d.severity||"medium",desc:d.description||"",action:d.action||"",date:new Date(d.created_at).toLocaleDateString("fr-FR"),status:d.status||"open",author:d.user_name||""});
+      entries.unshift({id:d.id,title:d.title,project:d.project||"",cat:canonCat(d.category||"Structure"),sev:d.severity||"medium",desc:d.description||"",action:d.action||"",date:new Date(d.created_at).toLocaleDateString("fr-FR"),status:d.status||"open",author:d.user_name||"",photo_url:d.photo_url||null});
       renderDash();renderKB();renderCounts();
       addNotif("<strong>"+(d.user_name||"Equipe")+"</strong> "+(STRINGS[lang].notifCaptured||"capturou")+": "+d.title);
       toast(d.user_name+" : "+d.title);
@@ -1974,7 +1974,7 @@ function startRealtime(){
     .on("postgres_changes",{event:"UPDATE",schema:"public",table:"captures",filter:"company_id=eq."+dbCoId},function(payload){
       var d=payload.new;
       var idx=entries.findIndex(function(e){return String(e.id)===String(d.id);});
-      if(idx>=0){entries[idx]={id:d.id,title:d.title,project:d.project||"",cat:canonCat(d.category||"Structure"),sev:d.severity||"medium",desc:d.description||"",action:d.action||"",date:entries[idx].date,status:d.status||"open",author:d.user_name||""};}
+      if(idx>=0){entries[idx]={id:d.id,title:d.title,project:d.project||"",cat:canonCat(d.category||"Structure"),sev:d.severity||"medium",desc:d.description||"",action:d.action||"",date:entries[idx].date,status:d.status||"open",author:d.user_name||"",photo_url:d.photo_url||null};}
       renderDash();renderKB();renderCounts();
     })
     .on("postgres_changes",{event:"INSERT",schema:"public",table:"community_posts",filter:"company_id=eq."+dbCoId},function(payload){
