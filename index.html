@@ -379,7 +379,8 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .file-folder-name{font-size:13px;font-weight:600;color:var(--white);margin-bottom:4px;}
 .file-folder-count{font-size:11px;color:var(--text3);}
 .proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;}
-.proj-card{background:var(--navy2);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;}
+.proj-card{background:var(--navy2);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;cursor:pointer;transition:border-color 0.2s,transform 0.15s;}
+.proj-card:hover{border-color:var(--blue);transform:translateY(-2px);}
 .proj-card-name{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--white);margin-bottom:4px;}
 .proj-card-meta{font-size:12px;color:var(--text3);margin-bottom:12px;}
 .proj-card-count{font-size:11px;color:var(--blue);}
@@ -1929,6 +1930,12 @@ async function deleteProject(id){
   renderProjects();updateProjectDropdowns();toast(STRINGS[lang].toastDelProj||"Chantier supprimé");
 }
 
+function openProject(name){
+  kbSearchQuery=name.toLowerCase();
+  var inp=document.getElementById("kb-search-input");if(inp)inp.value=name;
+  renderKB();
+  showTab(3,document.querySelectorAll(".sidebar-link")[3]);
+}
 function renderProjects(){
   var w=document.getElementById("proj-out");
   if(!projects.length){w.innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F3D7;&#xFE0F;</div><div class='empty-text' id='proj-empty-text'>"+(STRINGS[lang].projEmptyText||"Aucun chantier.")+"</div></div>";return;}
@@ -1937,11 +1944,13 @@ function renderProjects(){
     var count=entries.filter(function(e){return e.project===p.name;}).length;
     var btn=document.createElement("button");
     btn.className="proj-del";
-    btn.setAttribute("onclick","deleteProject('"+String(p.id)+"')");
+    btn.setAttribute("onclick","event.stopPropagation();deleteProject('"+String(p.id)+"')");
     btn.innerHTML="&#x1F5D1;";
     var ownerBadge=p.owner?"<div style='display:inline-flex;align-items:center;gap:5px;background:var(--blue-light);border:1px solid rgba(30,111,255,0.2);border-radius:5px;padding:3px 8px;font-size:11px;color:var(--blue);margin-top:6px;margin-bottom:6px'><i class='ti ti-hard-hat'></i>"+p.owner+"</div>":"";
     var card=document.createElement("div");
     card.className="proj-card";
+    card.style.cursor="pointer";
+    card.setAttribute("onclick","openProject('"+p.name.replace(/'/g,"\\'")+"')");
     card.innerHTML="<div class='proj-card-name'>"+p.name+"</div><div class='proj-card-meta'>"+(p.location||"")+"</div>"+ownerBadge+"<div class='proj-card-count'>"+count+" incident(s)</div>";
     card.insertBefore(btn,card.firstChild);
     html+="<div class='proj-card'>"+card.innerHTML+"</div>";
