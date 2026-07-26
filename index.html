@@ -1881,8 +1881,9 @@ async function loadDB(){
 
 async function saveDB(e){
   if(!dbOk||!dbCoId)return;
-  var r=await db.from("captures").insert({company_id:dbCoId,user_name:me.name,title:e.title,category:e.cat,severity:e.sev,description:e.desc,action:e.action,project:e.project,status:e.status,photo_url:e.photo_url||null,ai_analysis:e.ai||""});
-  if(!r.error)fileStorage(e);
+  var r=await db.from("captures").insert({company_id:dbCoId,user_name:me.name,title:e.title,category:e.cat,severity:e.sev,description:e.desc,action:e.action,project:e.project,status:e.status,photo_url:e.photo_url||null,ai_analysis:e.ai||""}).select();
+  if(r.error){console.error("saveDB ERROR:",r.error);toast("❌ DB save failed: "+r.error.message);}
+  else{console.log("saveDB OK, id:",r.data&&r.data[0]&&r.data[0].id);if(r.data&&r.data[0]){var idx=entries.findIndex(function(x){return String(x.id)===String(e.id);});if(idx>=0)entries[idx].id=r.data[0].id;}fileStorage(e);}
 }
 
 async function fileStorage(e){
@@ -2299,7 +2300,7 @@ async function saveEntry(){
   toast(STRINGS[lang].toastSaved||"Enregistré et classé !");
   renderDash();renderKB();renderCounts();
   syncToCloud(entry);
-  if(dbOk)saveDB(entry);
+  if(dbOk)await saveDB(entry);
   setTimeout(function(){showTab(0,document.querySelectorAll(".sidebar-link")[0]);},700);
 }
 
