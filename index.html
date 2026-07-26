@@ -2265,20 +2265,29 @@ async function saveEntry(){
   var p=window._lastAI||{};
   var ai=p.solution||p.action||"";
   var entry={id:Date.now(),title:title,project:document.getElementById("c-proj").value,cat:canonCat(document.getElementById("c-cat").value),sev:document.getElementById("c-sev").value,desc:document.getElementById("c-desc").value,action:document.getElementById("c-action").value,date:new Date().toLocaleDateString("fr-FR"),status:"open",ai:ai,photo:window._lastPhotoData||null,photo_url:null};
-  // Upload photo to Supabase Storage
-  if(window._lastPhotoFile&&dbOk&&dbCoId){
+  // Upload photo to Supabase Storage (using base64 data for reliability)
+  if(window._lastPhotoData&&dbOk&&dbCoId){
     try{
       var slug=me.co.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"");
       var catSlug=entry.cat.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"");
       var ts=new Date().toISOString().replace(/[:.]/g,"-").substring(0,19);
       var photoPath=slug+"/"+catSlug+"/"+ts+"_"+title.substring(0,30).replace(/[^a-z0-9]/gi,"-")+".jpg";
-      var photoUpload=await db.storage.from("captures").upload(photoPath,window._lastPhotoFile,{upsert:true,contentType:window._lastPhotoFile.type});
-      if(!photoUpload.error){
-        entry.photo_url=photoPath;
+      // Convert base64 to Blob
+      var b64=window._lastPhotoData.split(",")[1];
+      var byteStr=atob(b64);
+      var ab=new ArrayBuffer(byteStr.length);
+      var ia=new Uint8Array(ab);
+      for(var pi=0;pi<byteStr.length;pi++)ia[pi]=byteStr.charCodeAt(pi);
+      var photoBlob=new Blob([ab],{type:"image/jpeg"});
+      var photoUpload=await db.storage.from("captures").upload(photoPath,photoBlob,{upsert:true,contentType:"image/jpeg"});
+      if(photoUpload.error){
+        console.error("Photo upload error:",photoUpload.error);
+      }else{
         var pubUrl=db.storage.from("captures").getPublicUrl(photoPath);
-        if(pubUrl&&pubUrl.data)entry.photo_url=pubUrl.data.publicUrl;
+        entry.photo_url=(pubUrl&&pubUrl.data)?pubUrl.data.publicUrl:photoPath;
+        console.log("Photo uploaded:",entry.photo_url);
       }
-    }catch(photoErr){console.error("Photo upload:",photoErr);}
+    }catch(photoErr){console.error("Photo upload exception:",photoErr);}
   }
   entries.unshift(entry);
   window._lastPhotoData=null;window._lastPhotoFile=null;
