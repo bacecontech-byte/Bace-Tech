@@ -1875,7 +1875,7 @@ async function connectDB(){
 async function loadDB(){
   var r=await db.from("captures").select("*").eq("company_id",dbCoId).order("created_at",{ascending:false}).limit(200);
   // Always reset entries — even if empty, so stale data never shows
-  entries=r.data?r.data.map(function(d){return{id:d.id,title:d.title,project:d.project||"",cat:canonCat(d.category||"Structure"),sev:d.severity||"medium",desc:d.description||"",action:d.action||"",date:new Date(d.created_at).toLocaleDateString("fr-FR"),status:d.status||"open",author:d.uploaded_by||"",photo_url:d.photo_url||null};}):[]; 
+  entries=r.data?r.data.map(function(d){var aiData={};try{aiData=JSON.parse(d.ai_analysis||"{}");}catch(e){aiData={solution:d.ai_analysis||""};}return{id:d.id,title:d.title,project:d.project||"",cat:canonCat(d.category||"Structure"),sev:d.severity||"medium",desc:d.description||"",action:d.action||"",cause:aiData.cause||"",normes:aiData.normes||"",date:new Date(d.created_at).toLocaleDateString("fr-FR"),status:d.status||"open",author:d.uploaded_by||"",photo_url:d.photo_url||null};}):[]; 
   renderDash();renderKB();renderCounts();
 }
 
@@ -1960,7 +1960,8 @@ function startRealtime(){
     .on("postgres_changes",{event:"INSERT",schema:"public",table:"captures",filter:"company_id=eq."+dbCoId},function(payload){
       var d=payload.new;
       if(d.user_name===me.name)return;
-      entries.unshift({id:d.id,title:d.title,project:d.project||"",cat:canonCat(d.category||"Structure"),sev:d.severity||"medium",desc:d.description||"",action:d.action||"",date:new Date(d.created_at).toLocaleDateString("fr-FR"),status:d.status||"open",author:d.user_name||"",photo_url:d.photo_url||null});
+      var aiRT={};try{aiRT=JSON.parse(d.ai_analysis||"{}");}catch(ex){aiRT={solution:d.ai_analysis||""};}
+      entries.unshift({id:d.id,title:d.title,project:d.project||"",cat:canonCat(d.category||"Structure"),sev:d.severity||"medium",desc:d.description||"",action:d.action||"",cause:aiRT.cause||"",normes:aiRT.normes||"",date:new Date(d.created_at).toLocaleDateString("fr-FR"),status:d.status||"open",author:d.user_name||"",photo_url:d.photo_url||null});
       renderDash();renderKB();renderCounts();
       addNotif("<strong>"+(d.user_name||"Equipe")+"</strong> "+(STRINGS[lang].notifCaptured||"capturou")+": "+d.title);
       toast(d.user_name+" : "+d.title);
@@ -1974,7 +1975,8 @@ function startRealtime(){
     .on("postgres_changes",{event:"UPDATE",schema:"public",table:"captures",filter:"company_id=eq."+dbCoId},function(payload){
       var d=payload.new;
       var idx=entries.findIndex(function(e){return String(e.id)===String(d.id);});
-      if(idx>=0){entries[idx]={id:d.id,title:d.title,project:d.project||"",cat:canonCat(d.category||"Structure"),sev:d.severity||"medium",desc:d.description||"",action:d.action||"",date:entries[idx].date,status:d.status||"open",author:d.user_name||"",photo_url:d.photo_url||null};}
+      var aiUP={};try{aiUP=JSON.parse(d.ai_analysis||"{}");}catch(ex){aiUP={solution:d.ai_analysis||""};}
+      if(idx>=0){entries[idx]={id:d.id,title:d.title,project:d.project||"",cat:canonCat(d.category||"Structure"),sev:d.severity||"medium",desc:d.description||"",action:d.action||"",cause:aiUP.cause||"",normes:aiUP.normes||"",date:entries[idx].date,status:d.status||"open",author:d.user_name||"",photo_url:d.photo_url||null};}
       renderDash();renderKB();renderCounts();
     })
     .on("postgres_changes",{event:"INSERT",schema:"public",table:"community_posts",filter:"company_id=eq."+dbCoId},function(payload){
@@ -2263,8 +2265,8 @@ async function saveEntry(){
   var title=document.getElementById("c-title").value.trim();
   if(!title){toast(STRINGS[lang].toastNoTitle||"Ajoutez un titre");return;}
   var p=window._lastAI||{};
-  var ai=p.solution||p.action||"";
-  var entry={id:Date.now(),title:title,project:document.getElementById("c-proj").value,cat:canonCat(document.getElementById("c-cat").value),sev:document.getElementById("c-sev").value,desc:document.getElementById("c-desc").value,action:document.getElementById("c-action").value,date:new Date().toLocaleDateString("fr-FR"),status:"open",ai:ai,photo:window._lastPhotoData||null,photo_url:null};
+  var ai=JSON.stringify({solution:p.solution||p.action||"",cause:p.cause||"",normes:p.normes||""});
+  var entry={id:Date.now(),title:title,project:document.getElementById("c-proj").value,cat:canonCat(document.getElementById("c-cat").value),sev:document.getElementById("c-sev").value,desc:document.getElementById("c-desc").value,action:document.getElementById("c-action").value,date:new Date().toLocaleDateString("fr-FR"),status:"open",ai:ai,cause:p.cause||"",normes:p.normes||"",photo:window._lastPhotoData||null,photo_url:null};
   // Upload photo to Supabase Storage (using base64 data for reliability)
   if(window._lastPhotoData&&dbOk&&dbCoId){
     try{
