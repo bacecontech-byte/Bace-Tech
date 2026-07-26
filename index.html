@@ -2286,12 +2286,13 @@ async function saveEntry(){
       var photoUpload=await Promise.race([uploadPromise,timeoutPromise]);
       if(photoUpload.error){
         console.error("Photo upload error:",photoUpload.error);
+        toast("⚠️ Photo: "+photoUpload.error.message);
       }else{
         var pubUrl=db.storage.from("captures").getPublicUrl(photoPath);
         entry.photo_url=(pubUrl&&pubUrl.data)?pubUrl.data.publicUrl:photoPath;
         console.log("Photo uploaded:",entry.photo_url);
       }
-    }catch(photoErr){console.error("Photo upload exception:",photoErr);}
+    }catch(photoErr){console.error("Photo upload exception:",photoErr);toast("⚠️ Photo: "+(photoErr.message||"upload failed"));}
   }
   entries.unshift(entry);
   window._lastPhotoData=null;window._lastPhotoFile=null;
