@@ -2335,16 +2335,17 @@ async function deleteEntry(id){
   toast(STRINGS[lang].toastDelIncident||"Incident supprimé");
 }
 
-function resolveEntry(id){
+async function resolveEntry(id){
   var entry=entries.filter(function(e){return String(e.id)===String(id);})[0];
   if(!entry)return;
+  var dbId=typeof entry.id==="number"?Number(id):id;
   if(entry.status==="resolved"){
     entry.status="open";
-    if(dbOk&&dbCoId)db.from("captures").update({status:"open"}).eq("id",id);
+    if(dbOk&&dbCoId){var r=await db.from("captures").update({status:"open"}).eq("id",dbId);if(r.error)console.error("resolve DB error",r.error);}
     toast(STRINGS[lang].toastReopened||"Incident réouvert");
   } else {
     entry.status="resolved";
-    if(dbOk&&dbCoId)db.from("captures").update({status:"resolved"}).eq("id",id);
+    if(dbOk&&dbCoId){var r=await db.from("captures").update({status:"resolved"}).eq("id",dbId);if(r.error)console.error("resolve DB error",r.error);}
     toast(STRINGS[lang].toastResolved||"✅ Marqué comme résolu !");
   }
   renderDash();renderKB();
@@ -2379,7 +2380,8 @@ async function toggleStatus(id){
   var entry=entries.filter(function(e){return String(e.id)===String(id);})[0];
   if(!entry)return;
   entry.status=entry.status==="resolved"?"open":"resolved";
-  if(dbOk&&dbCoId) await db.from("captures").update({status:entry.status}).eq("id",id);
+  var dbId=typeof entry.id==="number"?Number(id):id;
+  if(dbOk&&dbCoId){var r=await db.from("captures").update({status:entry.status}).eq("id",dbId);if(r.error)console.error("toggleStatus DB error",r.error);}
   var S=STRINGS[lang];
   toast(entry.status==="resolved"?(S&&S.markedResolved?"&#x2705; "+S.markedResolved:"&#x2705; Marque comme resolu"):"&#x1F504; Reouvert");
   renderDash();renderKB();
