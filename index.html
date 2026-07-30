@@ -776,8 +776,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   <div class="app-wrap">
     <div class="sidebar">
       <div class="sidebar-logo">
-        <span style="color:#ffffff;letter-spacing:-0.5px;">Bace</span><span style="color:#a78bfa;letter-spacing:-0.5px;">Tech</span>
-        
+        <span style="color:#a78bfa;font-size:18px;">B</span>
       </div>
       <div class="sidebar-section"><span id="sidebar-main">Principal</span></div>
       <div class="sidebar-link active" onclick="showTab(0,this)"><i class="ti ti-layout-dashboard"></i><span id="nav-dash">Dashboard</span></div>
@@ -793,13 +792,12 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       
       
     <div class="sidebar-bottom hide-on-mobile">
-        <div class="sidebar-link" onclick="doLogout()"><i class="ti ti-logout"></i><span id="nav-logout">Sign out</span></div>
-        <div id="pwa-settings-sidebar" onclick="openSettingsModal()" style="display:flex;align-items:center;gap:8px;padding:8px 16px;margin-bottom:8px;font-size:12px;color:var(--text2);cursor:pointer;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);"><i class="ti ti-settings" style="font-size:15px;color:#a78bfa;"></i> <span id="sidebar-settings-label">Settings</span></div>
-        <div id="pwa-install-sidebar" onclick="installPWA()" style="display:flex;align-items:center;gap:8px;padding:8px 16px;margin-bottom:8px;font-size:12px;color:#a78bfa;cursor:pointer;border-radius:8px;background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.12);"><i class="ti ti-download" style="font-size:15px;"></i> <span>Install app</span></div>
-        <div class="user-chip" onclick="openProfilePanel()" style="cursor:pointer;">
-          <div class="user-avatar" id="u-av">DM</div>
-          <div><div class="user-name" id="u-name">...</div><div class="user-company" id="u-co">...</div></div>
-          <i class="ti ti-settings" style="margin-left:auto;font-size:14px;color:var(--text3);"></i>
+        <div class="sidebar-link" onclick="doLogout()"><i class="ti ti-logout"></i></div>
+        <div class="sidebar-link" onclick="openSettingsModal()" id="pwa-settings-sidebar"><i class="ti ti-settings"></i></div>
+        <div class="sidebar-link" onclick="installPWA()" id="pwa-install-sidebar" style="display:none;"><i class="ti ti-download"></i></div>
+        <div style="cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:4px;" onclick="openProfilePanel()">
+          <div class="user-avatar" id="u-av" style="width:34px;height:34px;border-radius:10px;font-size:12px;">DM</div>
+          <div style="display:none"><div class="user-name" id="u-name">...</div><div class="user-company" id="u-co">...</div></div>
         </div>
       </div>
     </div>
