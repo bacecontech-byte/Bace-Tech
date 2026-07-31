@@ -844,20 +844,6 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               </div>
               <div id="dash-out"></div>
             </div>
-            
-            <!-- AI Weekly Digest -->
-            <div class="dash-card" id="digest-card" style="margin-top:16px;">
-              <div class="dash-card-header">
-                <span class="dash-card-title"><i class="ti ti-sparkles" style="color:#60a5fa;margin-right:4px;"></i> <span id="digest-title">AI Weekly Digest</span></span>
-                <span class="dash-card-link" onclick="generateWeeklyDigest()" style="cursor:pointer;" id="digest-refresh">↻</span>
-              </div>
-              <div id="digest-content" style="padding:14px;font-size:12px;color:var(--text2);line-height:1.7;">
-                <div style="display:flex;align-items:center;gap:8px;color:var(--text3);font-size:11px;">
-                  <i class="ti ti-loader" style="font-size:14px;"></i>
-                  <span id="digest-placeholder">Loading weekly digest...</span>
-                </div>
-              </div>
-            </div>
 
           </div>
           
@@ -2460,77 +2446,6 @@ function renderDash(){
     return "<div class='inc-item' onclick=\"openIncModal('"+String(e.id)+"')\" style='cursor:pointer;'><div class='inc-sev' style='background:"+sc+"'></div><div class='inc-body'><div class='inc-name'>"+e.title+"</div><div class='inc-meta2'>"+catLabel(e.cat||"")+" · "+(e.date||"")+"</div></div>"+pill+"</div>";
   }).join("");
 }
-
-// ── AI Weekly Digest ─────────────────────────────────────────────────
-var _digestLoaded=false;
-async function generateWeeklyDigest(){
-  var el=document.getElementById("digest-content");
-  if(!el)return;
-  if(!entries.length){el.innerHTML="<div style='font-size:12px;color:var(--text3);padding:4px'>No incidents to analyze.</div>";return;}
-  el.innerHTML="<div style='display:flex;align-items:center;gap:8px;color:var(--text3);font-size:11px'><i class='ti ti-loader ti-spin' style='font-size:14px'></i> Bace IA is analyzing your week...</div>";
-  
-  var now=new Date();
-  var weekAgo=new Date(now.getTime()-7*24*60*60*1000);
-  var weekEntries=entries.filter(function(e){
-    var parts=(e.date||"").split("/");
-    if(parts.length!==3)return false;
-    var d=new Date(parts[2]+"-"+parts[1]+"-"+parts[0]);
-    return d>=weekAgo;
-  });
-  
-  var summary="Total incidents: "+entries.length+"\n";
-  summary+="This week: "+weekEntries.length+"\n";
-  summary+="Open: "+entries.filter(function(e){return e.status!=="resolved";}).length+"\n";
-  summary+="Resolved: "+entries.filter(function(e){return e.status==="resolved";}).length+"\n";
-  summary+="Critical open: "+entries.filter(function(e){return e.sev==="critical"&&e.status!=="resolved";}).length+"\n";
-  
-  var catCounts={};entries.forEach(function(e){catCounts[e.cat]=(catCounts[e.cat]||0)+1;});
-  summary+="Categories: "+Object.keys(catCounts).map(function(c){return c+": "+catCounts[c];}).join(", ")+"\n";
-  
-  var projCounts={};entries.forEach(function(e){if(e.project)projCounts[e.project]=(projCounts[e.project]||0)+1;});
-  summary+="Projects: "+Object.keys(projCounts).map(function(p){return p+": "+projCounts[p];}).join(", ")+"\n";
-  
-  summary+="Recent incidents:\n";
-  entries.slice(0,10).forEach(function(e){
-    summary+="- ["+e.status+"] ["+e.sev+"] "+e.title+" ("+e.cat+", "+e.project+", "+e.date+")\n";
-  });
-
-  var langName=lang===0?"French":lang===1?"English":"Portuguese";
-  var prompt="You are Bace IA, an AI assistant for a construction site management platform. Analyze this weekly data and produce a concise digest in "+langName+".\n\n"+summary+"\n\nProduce a structured digest with:\n1. **Weekly summary** — one sentence overview\n2. **Key numbers** — captures, resolved, open, resolution rate %\n3. **Patterns** — any recurring categories, projects with most issues\n4. **Attention needed** — critical/high items that need action\n5. **Recommendation** — one actionable suggestion\n\nKeep it concise (under 150 words). Use simple formatting. No markdown headers, just clear sections with emoji icons.";
-
-  try{
-    var resp=await fetch("/api/groq",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:[{role:"user",content:prompt}],model:"llama-3.3-70b-versatile",temperature:0.3,max_tokens:400})});
-    if(!resp.ok)throw new Error("API error: "+resp.status);
-    var data=await resp.json();
-    var text=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||"No digest available.";
-    el.innerHTML="<div style='font-size:12px;color:var(--text);line-height:1.7;white-space:pre-wrap;'>"+text.replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</div><div style='font-size:10px;color:var(--text3);margin-top:8px;'>Generated "+new Date().toLocaleTimeString()+"</div>";
-  }catch(err){
-    console.error("Digest error:",err);
-    el.innerHTML=buildLocalDigest(weekEntries);
-  }
-}
-
-function buildLocalDigest(weekEntries){
-  var open=entries.filter(function(e){return e.status!=="resolved";}).length;
-  var resolved=entries.filter(function(e){return e.status==="resolved";}).length;
-  var rate=entries.length?Math.round(resolved/entries.length*100):0;
-  var critical=entries.filter(function(e){return e.sev==="critical"&&e.status!=="resolved";}).length;
-  
-  var lines=[];
-  lines.push("📊 "+weekEntries.length+" capture(s) this week — "+entries.length+" total");
-  lines.push("✅ "+resolved+" resolved ("+rate+"%) · ⏳ "+open+" open");
-  if(critical>0)lines.push("🔴 "+critical+" critical incident(s) need attention");
-  
-  var catCounts={};entries.forEach(function(e){catCounts[e.cat]=(catCounts[e.cat]||0)+1;});
-  var topCat=Object.keys(catCounts).sort(function(a,b){return catCounts[b]-catCounts[a];})[0];
-  if(topCat)lines.push("📁 Most frequent: "+topCat+" ("+catCounts[topCat]+")");
-  
-  return "<div style='font-size:12px;color:var(--text);line-height:1.8;'>"+lines.join("<br>")+"</div><div style='font-size:10px;color:var(--text3);margin-top:8px'>Local summary (AI unavailable)</div>";
-}
-
-// Auto-generate digest when dashboard loads
-var _origRenderDash=renderDash;
-renderDash=function(){_origRenderDash();if(!_digestLoaded&&entries.length>0){_digestLoaded=true;setTimeout(generateWeeklyDigest,500);}};
 
 function renderCounts(){var _nc=function(s){return (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z]/g,"");};CATS.forEach(function(c,i){var n=entries.filter(function(e){return _nc(e.cat)===_nc(c);}).length;var el=document.getElementById("fc-"+i);if(el)el.textContent=n+" "+(STRINGS[lang].folderFiles||"fichier(s)");});}
 
