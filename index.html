@@ -839,7 +839,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <div style="display:flex;align-items:flex-start;gap:10px;">
               <i class="ti ti-sparkles" style="color:#60a5fa;font-size:16px;margin-top:1px;flex-shrink:0;"></i>
               <div style="flex:1;min-width:0;">
-                <div style="font-size:11px;color:#60a5fa;font-weight:600;margin-bottom:4px;">Bace IA Insights</div>
+                <div style="font-size:11px;color:#60a5fa;font-weight:600;margin-bottom:4px;" id="insights-label">Bace IA Insights</div>
                 <div id="ai-insights-text" style="font-size:12px;color:var(--text);line-height:1.6;"></div>
               </div>
             </div>
@@ -2483,12 +2483,22 @@ async function generateInsights(){
   var projCounts={};entries.forEach(function(e){if(e.project)projCounts[e.project]=(projCounts[e.project]||0)+1;});
   var topProj=Object.keys(projCounts).sort(function(a,b){return projCounts[b]-projCounts[a];})[0];
   var critOpen=entries.filter(function(e){return(e.sev==="critical"||e.sev==="high")&&e.status!=="resolved";});
+  var iLabel=document.getElementById("insights-label");
+  if(iLabel)iLabel.textContent=lang===0?"Bace IA — Analyses":lang===2?"Bace IA — Análises":"Bace IA — Insights";
   var insights=[];
-  if(critOpen.length>0){insights.push("⚠️ "+critOpen.length+" high/critical open: "+critOpen.slice(0,2).map(function(e){return e.title;}).join(", "));}
-  if(topCat&&topCatPct>=40){insights.push("📊 "+catLabel(topCat)+" = "+topCatPct+"% of incidents — consider a focused audit.");}
-  if(topProj&&projCounts[topProj]>=3){var po=open.filter(function(e){return e.project===topProj;}).length;insights.push("🏗️ "+topProj+": "+projCounts[topProj]+" incidents"+(po?" ("+po+" open)":""));}
-  if(rate>0&&rate<50){insights.push("📈 Resolution rate "+rate+"% — prioritize closing open items.");}
-  else if(rate>=80){insights.push("✅ Resolution rate "+rate+"% — strong performance.");}
+  var _t={
+    critOpen:lang===0?"{n} incident(s) critique(s)/élevé(s) ouvert(s) : ":lang===2?"{n} incidente(s) crítico(s)/alto(s) aberto(s): ":"{n} high/critical open: ",
+    catAudit:lang===0?" = {p}% des incidents — envisagez un audit ciblé.":lang===2?" = {p}% dos incidentes — considere uma auditoria focada.":" = {p}% of incidents — consider a focused audit.",
+    projInc:lang===0?" incidents":lang===2?" incidentes":" incidents",
+    projOpen:lang===0?" ouvert(s)":lang===2?" aberto(s)":" open",
+    rateLow:lang===0?"Taux de résolution {r}% — priorisez la clôture des incidents.":lang===2?"Taxa de resolução {r}% — priorize o fechamento dos incidentes.":"Resolution rate {r}% — prioritize closing open items.",
+    rateHigh:lang===0?"Taux de résolution {r}% — excellente performance.":lang===2?"Taxa de resolução {r}% — ótimo desempenho.":"Resolution rate {r}% — strong performance."
+  };
+  if(critOpen.length>0){insights.push("⚠️ "+_t.critOpen.replace("{n}",critOpen.length)+critOpen.slice(0,2).map(function(e){return e.title;}).join(", "));}
+  if(topCat&&topCatPct>=40){insights.push("📊 "+catLabel(topCat)+_t.catAudit.replace("{p}",topCatPct));}
+  if(topProj&&projCounts[topProj]>=3){var po=open.filter(function(e){return e.project===topProj;}).length;insights.push("🏗️ "+topProj+": "+projCounts[topProj]+_t.projInc+(po?" ("+po+_t.projOpen+")":""));}
+  if(rate>0&&rate<50){insights.push("📈 "+_t.rateLow.replace("{r}",rate));}
+  else if(rate>=80){insights.push("✅ "+_t.rateHigh.replace("{r}",rate));}
   if(!insights.length){panel.style.display="none";return;}
   textEl.innerHTML=insights.slice(0,3).join("<br>");
   panel.style.display="block";
