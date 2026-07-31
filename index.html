@@ -2693,12 +2693,23 @@ async function processChatVoice(){
 function autoResize(el){el.style.height="auto";el.style.height=Math.min(el.scrollHeight,120)+"px";}
 function chatKeydown(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();}}
 function sendSugg(txt){document.getElementById("chat-suggs").style.display="none";document.getElementById("chat-input").value=txt;sendChat();}
+function mdToHtml(t){
+  return t
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g,"<em>$1</em>")
+    .replace(/^(\d+)\.\s/gm,"<br>$1. ")
+    .replace(/^\*\s/gm,"<br>• ")
+    .replace(/^-\s/gm,"<br>• ")
+    .replace(/\n/g,"<br>");
+}
 function addMsg(role,text){
   var wrap=document.getElementById("chat-messages");
   var time=new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
   var div=document.createElement("div");
   div.className="msg "+role;
-  div.innerHTML="<div class='msg-av'>"+(role==="user"?me.av:"&#x1F477;")+"</div><div><div class='msg-bubble'>"+text+"</div><div class='msg-time'>"+time+"</div></div>";
+  var rendered=role==="bot"?mdToHtml(text):text.replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  div.innerHTML="<div class='msg-av'>"+(role==="user"?me.av:"&#x1F477;")+"</div><div><div class='msg-bubble'>"+rendered+"</div><div class='msg-time'>"+time+"</div></div>";
   wrap.appendChild(div);
   wrap.scrollTop=wrap.scrollHeight;
 }
