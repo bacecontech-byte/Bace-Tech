@@ -2694,14 +2694,15 @@ function autoResize(el){el.style.height="auto";el.style.height=Math.min(el.scrol
 function chatKeydown(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();}}
 function sendSugg(txt){document.getElementById("chat-suggs").style.display="none";document.getElementById("chat-input").value=txt;sendChat();}
 function mdToHtml(t){
-  return t
-    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-    .replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g,"<em>$1</em>")
-    .replace(/^(\d+)\.\s/gm,"<br>$1. ")
-    .replace(/^\*\s/gm,"<br>• ")
-    .replace(/^-\s/gm,"<br>• ")
-    .replace(/\n/g,"<br>");
+  t=t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  t=t.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>");
+  t=t.replace(/\*(.+?)\*/g,"<em>$1</em>");
+  t=t.replace(/^\d+\.\s/gm,function(m){return "<br>"+m;});
+  t=t.replace(/^[\*\-]\s/gm,"<br>• ");
+  t=t.replace(/\n/g,"<br>");
+  t=t.replace(/&lt;br&gt;/g,"<br>");
+  t=t.replace(/(<br>){3,}/g,"<br><br>");
+  return t;
 }
 function addMsg(role,text){
   var wrap=document.getElementById("chat-messages");
