@@ -624,12 +624,11 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   #landing-nav>div:first-child a:first-child{font-size:13px !important;}
   #landing-nav>div:first-child>div>a,#landing-nav>div:first-child>div>div>a{font-size:11px !important;}
   #landing-nav>div:last-child{display:none !important;}
-  /* Hide Why on mobile */
-  #why-dropdown-wrap{display:none !important;}
   /* Full-screen dropdowns on mobile */
-  #solutions-dropdown,#pricing-dropdown{position:fixed !important;top:48px !important;left:0 !important;right:0 !important;width:100vw !important;max-height:calc(100vh - 48px) !important;overflow-y:auto !important;border-radius:0 !important;border-left:none !important;border-right:none !important;}
+  #solutions-dropdown,#pricing-dropdown,#why-dropdown{position:fixed !important;top:48px !important;left:0 !important;right:0 !important;width:100vw !important;max-height:calc(100vh - 48px) !important;overflow-y:auto !important;border-radius:0 !important;border-left:none !important;border-right:none !important;}
   #solutions-dropdown>div{grid-template-columns:1fr !important;}
   #pricing-dropdown>div{grid-template-columns:1fr !important;}
+  #why-dropdown>div:nth-child(2){grid-template-columns:1fr 1fr !important;}
   /* Auth left panel mobile */
   .auth-left-panel{padding:28px 20px !important;}
   .pricing-grid{grid-template-columns:1fr !important;}
@@ -824,7 +823,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <div style="margin-top:14px;font-size:11px;color:#6a6a75;font-style:italic;text-align:center;" id="why-tagline">Desenvolvido por engenheiros, para engenheiros.</div>
           </div>
         </div>
-        <a href="#" onclick="switchTab(0);document.getElementById('form-login').scrollIntoView({behavior:'smooth'});return false;" id="nav-connexion" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Connexion</a>
+        <a href="mailto:contact@bace-tech.fr" id="nav-connexion" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Fale conosco</a>
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
@@ -878,6 +877,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       </div>
       <div class="form-group"><label class="form-label" id="lb-spass">Mot de passe</label><input class="form-input" type="password" id="s-pass" placeholder="Min. 8 caractères" style="width:100%;background:#18181c;border-color:rgba(255,255,255,0.1);color:#fff;"></div>
       <button class="btn-primary" id="btn-signup" onclick="doSignup()" style="width:100%;"></button>
+      <a href="https://app.bace-tech.fr" id="trial-link-signup" style="display:block;text-align:center;margin-top:10px;padding:10px;border-radius:10px;border:1px solid rgba(96,165,250,0.25);color:#60a5fa;font-size:13px;font-weight:500;text-decoration:none;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='#60a5fa';this.style.background='rgba(96,165,250,0.06)'" onmouseout="this.style.borderColor='rgba(96,165,250,0.25)';this.style.background='none'">Teste grátis 30 dias</a>
       <div class="auth-switch" style="margin-top:10px;font-size:12px;color:#6a6a75;"><span id="have-acc"></span> <a onclick="switchTab(0)" id="lnk-login" style="color:#60a5fa;cursor:pointer;"></a></div>
     </div>
     <!-- Mobile-only impact metrics -->
@@ -1309,15 +1309,18 @@ document.addEventListener('click',function(e){['solutions-dropdown-wrap','pricin
 
 function translateNav(){
   var t={
-    0:{home:"Home",solutions:"Solutions",pricing:"Tarification",why:"Pourquoi",connexion:"Connexion",contact:"Contacter un commercial",try:"Essayer Bace",capT:"Capture IA",capD:"Photo ou voix — l'IA analyse automatiquement",dashT:"Dashboard",dashD:"KPIs, insights IA et statut en temps réel",chatT:"Bace IA Chat",chatD:"Chatbot spécialisé en construction",projT:"Gestion de Projets",projD:"Chantiers organisés avec équipe et documents",docsT:"Documents",docsD:"Plans PDF indexés et analysés par l'IA",teamT:"Collaboration",teamD:"Notifications en temps réel entre l'équipe"},
-    1:{home:"Home",solutions:"Solutions",pricing:"Pricing",why:"Why",connexion:"Sign in",contact:"Contact sales",try:"Try Bace",capT:"AI Capture",capD:"Photo or voice — AI analyzes automatically",dashT:"Dashboard",dashD:"KPIs, AI insights and real-time status",chatT:"Bace AI Chat",chatD:"Construction-specialized chatbot",projT:"Project Management",projD:"Organized sites with team and documents",docsT:"Documents",docsD:"PDF plans indexed and analyzed by AI",teamT:"Collaboration",teamD:"Real-time notifications across the team"},
-    2:{home:"Home",solutions:"Soluções",pricing:"Preços",why:"Por quê",connexion:"Entrar",contact:"Falar com vendas",try:"Testar Bace",capT:"Captura IA",capD:"Foto ou voz — a IA analisa automaticamente",dashT:"Dashboard",dashD:"KPIs, insights IA e status em tempo real",chatT:"Bace IA Chat",chatD:"Chatbot especializado em construção",projT:"Gestão de Projetos",projD:"Canteiros organizados com equipe e documentos",docsT:"Documentos",docsD:"Planos PDF indexados e analisados pela IA",teamT:"Colaboração",teamD:"Notificações em tempo real entre a equipe"}
+    0:{home:"Home",solutions:"Solutions",pricing:"Plans",why:"Pourquoi",connexion:"Contactez-nous",contact:"Contacter un commercial",try:"Essayer Bace",capT:"Capture IA",capD:"Photo ou voix — l'IA analyse automatiquement",dashT:"Dashboard",dashD:"KPIs, insights IA et statut en temps réel",chatT:"Bace IA Chat",chatD:"Chatbot spécialisé en construction",projT:"Gestion de Projets",projD:"Chantiers organisés avec équipe et documents",docsT:"Documents",docsD:"Plans PDF indexés et analysés par l'IA",teamT:"Collaboration",teamD:"Notifications en temps réel entre l'équipe"},
+    1:{home:"Home",solutions:"Solutions",pricing:"Plans",why:"Why",connexion:"Contact us",contact:"Contact sales",try:"Try Bace",capT:"AI Capture",capD:"Photo or voice — AI analyzes automatically",dashT:"Dashboard",dashD:"KPIs, AI insights and real-time status",chatT:"Bace AI Chat",chatD:"Construction-specialized chatbot",projT:"Project Management",projD:"Organized sites with team and documents",docsT:"Documents",docsD:"PDF plans indexed and analyzed by AI",teamT:"Collaboration",teamD:"Real-time notifications across the team"},
+    2:{home:"Home",solutions:"Soluções",pricing:"Planos",why:"Por quê",connexion:"Fale conosco",contact:"Falar com vendas",try:"Testar Bace",capT:"Captura IA",capD:"Foto ou voz — a IA analisa automaticamente",dashT:"Dashboard",dashD:"KPIs, insights IA e status em tempo real",chatT:"Bace IA Chat",chatD:"Chatbot especializado em construção",projT:"Gestão de Projetos",projD:"Canteiros organizados com equipe e documentos",docsT:"Documentos",docsD:"Planos PDF indexados e analisados pela IA",teamT:"Colaboração",teamD:"Notificações em tempo real entre a equipe"}
   };
   var l=t[lang]||t[2];
   var ids={"nav-home":"home","nav-solutions":"solutions","nav-pricing":"pricing","nav-why":"why","nav-connexion":"connexion","nav-contact":"contact","nav-try":"try"};
   Object.keys(ids).forEach(function(id){var el=document.getElementById(id);if(el){var v=l[ids[id]];if(id==="nav-solutions"||id==="nav-pricing"||id==="nav-why")el.innerHTML=v+' <span style="font-size:10px;">&#9662;</span>';else el.textContent=v;}});
   var sols={"sol-capture-t":"capT","sol-capture-d":"capD","sol-dash-t":"dashT","sol-dash-d":"dashD","sol-chat-t":"chatT","sol-chat-d":"chatD","sol-proj-t":"projT","sol-proj-d":"projD","sol-docs-t":"docsT","sol-docs-d":"docsD","sol-team-t":"teamT","sol-team-d":"teamD"};
   Object.keys(sols).forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=l[sols[id]];});
+  // Trial link translation
+  var trialText=lang===0?"Essai gratuit 30 jours":lang===2?"Teste grátis 30 dias":"Free 30-day trial";
+  var tl=document.getElementById("trial-link-signup");if(tl)tl.textContent=trialText;
 }
 
 function setLang(i,btn){
