@@ -234,14 +234,14 @@ body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-heig
 .auth-tabs{display:flex;background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:3px;margin-bottom:24px;gap:3px;}
 .auth-tab{flex:1;background:none;border:none;color:var(--text2);font-family:var(--font-b);font-size:13px;font-weight:500;padding:9px;border-radius:6px;cursor:pointer;transition:all 0.15s;}
 .auth-tab.active{background:var(--blue);color:white;}
-.form-group{margin-bottom:14px;}
-.form-label{display:block;font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;}
-.form-input,.form-select{width:100%;background:var(--navy2);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;font-family:var(--font-b);font-size:14px;color:var(--text);outline:none;transition:border-color 0.15s;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:12px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:7px;}
+.form-input,.form-select{width:100%;background:var(--navy2);border:1px solid var(--border2);border-radius:10px;padding:14px 16px;font-family:var(--font-b);font-size:15px;color:var(--text);outline:none;transition:border-color 0.15s;}
 .form-input::placeholder{color:var(--text3);}
 .form-input:focus,.form-select:focus{border-color:var(--blue);}
 .form-select option{background:var(--navy2);}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.btn-primary{width:100%;background:var(--blue);color:white;border:none;border-radius:8px;padding:14px;font-family:var(--font-d);font-size:14px;font-weight:600;cursor:pointer;transition:all 0.15s;margin-top:4px;}
+.btn-primary{width:100%;background:var(--blue);color:white;border:none;border-radius:10px;padding:15px;font-family:var(--font-d);font-size:15px;font-weight:600;cursor:pointer;transition:all 0.15s;margin-top:6px;}
 .btn-primary:hover{background:var(--blue2);}
 .btn-primary:disabled{opacity:0.6;cursor:not-allowed;}
 .auth-switch{text-align:center;font-size:12px;color:var(--text2);margin-top:16px;}
@@ -761,14 +761,14 @@ tr:hover td{background:rgba(255,255,255,0.02);}
     <div style="position:absolute;top:-150px;left:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(30,111,255,0.07) 0%,transparent 70%);pointer-events:none;"></div>
 
     <!-- Headline -->
-    <div id="auth-headline-line1" class="auth-headline" style="font-size:26px;font-weight:700;color:#fff;line-height:1.2;letter-spacing:-0.5px;"></div>
-    <div id="auth-headline-line2" class="auth-headline" style="font-size:26px;font-weight:700;color:#60a5fa;line-height:1.2;letter-spacing:-0.5px;margin-bottom:14px;"></div>
-    <div id="auth-subline" style="font-size:13px;color:#6a6a75;line-height:1.65;max-width:360px;margin-bottom:36px;"></div>
+    <div id="auth-headline-line1" class="auth-headline" style="font-size:34px;font-weight:700;color:#fff;line-height:1.2;letter-spacing:-0.5px;"></div>
+    <div id="auth-headline-line2" class="auth-headline" style="font-size:34px;font-weight:700;color:#60a5fa;line-height:1.2;letter-spacing:-0.5px;margin-bottom:14px;"></div>
+    <div id="auth-subline" style="font-size:15px;color:#6a6a75;line-height:1.65;max-width:400px;margin-bottom:40px;"></div>
 
     <!-- Tabs -->
     <div style="display:flex;gap:2px;background:rgba(255,255,255,0.05);border-radius:10px;padding:3px;margin-bottom:24px;">
-      <button id="tab-a" class="auth-tab auth-tab-btn active" onclick="switchTab(0)" style="flex:1;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:500;border:none;cursor:pointer;font-family:inherit;background:rgba(96,165,250,0.2);color:#d0d0da;transition:all 0.15s;"></button>
-      <button id="tab-b" class="auth-tab auth-tab-btn" onclick="switchTab(1)" style="flex:1;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:500;border:none;cursor:pointer;font-family:inherit;background:transparent;color:#6a6a75;transition:all 0.15s;"></button>
+      <button id="tab-a" class="auth-tab auth-tab-btn active" onclick="switchTab(0)" style="flex:1;padding:10px 22px;border-radius:10px;font-size:14px;font-weight:500;border:none;cursor:pointer;font-family:inherit;background:rgba(96,165,250,0.2);color:#d0d0da;transition:all 0.15s;"></button>
+      <button id="tab-b" class="auth-tab auth-tab-btn" onclick="switchTab(1)" style="flex:1;padding:10px 22px;border-radius:10px;font-size:14px;font-weight:500;border:none;cursor:pointer;font-family:inherit;background:transparent;color:#6a6a75;transition:all 0.15s;"></button>
     </div>
 
     <!-- Auth message -->
@@ -1278,9 +1278,9 @@ document.addEventListener('click',function(e){var w=document.getElementById('sol
 
 function translateNav(){
   var t={
-    0:{home:"Accueil",solutions:"Solutions",pricing:"Tarification",connexion:"Connexion",contact:"Contacter un commercial",try:"Essayer Bace",capT:"Capture IA",capD:"Photo ou voix — l'IA analyse automatiquement",dashT:"Dashboard",dashD:"KPIs, insights IA et statut en temps réel",chatT:"Bace IA Chat",chatD:"Chatbot spécialisé en construction",projT:"Gestion de Projets",projD:"Chantiers organisés avec équipe et documents",docsT:"Documents",docsD:"Plans PDF indexés et analysés par l'IA",teamT:"Collaboration",teamD:"Notifications en temps réel entre l'équipe"},
+    0:{home:"Home",solutions:"Solutions",pricing:"Tarification",connexion:"Connexion",contact:"Contacter un commercial",try:"Essayer Bace",capT:"Capture IA",capD:"Photo ou voix — l'IA analyse automatiquement",dashT:"Dashboard",dashD:"KPIs, insights IA et statut en temps réel",chatT:"Bace IA Chat",chatD:"Chatbot spécialisé en construction",projT:"Gestion de Projets",projD:"Chantiers organisés avec équipe et documents",docsT:"Documents",docsD:"Plans PDF indexés et analysés par l'IA",teamT:"Collaboration",teamD:"Notifications en temps réel entre l'équipe"},
     1:{home:"Home",solutions:"Solutions",pricing:"Pricing",connexion:"Sign in",contact:"Contact sales",try:"Try Bace",capT:"AI Capture",capD:"Photo or voice — AI analyzes automatically",dashT:"Dashboard",dashD:"KPIs, AI insights and real-time status",chatT:"Bace AI Chat",chatD:"Construction-specialized chatbot",projT:"Project Management",projD:"Organized sites with team and documents",docsT:"Documents",docsD:"PDF plans indexed and analyzed by AI",teamT:"Collaboration",teamD:"Real-time notifications across the team"},
-    2:{home:"Início",solutions:"Soluções",pricing:"Preços",connexion:"Entrar",contact:"Falar com vendas",try:"Testar Bace",capT:"Captura IA",capD:"Foto ou voz — a IA analisa automaticamente",dashT:"Dashboard",dashD:"KPIs, insights IA e status em tempo real",chatT:"Bace IA Chat",chatD:"Chatbot especializado em construção",projT:"Gestão de Projetos",projD:"Canteiros organizados com equipe e documentos",docsT:"Documentos",docsD:"Planos PDF indexados e analisados pela IA",teamT:"Colaboração",teamD:"Notificações em tempo real entre a equipe"}
+    2:{home:"Home",solutions:"Soluções",pricing:"Preços",connexion:"Entrar",contact:"Falar com vendas",try:"Testar Bace",capT:"Captura IA",capD:"Foto ou voz — a IA analisa automaticamente",dashT:"Dashboard",dashD:"KPIs, insights IA e status em tempo real",chatT:"Bace IA Chat",chatD:"Chatbot especializado em construção",projT:"Gestão de Projetos",projD:"Canteiros organizados com equipe e documentos",docsT:"Documentos",docsD:"Planos PDF indexados e analisados pela IA",teamT:"Colaboração",teamD:"Notificações em tempo real entre a equipe"}
   };
   var l=t[lang]||t[2];
   var ids={"nav-home":"home","nav-solutions":"solutions","nav-pricing":"pricing","nav-connexion":"connexion","nav-contact":"contact","nav-try":"try"};
