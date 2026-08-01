@@ -129,12 +129,22 @@ body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-heig
   body.logged-in .mobile-tabs,body.logged-in .capture-fab,body.logged-in .ia-bubble{display:flex !important;}body.logged-in .mobile-avatar{display:block !important;}
   .auth-left{display:none;}
   .auth-mobile-grid{grid-template-columns:1fr !important;}
-  .auth-mobile-grid>div:last-child{display:none !important;}
-  .auth-headline{font-size:26px !important;}
-  #auth-subline{font-size:13px !important;margin-bottom:24px !important;}
-  .auth-left-panel{padding:24px 20px !important;}
-  .auth-tab-btn{padding:8px 16px !important;font-size:13px !important;}
-  .mobile-impact{display:block !important;}
+  .auth-mobile-grid>div:last-child{display:block !important;padding:20px !important;border-left:none !important;border-top:1px solid rgba(96,165,250,0.1) !important;}
+  .auth-headline{font-size:22px !important;}
+  #auth-subline{font-size:12px !important;margin-bottom:16px !important;}
+  .auth-left-panel{padding:20px 20px 16px !important;}
+  .auth-tab-btn{padding:6px 14px !important;font-size:12px !important;}
+  .form-group{margin-bottom:10px !important;}
+  .form-input,.form-select{padding:10px 12px !important;font-size:13px !important;}
+  .form-label{font-size:10px !important;margin-bottom:4px !important;}
+  .btn-primary{padding:12px !important;font-size:13px !important;}
+  .auth-switch{margin-top:6px !important;font-size:11px !important;}
+  .mobile-impact{display:none !important;}
+  /* Show feature showcase on mobile */
+  .auth-mobile-grid>div:last-child{display:block !important;padding:20px !important;border-left:none !important;border-top:1px solid rgba(96,165,250,0.1) !important;}
+  #feat-tabs{gap:4px !important;margin-bottom:10px !important;}
+  #feat-tabs .feat-tab{font-size:10px !important;padding:5px 8px !important;}
+  #feat-preview-wrap{padding:14px !important;min-height:140px !important;}
   .sidebar{display:none !important;}
   .app-main{margin-left:0 !important;}
 
@@ -616,7 +626,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   /* ── Sidebar ── */
   .auth-left{display:none;}
   .auth-mobile-grid{grid-template-columns:1fr !important;}
-  .auth-mobile-grid>div:last-child{display:none !important;}
+  .auth-mobile-grid>div:last-child{display:block !important;}
   /* Landing navbar mobile */
   #landing-nav{padding:0 16px !important;height:48px !important;}
   #nav-links-desktop{display:none !important;}
