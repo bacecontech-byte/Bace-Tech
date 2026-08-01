@@ -708,6 +708,23 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 <div id="s-login" class="screen active">
 <div class="auth-mobile-grid" style="min-height:100vh;display:grid;grid-template-columns:1fr 1fr;">
 
+  <!-- TOP NAVBAR -->
+  <nav id="landing-nav" style="grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:56px;background:#111114;border-bottom:1px solid rgba(255,255,255,0.06);position:sticky;top:0;z-index:200;">
+    <div style="display:flex;align-items:center;gap:36px;">
+      <a href="#" style="font-family:var(--font-d);font-size:16px;font-weight:600;color:#fff;text-decoration:none;letter-spacing:-0.4px;">Bace<span style="font-weight:800;color:#60a5fa;">Tech</span></a>
+      <div style="display:flex;align-items:center;gap:24px;">
+        <a href="#" onclick="document.getElementById('form-login').scrollIntoView({behavior:'smooth'});return false;" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Home</a>
+        <a href="#" onclick="document.getElementById('landing-solutions').scrollIntoView({behavior:'smooth'});return false;" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Solutions</a>
+        <a href="#" onclick="document.getElementById('landing-pricing').scrollIntoView({behavior:'smooth'});return false;" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Pricing</a>
+        <a href="#" onclick="switchTab(0);document.getElementById('form-login').scrollIntoView({behavior:'smooth'});return false;" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Connexion</a>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <a href="mailto:contact@bace-tech.fr" style="font-size:12px;color:#f0f0f5;text-decoration:none;padding:8px 16px;border:1px solid rgba(255,255,255,0.15);border-radius:8px;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'" onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='#f0f0f5'">Contacter un commercial</a>
+      <a href="#" onclick="document.getElementById('landing-pricing').scrollIntoView({behavior:'smooth'});return false;" style="font-size:12px;color:#fff;text-decoration:none;padding:8px 16px;background:#60a5fa;border-radius:8px;font-weight:600;cursor:pointer;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Essayer Bace</a>
+    </div>
+  </nav>
+
   <!-- LEFT: headline + form -->
   <div class="auth-left-panel" style="display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:60px 64px;background:#111114;position:relative;overflow:hidden;">
     <div style="position:absolute;top:-150px;left:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(30,111,255,0.07) 0%,transparent 70%);pointer-events:none;"></div>
@@ -763,14 +780,14 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   </div>
 
   <!-- RIGHT: animated feature showcase -->
-  <div class="auth-right-panel" style="background:#111114;display:flex;flex-direction:column;justify-content:center;padding:60px 52px;border-left:0.5px solid rgba(96,165,250,0.1);">
+  <div id="landing-solutions" class="auth-right-panel" style="background:#111114;display:flex;flex-direction:column;justify-content:center;padding:60px 52px;border-left:0.5px solid rgba(96,165,250,0.1);">
 
     <div id="feat-tabs" style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px;"></div>
     <div id="feat-preview-wrap" style="border-radius:14px;background:rgba(255,255,255,0.03);border:0.5px solid rgba(96,165,250,0.1);padding:22px;min-height:220px;"></div>
   </div>
 
   <!-- PRICING SECTION -->
-  <div style="background:#0B1622;padding:60px 40px;grid-column:1/-1;">
+  <div id="landing-pricing" style="background:#0B1622;padding:60px 40px;grid-column:1/-1;">
     <div style="max-width:900px;margin:0 auto;text-align:center;">
       <div style="font-family:var(--font-d);font-size:28px;font-weight:700;color:#f0f0f5;margin-bottom:6px;">Planos</div>
       <div style="font-size:13px;color:#6a6a75;margin-bottom:36px;">Comece grátis. Escale quando precisar.</div>
