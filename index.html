@@ -625,10 +625,10 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   #landing-nav>div:first-child>div>a,#landing-nav>div:first-child>div>div>a{font-size:11px !important;}
   #landing-nav>div:last-child{display:none !important;}
   /* Full-screen dropdowns on mobile */
-  #solutions-dropdown,#pricing-dropdown,#why-dropdown{position:fixed !important;top:48px !important;left:0 !important;right:0 !important;width:100vw !important;max-height:calc(100vh - 48px) !important;overflow-y:auto !important;border-radius:0 !important;border-left:none !important;border-right:none !important;}
+  #solutions-dropdown,#pricing-dropdown,#home-dropdown{position:fixed !important;top:48px !important;left:0 !important;right:0 !important;width:100vw !important;max-height:calc(100vh - 48px) !important;overflow-y:auto !important;border-radius:0 !important;border-left:none !important;border-right:none !important;}
   #solutions-dropdown>div{grid-template-columns:1fr !important;}
   #pricing-dropdown>div{grid-template-columns:1fr !important;}
-  #why-dropdown>div:nth-child(2){grid-template-columns:1fr 1fr !important;}
+  #home-dropdown>div:nth-child(2){grid-template-columns:1fr 1fr !important;}
   /* Auth left panel mobile */
   .auth-left-panel{padding:28px 20px !important;}
   .pricing-grid{grid-template-columns:1fr !important;}
@@ -734,7 +734,32 @@ tr:hover td{background:rgba(255,255,255,0.02);}
     <div style="display:flex;align-items:center;gap:36px;">
       <a href="#" style="font-family:var(--font-d);font-size:16px;font-weight:600;color:#fff;text-decoration:none;letter-spacing:-0.4px;">Bace<span style="font-weight:800;color:#60a5fa;">Tech</span></a>
       <div style="display:flex;align-items:center;gap:24px;">
-        <a href="#" onclick="document.getElementById('form-login').scrollIntoView({behavior:'smooth'});return false;" id="nav-home" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Home</a>
+        <!-- Home dropdown with Why inside -->
+        <div style="position:relative;" id="home-dropdown-wrap">
+          <a href="#" onclick="toggleHomeDropdown();return false;" id="nav-home" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;display:flex;align-items:center;gap:4px;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Home <span style="font-size:10px;">&#9662;</span></a>
+          <div id="home-dropdown" style="display:none;position:absolute;top:32px;left:-20px;background:#18181c;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:24px;width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.5);z-index:300;">
+            <div style="font-size:11px;font-weight:600;color:#8a8a95;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;" id="why-title">Impacto</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div style="text-align:center;padding:16px 10px;border-radius:10px;background:#142536;border:1px solid rgba(255,255,255,0.04);">
+                <div style="font-family:var(--font-d);font-size:28px;font-weight:800;color:#60a5fa;">70%</div>
+                <div style="font-size:10px;color:#8a8a95;margin-top:4px;line-height:1.4;" id="why-1">menos tempo em documentação</div>
+              </div>
+              <div style="text-align:center;padding:16px 10px;border-radius:10px;background:#142536;border:1px solid rgba(255,255,255,0.04);">
+                <div style="font-family:var(--font-d);font-size:28px;font-weight:800;color:#4ade80;">3x</div>
+                <div style="font-size:10px;color:#8a8a95;margin-top:4px;line-height:1.4;" id="why-2">mais rápido para identificar padrões</div>
+              </div>
+              <div style="text-align:center;padding:16px 10px;border-radius:10px;background:#142536;border:1px solid rgba(255,255,255,0.04);">
+                <div style="font-family:var(--font-d);font-size:28px;font-weight:800;color:#38bdf8;">100%</div>
+                <div style="font-size:10px;color:#8a8a95;margin-top:4px;line-height:1.4;" id="why-3">dos incidentes rastreáveis</div>
+              </div>
+              <div style="text-align:center;padding:16px 10px;border-radius:10px;background:#142536;border:1px solid rgba(255,255,255,0.04);">
+                <div style="font-family:var(--font-d);font-size:28px;font-weight:800;color:#fbbf24;">0</div>
+                <div style="font-size:10px;color:#8a8a95;margin-top:4px;line-height:1.4;" id="why-4">papel necessário — 100% digital</div>
+              </div>
+            </div>
+            <div style="margin-top:14px;font-size:11px;color:#6a6a75;font-style:italic;text-align:center;" id="why-tagline">Desenvolvido por engenheiros, para engenheiros.</div>
+          </div>
+        </div>
         <!-- Solutions dropdown -->
         <div style="position:relative;" id="solutions-dropdown-wrap">
           <a href="#" onclick="toggleSolutionsDropdown();return false;" id="nav-solutions" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;display:flex;align-items:center;gap:4px;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Solutions <span style="font-size:10px;">&#9662;</span></a>
@@ -795,32 +820,6 @@ tr:hover td{background:rgba(255,255,255,0.02);}
                 <a href="mailto:contact@bace-tech.fr" style="display:block;margin-top:10px;padding:7px;border-radius:6px;background:rgba(251,191,36,0.1);color:#fbbf24;font-size:10px;font-weight:500;text-decoration:none;" id="dd-trial-3">Falar com vendas</a>
               </div>
             </div>
-          </div>
-        </div>
-        <!-- Why dropdown -->
-        <div style="position:relative;" id="why-dropdown-wrap">
-          <a href="#" onclick="toggleWhyDropdown();return false;" id="nav-why" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;display:flex;align-items:center;gap:4px;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Why <span style="font-size:10px;">&#9662;</span></a>
-          <div id="why-dropdown" style="display:none;position:absolute;top:32px;left:-60px;background:#18181c;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:24px;width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.5);z-index:300;">
-            <div style="font-size:11px;font-weight:600;color:#8a8a95;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;" id="why-title">Impacto</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-              <div style="text-align:center;padding:16px 10px;border-radius:10px;background:#142536;border:1px solid rgba(255,255,255,0.04);">
-                <div style="font-family:var(--font-d);font-size:28px;font-weight:800;color:#60a5fa;">70%</div>
-                <div style="font-size:10px;color:#8a8a95;margin-top:4px;line-height:1.4;" id="why-1">menos tempo em documentação</div>
-              </div>
-              <div style="text-align:center;padding:16px 10px;border-radius:10px;background:#142536;border:1px solid rgba(255,255,255,0.04);">
-                <div style="font-family:var(--font-d);font-size:28px;font-weight:800;color:#4ade80;">3x</div>
-                <div style="font-size:10px;color:#8a8a95;margin-top:4px;line-height:1.4;" id="why-2">mais rápido para identificar padrões</div>
-              </div>
-              <div style="text-align:center;padding:16px 10px;border-radius:10px;background:#142536;border:1px solid rgba(255,255,255,0.04);">
-                <div style="font-family:var(--font-d);font-size:28px;font-weight:800;color:#38bdf8;">100%</div>
-                <div style="font-size:10px;color:#8a8a95;margin-top:4px;line-height:1.4;" id="why-3">dos incidentes rastreáveis</div>
-              </div>
-              <div style="text-align:center;padding:16px 10px;border-radius:10px;background:#142536;border:1px solid rgba(255,255,255,0.04);">
-                <div style="font-family:var(--font-d);font-size:28px;font-weight:800;color:#fbbf24;">0</div>
-                <div style="font-size:10px;color:#8a8a95;margin-top:4px;line-height:1.4;" id="why-4">papel necessário — 100% digital</div>
-              </div>
-            </div>
-            <div style="margin-top:14px;font-size:11px;color:#6a6a75;font-style:italic;text-align:center;" id="why-tagline">Desenvolvido por engenheiros, para engenheiros.</div>
           </div>
         </div>
         <a href="mailto:contact@bace-tech.fr" id="nav-connexion" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Fale conosco</a>
@@ -1301,11 +1300,11 @@ var STRINGS=[
 
 try{db=supabase.createClient(SB_URL,SB_KEY);}catch(e){console.error(e);}
 
-function closeAllDropdowns(except){['solutions-dropdown','pricing-dropdown','why-dropdown'].forEach(function(id){if(id!==except){var d=document.getElementById(id);if(d)d.style.display='none';}});}
+function closeAllDropdowns(except){['home-dropdown','solutions-dropdown','pricing-dropdown'].forEach(function(id){if(id!==except){var d=document.getElementById(id);if(d)d.style.display='none';}});}
+function toggleHomeDropdown(){closeAllDropdowns('home-dropdown');var d=document.getElementById('home-dropdown');if(d)d.style.display=d.style.display==='none'?'block':'none';}
 function toggleSolutionsDropdown(){closeAllDropdowns('solutions-dropdown');var d=document.getElementById('solutions-dropdown');if(d)d.style.display=d.style.display==='none'?'block':'none';}
 function togglePricingDropdown(){closeAllDropdowns('pricing-dropdown');var d=document.getElementById('pricing-dropdown');if(d)d.style.display=d.style.display==='none'?'block':'none';}
-function toggleWhyDropdown(){closeAllDropdowns('why-dropdown');var d=document.getElementById('why-dropdown');if(d)d.style.display=d.style.display==='none'?'block':'none';}
-document.addEventListener('click',function(e){['solutions-dropdown-wrap','pricing-dropdown-wrap','why-dropdown-wrap'].forEach(function(wId,i){var w=document.getElementById(wId);var dId=['solutions-dropdown','pricing-dropdown','why-dropdown'][i];var d=document.getElementById(dId);if(w&&d&&!w.contains(e.target))d.style.display='none';});});
+document.addEventListener('click',function(e){['home-dropdown-wrap','solutions-dropdown-wrap','pricing-dropdown-wrap'].forEach(function(wId,i){var w=document.getElementById(wId);var dId=['home-dropdown','solutions-dropdown','pricing-dropdown'][i];var d=document.getElementById(dId);if(w&&d&&!w.contains(e.target))d.style.display='none';});});
 
 function translateNav(){
   var t={
@@ -1314,8 +1313,8 @@ function translateNav(){
     2:{home:"Home",solutions:"Soluções",pricing:"Planos",why:"Por quê",connexion:"Fale conosco",contact:"Falar com vendas",try:"Testar Bace",capT:"Captura IA",capD:"Foto ou voz — a IA analisa automaticamente",dashT:"Dashboard",dashD:"KPIs, insights IA e status em tempo real",chatT:"Bace IA Chat",chatD:"Chatbot especializado em construção",projT:"Gestão de Projetos",projD:"Canteiros organizados com equipe e documentos",docsT:"Documentos",docsD:"Planos PDF indexados e analisados pela IA",teamT:"Colaboração",teamD:"Notificações em tempo real entre a equipe"}
   };
   var l=t[lang]||t[2];
-  var ids={"nav-home":"home","nav-solutions":"solutions","nav-pricing":"pricing","nav-why":"why","nav-connexion":"connexion","nav-contact":"contact","nav-try":"try"};
-  Object.keys(ids).forEach(function(id){var el=document.getElementById(id);if(el){var v=l[ids[id]];if(id==="nav-solutions"||id==="nav-pricing"||id==="nav-why")el.innerHTML=v+' <span style="font-size:10px;">&#9662;</span>';else el.textContent=v;}});
+  var ids={"nav-home":"home","nav-solutions":"solutions","nav-pricing":"pricing","nav-connexion":"connexion","nav-contact":"contact","nav-try":"try"};
+  Object.keys(ids).forEach(function(id){var el=document.getElementById(id);if(el){var v=l[ids[id]];if(id==="nav-home"||id==="nav-solutions"||id==="nav-pricing")el.innerHTML=v+' <span style="font-size:10px;">&#9662;</span>';else el.textContent=v;}});
   var sols={"sol-capture-t":"capT","sol-capture-d":"capD","sol-dash-t":"dashT","sol-dash-d":"dashD","sol-chat-t":"chatT","sol-chat-d":"chatD","sol-proj-t":"projT","sol-proj-d":"projD","sol-docs-t":"docsT","sol-docs-d":"docsD","sol-team-t":"teamT","sol-team-d":"teamD"};
   Object.keys(sols).forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=l[sols[id]];});
   // Trial link translation
