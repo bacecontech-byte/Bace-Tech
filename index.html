@@ -130,6 +130,10 @@ body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-heig
   .auth-left{display:none;}
   .auth-mobile-grid{grid-template-columns:1fr !important;}
   .auth-mobile-grid>div:last-child{display:none !important;}
+  .auth-headline{font-size:26px !important;}
+  #auth-subline{font-size:13px !important;margin-bottom:24px !important;}
+  .auth-left-panel{padding:24px 20px !important;}
+  .auth-tab-btn{padding:8px 16px !important;font-size:13px !important;}
   .sidebar{display:none !important;}
   .app-main{margin-left:0 !important;}
 
@@ -625,6 +629,8 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   .auth-left-panel{padding:28px 20px !important;}
   .pricing-grid{grid-template-columns:1fr !important;}
   .impact-grid{grid-template-columns:1fr 1fr !important;}
+  #pricing-dropdown{width:calc(100vw - 28px) !important;left:-120px !important;}
+  #pricing-dropdown>div{grid-template-columns:1fr !important;}
   .sidebar{width:100%;height:auto;position:relative;flex-direction:row;flex-wrap:wrap;padding:8px 12px;overflow-x:auto;}
   .sidebar-logo{margin-bottom:0;padding-bottom:0;border-bottom:none;margin-right:auto;}
   .sidebar-section-title{display:none;}
@@ -759,7 +765,36 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             </div>
           </div>
         </div>
-        <a href="#" onclick="document.getElementById('landing-pricing').scrollIntoView({behavior:'smooth'});return false;" id="nav-pricing" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Pricing</a>
+        <!-- Pricing dropdown -->
+        <div style="position:relative;" id="pricing-dropdown-wrap">
+          <a href="#" onclick="togglePricingDropdown();return false;" id="nav-pricing" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;display:flex;align-items:center;gap:4px;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Pricing <span style="font-size:10px;">&#9662;</span></a>
+          <div id="pricing-dropdown" style="display:none;position:absolute;top:32px;left:-80px;background:#18181c;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:20px;width:480px;box-shadow:0 20px 60px rgba(0,0,0,0.5);z-index:300;">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+              <div style="text-align:center;padding:14px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:#142536;">
+                <div style="font-size:12px;font-weight:600;color:#8a8a95;margin-bottom:6px;" id="dd-starter-n">Starter</div>
+                <div style="font-family:var(--font-d);font-size:22px;font-weight:800;color:#f0f0f5;">R$ 299<span style="font-size:10px;font-weight:400;color:#6a6a75;">/mês</span></div>
+                <div style="font-size:10px;color:#60a5fa;margin:4px 0 8px;" id="dd-starter-u">Até 5 usuários</div>
+                <div style="font-size:10px;color:#6a6a75;line-height:1.6;" id="dd-starter-f">1 projeto · Captura IA · Dashboard · Bace IA Chat</div>
+                <a href="https://app.bace-tech.fr" style="display:block;margin-top:10px;padding:7px;border-radius:6px;background:rgba(96,165,250,0.1);color:#60a5fa;font-size:10px;font-weight:500;text-decoration:none;" id="dd-trial-1">Teste grátis</a>
+              </div>
+              <div style="text-align:center;padding:14px 10px;border-radius:10px;border:2px solid #60a5fa;background:#142536;position:relative;">
+                <div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:#60a5fa;color:#fff;font-size:8px;font-weight:700;padding:2px 8px;border-radius:10px;">POPULAR</div>
+                <div style="font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:6px;" id="dd-pro-n">Profissional</div>
+                <div style="font-family:var(--font-d);font-size:22px;font-weight:800;color:#f0f0f5;">R$ 499<span style="font-size:10px;font-weight:400;color:#6a6a75;">/mês</span></div>
+                <div style="font-size:10px;color:#60a5fa;margin:4px 0 8px;" id="dd-pro-u">Até 15 usuários</div>
+                <div style="font-size:10px;color:#6a6a75;line-height:1.6;" id="dd-pro-f">Ilimitado · Documentos · Insights IA · Tempo real</div>
+                <a href="https://app.bace-tech.fr" style="display:block;margin-top:10px;padding:7px;border-radius:6px;background:#60a5fa;color:#fff;font-size:10px;font-weight:600;text-decoration:none;" id="dd-trial-2">Teste grátis</a>
+              </div>
+              <div style="text-align:center;padding:14px 10px;border-radius:10px;border:1px solid rgba(251,191,36,0.3);background:#142536;">
+                <div style="font-size:12px;font-weight:600;color:#fbbf24;margin-bottom:6px;">Enterprise</div>
+                <div style="font-family:var(--font-d);font-size:18px;font-weight:800;color:#f0f0f5;margin-top:4px;">Sob consulta</div>
+                <div style="font-size:10px;color:#fbbf24;margin:4px 0 8px;" id="dd-ent-u">Ilimitado</div>
+                <div style="font-size:10px;color:#6a6a75;line-height:1.6;" id="dd-ent-f">Integrações · Suporte · Treinamento · SLA</div>
+                <a href="mailto:contact@bace-tech.fr" style="display:block;margin-top:10px;padding:7px;border-radius:6px;background:rgba(251,191,36,0.1);color:#fbbf24;font-size:10px;font-weight:500;text-decoration:none;" id="dd-trial-3">Falar com vendas</a>
+              </div>
+            </div>
+          </div>
+        </div>
         <a href="#" onclick="switchTab(0);document.getElementById('form-login').scrollIntoView({behavior:'smooth'});return false;" id="nav-connexion" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Connexion</a>
       </div>
     </div>
@@ -1286,8 +1321,9 @@ var STRINGS=[
 
 try{db=supabase.createClient(SB_URL,SB_KEY);}catch(e){console.error(e);}
 
-function toggleSolutionsDropdown(){var d=document.getElementById('solutions-dropdown');if(d)d.style.display=d.style.display==='none'?'block':'none';}
-document.addEventListener('click',function(e){var w=document.getElementById('solutions-dropdown-wrap');var d=document.getElementById('solutions-dropdown');if(w&&d&&!w.contains(e.target))d.style.display='none';});
+function toggleSolutionsDropdown(){var d=document.getElementById('solutions-dropdown');if(d)d.style.display=d.style.display==='none'?'block':'none';var p=document.getElementById('pricing-dropdown');if(p)p.style.display='none';}
+function togglePricingDropdown(){var d=document.getElementById('pricing-dropdown');if(d)d.style.display=d.style.display==='none'?'block':'none';var s=document.getElementById('solutions-dropdown');if(s)s.style.display='none';}
+document.addEventListener('click',function(e){var w=document.getElementById('solutions-dropdown-wrap');var d=document.getElementById('solutions-dropdown');if(w&&d&&!w.contains(e.target))d.style.display='none';var w2=document.getElementById('pricing-dropdown-wrap');var d2=document.getElementById('pricing-dropdown');if(w2&&d2&&!w2.contains(e.target))d2.style.display='none';});
 
 function translateNav(){
   var t={
@@ -1297,7 +1333,7 @@ function translateNav(){
   };
   var l=t[lang]||t[2];
   var ids={"nav-home":"home","nav-solutions":"solutions","nav-pricing":"pricing","nav-connexion":"connexion","nav-contact":"contact","nav-try":"try"};
-  Object.keys(ids).forEach(function(id){var el=document.getElementById(id);if(el){var v=l[ids[id]];if(id==="nav-solutions")el.innerHTML=v+' <span style="font-size:10px;">&#9662;</span>';else el.textContent=v;}});
+  Object.keys(ids).forEach(function(id){var el=document.getElementById(id);if(el){var v=l[ids[id]];if(id==="nav-solutions"||id==="nav-pricing")el.innerHTML=v+' <span style="font-size:10px;">&#9662;</span>';else el.textContent=v;}});
   var sols={"sol-capture-t":"capT","sol-capture-d":"capD","sol-dash-t":"dashT","sol-dash-d":"dashD","sol-chat-t":"chatT","sol-chat-d":"chatD","sol-proj-t":"projT","sol-proj-d":"projD","sol-docs-t":"docsT","sol-docs-d":"docsD","sol-team-t":"teamT","sol-team-d":"teamD"};
   Object.keys(sols).forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=l[sols[id]];});
 }
