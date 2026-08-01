@@ -612,6 +612,19 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   .auth-left{display:none;}
   .auth-mobile-grid{grid-template-columns:1fr !important;}
   .auth-mobile-grid>div:last-child{display:none !important;}
+  /* Landing navbar mobile */
+  #landing-nav{padding:0 14px !important;height:48px !important;}
+  #landing-nav>div:first-child{gap:12px !important;}
+  #landing-nav>div:first-child>div{gap:12px !important;}
+  #landing-nav>div:first-child a:first-child{font-size:13px !important;}
+  #landing-nav>div:first-child>div>a,#landing-nav>div:first-child>div>div>a{font-size:11px !important;}
+  #landing-nav>div:last-child{display:none !important;}
+  #solutions-dropdown{width:calc(100vw - 28px) !important;left:-40px !important;}
+  #solutions-dropdown>div{grid-template-columns:1fr !important;}
+  /* Auth left panel mobile */
+  .auth-left-panel{padding:28px 20px !important;}
+  .pricing-grid{grid-template-columns:1fr !important;}
+  .impact-grid{grid-template-columns:1fr 1fr !important;}
   .sidebar{width:100%;height:auto;position:relative;flex-direction:row;flex-wrap:wrap;padding:8px 12px;overflow-x:auto;}
   .sidebar-logo{margin-bottom:0;padding-bottom:0;border-bottom:none;margin-right:auto;}
   .sidebar-section-title{display:none;}
@@ -819,7 +832,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
     <div style="max-width:900px;margin:0 auto;text-align:center;">
       <div style="font-family:var(--font-d);font-size:28px;font-weight:700;color:#f0f0f5;margin-bottom:6px;">Planos</div>
       <div style="font-size:13px;color:#6a6a75;margin-bottom:36px;">Comece grátis. Escale quando precisar.</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;" class="pricing-grid">
         <!-- Starter -->
         <div style="background:#142536;border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:28px 24px;text-align:center;">
           <div style="font-size:15px;font-weight:600;color:#8a8a95;margin-bottom:12px;">Starter</div>
@@ -859,7 +872,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   <div style="background:#111114;padding:60px 40px;grid-column:1/-1;">
     <div style="max-width:900px;margin:0 auto;text-align:center;">
       <div style="font-family:var(--font-d);font-size:28px;font-weight:700;color:#f0f0f5;margin-bottom:36px;">Impacto</div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;" class="impact-grid">
         <div style="background:#18181c;border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:28px 16px;">
           <div style="font-family:var(--font-d);font-size:40px;font-weight:800;color:#60a5fa;">70%</div>
           <div style="font-size:12px;color:#8a8a95;margin-top:8px;line-height:1.5;">menos tempo em<br>documentação</div>
