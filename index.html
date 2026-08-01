@@ -631,6 +631,8 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   .impact-grid{grid-template-columns:1fr 1fr !important;}
   #pricing-dropdown{width:calc(100vw - 28px) !important;left:-120px !important;}
   #pricing-dropdown>div{grid-template-columns:1fr !important;}
+  #why-dropdown{width:calc(100vw - 28px) !important;left:-100px !important;}
+  #why-dropdown>div:nth-child(2){grid-template-columns:1fr 1fr !important;}
   .sidebar{width:100%;height:auto;position:relative;flex-direction:row;flex-wrap:wrap;padding:8px 12px;overflow-x:auto;}
   .sidebar-logo{margin-bottom:0;padding-bottom:0;border-bottom:none;margin-right:auto;}
   .sidebar-section-title{display:none;}
@@ -795,6 +797,32 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             </div>
           </div>
         </div>
+        <!-- Why dropdown -->
+        <div style="position:relative;" id="why-dropdown-wrap">
+          <a href="#" onclick="toggleWhyDropdown();return false;" id="nav-why" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;display:flex;align-items:center;gap:4px;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Why <span style="font-size:10px;">&#9662;</span></a>
+          <div id="why-dropdown" style="display:none;position:absolute;top:32px;left:-60px;background:#18181c;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:24px;width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.5);z-index:300;">
+            <div style="font-size:11px;font-weight:600;color:#8a8a95;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;" id="why-title">Impacto</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div style="text-align:center;padding:16px 10px;border-radius:10px;background:#142536;border:1px solid rgba(255,255,255,0.04);">
+                <div style="font-family:var(--font-d);font-size:28px;font-weight:800;color:#60a5fa;">70%</div>
+                <div style="font-size:10px;color:#8a8a95;margin-top:4px;line-height:1.4;" id="why-1">menos tempo em documentação</div>
+              </div>
+              <div style="text-align:center;padding:16px 10px;border-radius:10px;background:#142536;border:1px solid rgba(255,255,255,0.04);">
+                <div style="font-family:var(--font-d);font-size:28px;font-weight:800;color:#4ade80;">3x</div>
+                <div style="font-size:10px;color:#8a8a95;margin-top:4px;line-height:1.4;" id="why-2">mais rápido para identificar padrões</div>
+              </div>
+              <div style="text-align:center;padding:16px 10px;border-radius:10px;background:#142536;border:1px solid rgba(255,255,255,0.04);">
+                <div style="font-family:var(--font-d);font-size:28px;font-weight:800;color:#38bdf8;">100%</div>
+                <div style="font-size:10px;color:#8a8a95;margin-top:4px;line-height:1.4;" id="why-3">dos incidentes rastreáveis</div>
+              </div>
+              <div style="text-align:center;padding:16px 10px;border-radius:10px;background:#142536;border:1px solid rgba(255,255,255,0.04);">
+                <div style="font-family:var(--font-d);font-size:28px;font-weight:800;color:#fbbf24;">0</div>
+                <div style="font-size:10px;color:#8a8a95;margin-top:4px;line-height:1.4;" id="why-4">papel necessário — 100% digital</div>
+              </div>
+            </div>
+            <div style="margin-top:14px;font-size:11px;color:#6a6a75;font-style:italic;text-align:center;" id="why-tagline">Desenvolvido por engenheiros, para engenheiros.</div>
+          </div>
+        </div>
         <a href="#" onclick="switchTab(0);document.getElementById('form-login').scrollIntoView({behavior:'smooth'});return false;" id="nav-connexion" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Connexion</a>
       </div>
     </div>
@@ -860,73 +888,6 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 
     <div id="feat-tabs" style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px;"></div>
     <div id="feat-preview-wrap" style="border-radius:14px;background:rgba(255,255,255,0.03);border:0.5px solid rgba(96,165,250,0.1);padding:22px;min-height:220px;"></div>
-  </div>
-
-  <!-- PRICING SECTION -->
-  <div id="landing-pricing" style="background:#0B1622;padding:60px 40px;grid-column:1/-1;">
-    <div style="max-width:900px;margin:0 auto;text-align:center;">
-      <div style="font-family:var(--font-d);font-size:28px;font-weight:700;color:#f0f0f5;margin-bottom:6px;">Planos</div>
-      <div style="font-size:13px;color:#6a6a75;margin-bottom:36px;">Comece grátis. Escale quando precisar.</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;" class="pricing-grid">
-        <!-- Starter -->
-        <div style="background:#142536;border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:28px 24px;text-align:center;">
-          <div style="font-size:15px;font-weight:600;color:#8a8a95;margin-bottom:12px;">Starter</div>
-          <div style="font-family:var(--font-d);font-size:36px;font-weight:800;color:#f0f0f5;">R$ 299<span style="font-size:14px;font-weight:400;color:#6a6a75;">/mês</span></div>
-          <div style="font-size:12px;color:#60a5fa;margin:8px 0 16px;">Até 5 usuários</div>
-          <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;text-align:left;font-size:12px;color:#8a8a95;line-height:2.2;">
-            1 projeto ativo<br>Captura IA (foto + voz)<br>Dashboard com KPIs<br>Bace IA Chat
-          </div>
-          <a href="https://app.bace-tech.fr" style="display:block;margin-top:20px;padding:10px;border-radius:8px;background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.2);color:#60a5fa;font-size:13px;font-weight:500;text-decoration:none;cursor:pointer;">Teste grátis 30 dias</a>
-        </div>
-        <!-- Profissional -->
-        <div style="background:#142536;border:2px solid #60a5fa;border-radius:16px;padding:28px 24px;text-align:center;position:relative;">
-          <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#60a5fa;color:#fff;font-size:10px;font-weight:700;padding:3px 14px;border-radius:20px;">POPULAR</div>
-          <div style="font-size:15px;font-weight:600;color:#60a5fa;margin-bottom:12px;">Profissional</div>
-          <div style="font-family:var(--font-d);font-size:36px;font-weight:800;color:#f0f0f5;">R$ 499<span style="font-size:14px;font-weight:400;color:#6a6a75;">/mês</span></div>
-          <div style="font-size:12px;color:#60a5fa;margin:8px 0 16px;">Até 15 usuários</div>
-          <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;text-align:left;font-size:12px;color:#8a8a95;line-height:2.2;">
-            Projetos ilimitados<br>Tudo do Starter +<br>Documentos e planos<br>Insights IA automáticos<br>Notificações tempo real
-          </div>
-          <a href="https://app.bace-tech.fr" style="display:block;margin-top:20px;padding:10px;border-radius:8px;background:#60a5fa;color:#fff;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer;">Teste grátis 30 dias</a>
-        </div>
-        <!-- Enterprise -->
-        <div style="background:#142536;border:1px solid rgba(251,191,36,0.3);border-radius:16px;padding:28px 24px;text-align:center;">
-          <div style="font-size:15px;font-weight:600;color:#fbbf24;margin-bottom:12px;">Enterprise</div>
-          <div style="font-family:var(--font-d);font-size:36px;font-weight:800;color:#f0f0f5;">Sob consulta</div>
-          <div style="font-size:12px;color:#fbbf24;margin:8px 0 16px;">Usuários ilimitados</div>
-          <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;text-align:left;font-size:12px;color:#8a8a95;line-height:2.2;">
-            Tudo do Profissional +<br>Integrações sob medida<br>Suporte dedicado<br>Treinamento presencial<br>SLA garantido
-          </div>
-          <a href="https://app.bace-tech.fr" style="display:block;margin-top:20px;padding:10px;border-radius:8px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.25);color:#fbbf24;font-size:13px;font-weight:500;text-decoration:none;cursor:pointer;">Teste grátis 30 dias</a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- IMPACT SECTION -->
-  <div style="background:#111114;padding:60px 40px;grid-column:1/-1;">
-    <div style="max-width:900px;margin:0 auto;text-align:center;">
-      <div style="font-family:var(--font-d);font-size:28px;font-weight:700;color:#f0f0f5;margin-bottom:36px;">Impacto</div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;" class="impact-grid">
-        <div style="background:#18181c;border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:28px 16px;">
-          <div style="font-family:var(--font-d);font-size:40px;font-weight:800;color:#60a5fa;">70%</div>
-          <div style="font-size:12px;color:#8a8a95;margin-top:8px;line-height:1.5;">menos tempo em<br>documentação</div>
-        </div>
-        <div style="background:#18181c;border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:28px 16px;">
-          <div style="font-family:var(--font-d);font-size:40px;font-weight:800;color:#4ade80;">3x</div>
-          <div style="font-size:12px;color:#8a8a95;margin-top:8px;line-height:1.5;">mais rápido para<br>identificar padrões</div>
-        </div>
-        <div style="background:#18181c;border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:28px 16px;">
-          <div style="font-family:var(--font-d);font-size:40px;font-weight:800;color:#38bdf8;">100%</div>
-          <div style="font-size:12px;color:#8a8a95;margin-top:8px;line-height:1.5;">dos incidentes<br>rastreáveis</div>
-        </div>
-        <div style="background:#18181c;border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:28px 16px;">
-          <div style="font-family:var(--font-d);font-size:40px;font-weight:800;color:#fbbf24;">0</div>
-          <div style="font-size:12px;color:#8a8a95;margin-top:8px;line-height:1.5;">papel necessário<br>100% digital</div>
-        </div>
-      </div>
-      <div style="margin-top:32px;font-size:14px;color:#8a8a95;font-style:italic;">Desenvolvido por engenheiros, para engenheiros.</div>
-    </div>
   </div>
 
 </div>
@@ -1321,19 +1282,21 @@ var STRINGS=[
 
 try{db=supabase.createClient(SB_URL,SB_KEY);}catch(e){console.error(e);}
 
-function toggleSolutionsDropdown(){var d=document.getElementById('solutions-dropdown');if(d)d.style.display=d.style.display==='none'?'block':'none';var p=document.getElementById('pricing-dropdown');if(p)p.style.display='none';}
-function togglePricingDropdown(){var d=document.getElementById('pricing-dropdown');if(d)d.style.display=d.style.display==='none'?'block':'none';var s=document.getElementById('solutions-dropdown');if(s)s.style.display='none';}
-document.addEventListener('click',function(e){var w=document.getElementById('solutions-dropdown-wrap');var d=document.getElementById('solutions-dropdown');if(w&&d&&!w.contains(e.target))d.style.display='none';var w2=document.getElementById('pricing-dropdown-wrap');var d2=document.getElementById('pricing-dropdown');if(w2&&d2&&!w2.contains(e.target))d2.style.display='none';});
+function closeAllDropdowns(except){['solutions-dropdown','pricing-dropdown','why-dropdown'].forEach(function(id){if(id!==except){var d=document.getElementById(id);if(d)d.style.display='none';}});}
+function toggleSolutionsDropdown(){closeAllDropdowns('solutions-dropdown');var d=document.getElementById('solutions-dropdown');if(d)d.style.display=d.style.display==='none'?'block':'none';}
+function togglePricingDropdown(){closeAllDropdowns('pricing-dropdown');var d=document.getElementById('pricing-dropdown');if(d)d.style.display=d.style.display==='none'?'block':'none';}
+function toggleWhyDropdown(){closeAllDropdowns('why-dropdown');var d=document.getElementById('why-dropdown');if(d)d.style.display=d.style.display==='none'?'block':'none';}
+document.addEventListener('click',function(e){['solutions-dropdown-wrap','pricing-dropdown-wrap','why-dropdown-wrap'].forEach(function(wId,i){var w=document.getElementById(wId);var dId=['solutions-dropdown','pricing-dropdown','why-dropdown'][i];var d=document.getElementById(dId);if(w&&d&&!w.contains(e.target))d.style.display='none';});});
 
 function translateNav(){
   var t={
-    0:{home:"Home",solutions:"Solutions",pricing:"Tarification",connexion:"Connexion",contact:"Contacter un commercial",try:"Essayer Bace",capT:"Capture IA",capD:"Photo ou voix — l'IA analyse automatiquement",dashT:"Dashboard",dashD:"KPIs, insights IA et statut en temps réel",chatT:"Bace IA Chat",chatD:"Chatbot spécialisé en construction",projT:"Gestion de Projets",projD:"Chantiers organisés avec équipe et documents",docsT:"Documents",docsD:"Plans PDF indexés et analysés par l'IA",teamT:"Collaboration",teamD:"Notifications en temps réel entre l'équipe"},
-    1:{home:"Home",solutions:"Solutions",pricing:"Pricing",connexion:"Sign in",contact:"Contact sales",try:"Try Bace",capT:"AI Capture",capD:"Photo or voice — AI analyzes automatically",dashT:"Dashboard",dashD:"KPIs, AI insights and real-time status",chatT:"Bace AI Chat",chatD:"Construction-specialized chatbot",projT:"Project Management",projD:"Organized sites with team and documents",docsT:"Documents",docsD:"PDF plans indexed and analyzed by AI",teamT:"Collaboration",teamD:"Real-time notifications across the team"},
-    2:{home:"Home",solutions:"Soluções",pricing:"Preços",connexion:"Entrar",contact:"Falar com vendas",try:"Testar Bace",capT:"Captura IA",capD:"Foto ou voz — a IA analisa automaticamente",dashT:"Dashboard",dashD:"KPIs, insights IA e status em tempo real",chatT:"Bace IA Chat",chatD:"Chatbot especializado em construção",projT:"Gestão de Projetos",projD:"Canteiros organizados com equipe e documentos",docsT:"Documentos",docsD:"Planos PDF indexados e analisados pela IA",teamT:"Colaboração",teamD:"Notificações em tempo real entre a equipe"}
+    0:{home:"Home",solutions:"Solutions",pricing:"Tarification",why:"Pourquoi",connexion:"Connexion",contact:"Contacter un commercial",try:"Essayer Bace",capT:"Capture IA",capD:"Photo ou voix — l'IA analyse automatiquement",dashT:"Dashboard",dashD:"KPIs, insights IA et statut en temps réel",chatT:"Bace IA Chat",chatD:"Chatbot spécialisé en construction",projT:"Gestion de Projets",projD:"Chantiers organisés avec équipe et documents",docsT:"Documents",docsD:"Plans PDF indexés et analysés par l'IA",teamT:"Collaboration",teamD:"Notifications en temps réel entre l'équipe"},
+    1:{home:"Home",solutions:"Solutions",pricing:"Pricing",why:"Why",connexion:"Sign in",contact:"Contact sales",try:"Try Bace",capT:"AI Capture",capD:"Photo or voice — AI analyzes automatically",dashT:"Dashboard",dashD:"KPIs, AI insights and real-time status",chatT:"Bace AI Chat",chatD:"Construction-specialized chatbot",projT:"Project Management",projD:"Organized sites with team and documents",docsT:"Documents",docsD:"PDF plans indexed and analyzed by AI",teamT:"Collaboration",teamD:"Real-time notifications across the team"},
+    2:{home:"Home",solutions:"Soluções",pricing:"Preços",why:"Por quê",connexion:"Entrar",contact:"Falar com vendas",try:"Testar Bace",capT:"Captura IA",capD:"Foto ou voz — a IA analisa automaticamente",dashT:"Dashboard",dashD:"KPIs, insights IA e status em tempo real",chatT:"Bace IA Chat",chatD:"Chatbot especializado em construção",projT:"Gestão de Projetos",projD:"Canteiros organizados com equipe e documentos",docsT:"Documentos",docsD:"Planos PDF indexados e analisados pela IA",teamT:"Colaboração",teamD:"Notificações em tempo real entre a equipe"}
   };
   var l=t[lang]||t[2];
-  var ids={"nav-home":"home","nav-solutions":"solutions","nav-pricing":"pricing","nav-connexion":"connexion","nav-contact":"contact","nav-try":"try"};
-  Object.keys(ids).forEach(function(id){var el=document.getElementById(id);if(el){var v=l[ids[id]];if(id==="nav-solutions"||id==="nav-pricing")el.innerHTML=v+' <span style="font-size:10px;">&#9662;</span>';else el.textContent=v;}});
+  var ids={"nav-home":"home","nav-solutions":"solutions","nav-pricing":"pricing","nav-why":"why","nav-connexion":"connexion","nav-contact":"contact","nav-try":"try"};
+  Object.keys(ids).forEach(function(id){var el=document.getElementById(id);if(el){var v=l[ids[id]];if(id==="nav-solutions"||id==="nav-pricing"||id==="nav-why")el.innerHTML=v+' <span style="font-size:10px;">&#9662;</span>';else el.textContent=v;}});
   var sols={"sol-capture-t":"capT","sol-capture-d":"capD","sol-dash-t":"dashT","sol-dash-d":"dashD","sol-chat-t":"chatT","sol-chat-d":"chatD","sol-proj-t":"projT","sol-proj-d":"projD","sol-docs-t":"docsT","sol-docs-d":"docsD","sol-team-t":"teamT","sol-team-d":"teamD"};
   Object.keys(sols).forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=l[sols[id]];});
 }
