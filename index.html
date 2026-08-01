@@ -713,24 +713,52 @@ tr:hover td{background:rgba(255,255,255,0.02);}
     <div style="display:flex;align-items:center;gap:36px;">
       <a href="#" style="font-family:var(--font-d);font-size:16px;font-weight:600;color:#fff;text-decoration:none;letter-spacing:-0.4px;">Bace<span style="font-weight:800;color:#60a5fa;">Tech</span></a>
       <div style="display:flex;align-items:center;gap:24px;">
-        <a href="#" onclick="document.getElementById('form-login').scrollIntoView({behavior:'smooth'});return false;" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Home</a>
-        <a href="#" onclick="document.getElementById('landing-solutions').scrollIntoView({behavior:'smooth'});return false;" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Solutions</a>
-        <a href="#" onclick="document.getElementById('landing-pricing').scrollIntoView({behavior:'smooth'});return false;" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Pricing</a>
-        <a href="#" onclick="switchTab(0);document.getElementById('form-login').scrollIntoView({behavior:'smooth'});return false;" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Connexion</a>
+        <a href="#" onclick="document.getElementById('form-login').scrollIntoView({behavior:'smooth'});return false;" id="nav-home" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Home</a>
+        <!-- Solutions dropdown -->
+        <div style="position:relative;" id="solutions-dropdown-wrap">
+          <a href="#" onclick="toggleSolutionsDropdown();return false;" id="nav-solutions" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;display:flex;align-items:center;gap:4px;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Solutions <span style="font-size:10px;">&#9662;</span></a>
+          <div id="solutions-dropdown" style="display:none;position:absolute;top:32px;left:-20px;background:#18181c;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:24px;width:560px;box-shadow:0 20px 60px rgba(0,0,0,0.5);z-index:300;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+              <a onclick="toggleSolutionsDropdown();document.getElementById('landing-solutions').scrollIntoView({behavior:'smooth'});" style="display:flex;gap:10px;padding:12px;border-radius:10px;cursor:pointer;text-decoration:none;transition:background 0.12s;" onmouseover="this.style.background='rgba(96,165,250,0.06)'" onmouseout="this.style.background='none'">
+                <div style="width:32px;height:32px;border-radius:8px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-camera" style="font-size:16px;color:#60a5fa;"></i></div>
+                <div><div id="sol-capture-t" style="font-size:13px;font-weight:600;color:#f0f0f5;">Captura IA</div><div id="sol-capture-d" style="font-size:11px;color:#6a6a75;margin-top:2px;line-height:1.4;">Foto ou voz — a IA analisa automaticamente</div></div>
+              </a>
+              <a onclick="toggleSolutionsDropdown();document.getElementById('landing-solutions').scrollIntoView({behavior:'smooth'});" style="display:flex;gap:10px;padding:12px;border-radius:10px;cursor:pointer;text-decoration:none;transition:background 0.12s;" onmouseover="this.style.background='rgba(96,165,250,0.06)'" onmouseout="this.style.background='none'">
+                <div style="width:32px;height:32px;border-radius:8px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-layout-dashboard" style="font-size:16px;color:#60a5fa;"></i></div>
+                <div><div id="sol-dash-t" style="font-size:13px;font-weight:600;color:#f0f0f5;">Dashboard</div><div id="sol-dash-d" style="font-size:11px;color:#6a6a75;margin-top:2px;line-height:1.4;">KPIs, insights IA e status em tempo real</div></div>
+              </a>
+              <a onclick="toggleSolutionsDropdown();document.getElementById('landing-solutions').scrollIntoView({behavior:'smooth'});" style="display:flex;gap:10px;padding:12px;border-radius:10px;cursor:pointer;text-decoration:none;transition:background 0.12s;" onmouseover="this.style.background='rgba(96,165,250,0.06)'" onmouseout="this.style.background='none'">
+                <div style="width:32px;height:32px;border-radius:8px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-robot" style="font-size:16px;color:#60a5fa;"></i></div>
+                <div><div id="sol-chat-t" style="font-size:13px;font-weight:600;color:#f0f0f5;">Bace IA Chat</div><div id="sol-chat-d" style="font-size:11px;color:#6a6a75;margin-top:2px;line-height:1.4;">Chatbot especializado em construção</div></div>
+              </a>
+              <a onclick="toggleSolutionsDropdown();document.getElementById('landing-solutions').scrollIntoView({behavior:'smooth'});" style="display:flex;gap:10px;padding:12px;border-radius:10px;cursor:pointer;text-decoration:none;transition:background 0.12s;" onmouseover="this.style.background='rgba(96,165,250,0.06)'" onmouseout="this.style.background='none'">
+                <div style="width:32px;height:32px;border-radius:8px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-building-skyscraper" style="font-size:16px;color:#60a5fa;"></i></div>
+                <div><div id="sol-proj-t" style="font-size:13px;font-weight:600;color:#f0f0f5;">Gestão de Projetos</div><div id="sol-proj-d" style="font-size:11px;color:#6a6a75;margin-top:2px;line-height:1.4;">Canteiros organizados com equipe e documentos</div></div>
+              </a>
+              <a onclick="toggleSolutionsDropdown();document.getElementById('landing-solutions').scrollIntoView({behavior:'smooth'});" style="display:flex;gap:10px;padding:12px;border-radius:10px;cursor:pointer;text-decoration:none;transition:background 0.12s;" onmouseover="this.style.background='rgba(96,165,250,0.06)'" onmouseout="this.style.background='none'">
+                <div style="width:32px;height:32px;border-radius:8px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-files" style="font-size:16px;color:#60a5fa;"></i></div>
+                <div><div id="sol-docs-t" style="font-size:13px;font-weight:600;color:#f0f0f5;">Documentos</div><div id="sol-docs-d" style="font-size:11px;color:#6a6a75;margin-top:2px;line-height:1.4;">Planos PDF indexados e analisados pela IA</div></div>
+              </a>
+              <a onclick="toggleSolutionsDropdown();document.getElementById('landing-solutions').scrollIntoView({behavior:'smooth'});" style="display:flex;gap:10px;padding:12px;border-radius:10px;cursor:pointer;text-decoration:none;transition:background 0.12s;" onmouseover="this.style.background='rgba(96,165,250,0.06)'" onmouseout="this.style.background='none'">
+                <div style="width:32px;height:32px;border-radius:8px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-users" style="font-size:16px;color:#60a5fa;"></i></div>
+                <div><div id="sol-team-t" style="font-size:13px;font-weight:600;color:#f0f0f5;">Colaboração</div><div id="sol-team-d" style="font-size:11px;color:#6a6a75;margin-top:2px;line-height:1.4;">Notificações em tempo real entre a equipe</div></div>
+              </a>
+            </div>
+          </div>
+        </div>
+        <a href="#" onclick="document.getElementById('landing-pricing').scrollIntoView({behavior:'smooth'});return false;" id="nav-pricing" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Pricing</a>
+        <a href="#" onclick="switchTab(0);document.getElementById('form-login').scrollIntoView({behavior:'smooth'});return false;" id="nav-connexion" style="font-size:13px;color:#8a8a95;text-decoration:none;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='#f0f0f5'" onmouseout="this.style.color='#8a8a95'">Connexion</a>
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
-      <a href="mailto:contact@bace-tech.fr" style="font-size:12px;color:#f0f0f5;text-decoration:none;padding:8px 16px;border:1px solid rgba(255,255,255,0.15);border-radius:8px;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'" onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='#f0f0f5'">Contacter un commercial</a>
-      <a href="#" onclick="document.getElementById('landing-pricing').scrollIntoView({behavior:'smooth'});return false;" style="font-size:12px;color:#fff;text-decoration:none;padding:8px 16px;background:#60a5fa;border-radius:8px;font-weight:600;cursor:pointer;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Essayer Bace</a>
+      <a href="mailto:contact@bace-tech.fr" id="nav-contact" style="font-size:12px;color:#f0f0f5;text-decoration:none;padding:8px 16px;border:1px solid rgba(255,255,255,0.15);border-radius:8px;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'" onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='#f0f0f5'">Contacter un commercial</a>
+      <a href="#" onclick="document.getElementById('landing-pricing').scrollIntoView({behavior:'smooth'});return false;" id="nav-try" style="font-size:12px;color:#fff;text-decoration:none;padding:8px 16px;background:#60a5fa;border-radius:8px;font-weight:600;cursor:pointer;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Essayer Bace</a>
     </div>
   </nav>
 
   <!-- LEFT: headline + form -->
   <div class="auth-left-panel" style="display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:60px 64px;background:#111114;position:relative;overflow:hidden;">
     <div style="position:absolute;top:-150px;left:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(30,111,255,0.07) 0%,transparent 70%);pointer-events:none;"></div>
-
-    <!-- Logo -->
-    <div style="font-size:17px;font-weight:600;color:#fff;letter-spacing:-0.4px;margin-bottom:28px;font-family:var(--font-d);">Bace<span style="color:#60a5fa;font-weight:800;">Tech</span></div>
 
     <!-- Headline -->
     <div id="auth-headline-line1" class="auth-headline" style="font-size:26px;font-weight:700;color:#fff;line-height:1.2;letter-spacing:-0.5px;"></div>
@@ -1245,6 +1273,22 @@ var STRINGS=[
 
 try{db=supabase.createClient(SB_URL,SB_KEY);}catch(e){console.error(e);}
 
+function toggleSolutionsDropdown(){var d=document.getElementById('solutions-dropdown');if(d)d.style.display=d.style.display==='none'?'block':'none';}
+document.addEventListener('click',function(e){var w=document.getElementById('solutions-dropdown-wrap');var d=document.getElementById('solutions-dropdown');if(w&&d&&!w.contains(e.target))d.style.display='none';});
+
+function translateNav(){
+  var t={
+    0:{home:"Accueil",solutions:"Solutions",pricing:"Tarification",connexion:"Connexion",contact:"Contacter un commercial",try:"Essayer Bace",capT:"Capture IA",capD:"Photo ou voix — l'IA analyse automatiquement",dashT:"Dashboard",dashD:"KPIs, insights IA et statut en temps réel",chatT:"Bace IA Chat",chatD:"Chatbot spécialisé en construction",projT:"Gestion de Projets",projD:"Chantiers organisés avec équipe et documents",docsT:"Documents",docsD:"Plans PDF indexés et analysés par l'IA",teamT:"Collaboration",teamD:"Notifications en temps réel entre l'équipe"},
+    1:{home:"Home",solutions:"Solutions",pricing:"Pricing",connexion:"Sign in",contact:"Contact sales",try:"Try Bace",capT:"AI Capture",capD:"Photo or voice — AI analyzes automatically",dashT:"Dashboard",dashD:"KPIs, AI insights and real-time status",chatT:"Bace AI Chat",chatD:"Construction-specialized chatbot",projT:"Project Management",projD:"Organized sites with team and documents",docsT:"Documents",docsD:"PDF plans indexed and analyzed by AI",teamT:"Collaboration",teamD:"Real-time notifications across the team"},
+    2:{home:"Início",solutions:"Soluções",pricing:"Preços",connexion:"Entrar",contact:"Falar com vendas",try:"Testar Bace",capT:"Captura IA",capD:"Foto ou voz — a IA analisa automaticamente",dashT:"Dashboard",dashD:"KPIs, insights IA e status em tempo real",chatT:"Bace IA Chat",chatD:"Chatbot especializado em construção",projT:"Gestão de Projetos",projD:"Canteiros organizados com equipe e documentos",docsT:"Documentos",docsD:"Planos PDF indexados e analisados pela IA",teamT:"Colaboração",teamD:"Notificações em tempo real entre a equipe"}
+  };
+  var l=t[lang]||t[2];
+  var ids={"nav-home":"home","nav-solutions":"solutions","nav-pricing":"pricing","nav-connexion":"connexion","nav-contact":"contact","nav-try":"try"};
+  Object.keys(ids).forEach(function(id){var el=document.getElementById(id);if(el){var v=l[ids[id]];if(id==="nav-solutions")el.innerHTML=v+' <span style="font-size:10px;">&#9662;</span>';else el.textContent=v;}});
+  var sols={"sol-capture-t":"capT","sol-capture-d":"capD","sol-dash-t":"dashT","sol-dash-d":"dashD","sol-chat-t":"chatT","sol-chat-d":"chatD","sol-proj-t":"projT","sol-proj-d":"projD","sol-docs-t":"docsT","sol-docs-d":"docsD","sol-team-t":"teamT","sol-team-d":"teamD"};
+  Object.keys(sols).forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=l[sols[id]];});
+}
+
 function setLang(i,btn){
   lang=i;
   localStorage.setItem("bacetech_lang",i);
@@ -1276,6 +1320,7 @@ function changeLang(i){
 }
 
 function applyLang(){
+  translateNav();
   var S=STRINGS[lang];
   // Core UI IDs
   var ids={
