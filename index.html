@@ -777,7 +777,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
                 <button onclick="setLeadLang('en')" id="lead-lang-en" style="flex:1;padding:6px;border-radius:6px;border:1px solid rgba(96,165,250,0.3);background:rgba(96,165,250,0.1);color:#60a5fa;font-size:11px;font-weight:600;cursor:pointer;">English</button>
                 <button onclick="setLeadLang('pt')" id="lead-lang-pt" style="flex:1;padding:6px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);background:none;color:#8a8a95;font-size:11px;font-weight:500;cursor:pointer;">Português</button>
               </div>
-              <button onclick="downloadReport()" style="width:100%;padding:10px;border-radius:8px;background:#60a5fa;color:#fff;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-d);" id="lead-btn">Download Report</button>
+              <button onclick="downloadReport()" id="lead-btn" style="width:100%;padding:10px;border-radius:8px;background:#60a5fa;color:#fff;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-d);">Download Report</button>
             </div>
           </div>
         </div>
@@ -1292,8 +1292,26 @@ document.addEventListener('click',function(e){['home-dropdown-wrap','solutions-d
 
 var _leadLang='en';
 var _leadReportId=1;
-function showLeadForm(id){_leadReportId=id;var f=document.getElementById('lead-form');if(f)f.style.display=f.style.display==='none'?'block':'none';}
-function setLeadLang(l){_leadLang=l;var en=document.getElementById('lead-lang-en');var pt=document.getElementById('lead-lang-pt');if(l==='en'){en.style.background='rgba(96,165,250,0.1)';en.style.borderColor='rgba(96,165,250,0.3)';en.style.color='#60a5fa';pt.style.background='none';pt.style.borderColor='rgba(255,255,255,0.08)';pt.style.color='#8a8a95';}else{pt.style.background='rgba(96,165,250,0.1)';pt.style.borderColor='rgba(96,165,250,0.3)';pt.style.color='#60a5fa';en.style.background='none';en.style.borderColor='rgba(255,255,255,0.08)';en.style.color='#8a8a95';}}
+function showLeadForm(id){_leadReportId=id;var f=document.getElementById('lead-form');if(f)f.style.display=f.style.display==='none'?'block':'none';if(f&&f.style.display==='block'){setLeadLang(lang===2?'pt':'en');}}
+function setLeadLang(l){_leadLang=l;var en=document.getElementById('lead-lang-en');var pt=document.getElementById('lead-lang-pt');if(l==='en'){en.style.background='rgba(96,165,250,0.1)';en.style.borderColor='rgba(96,165,250,0.3)';en.style.color='#60a5fa';pt.style.background='none';pt.style.borderColor='rgba(255,255,255,0.08)';pt.style.color='#8a8a95';}else{pt.style.background='rgba(96,165,250,0.1)';pt.style.borderColor='rgba(96,165,250,0.3)';pt.style.color='#60a5fa';en.style.background='none';en.style.borderColor='rgba(255,255,255,0.08)';en.style.color='#8a8a95';}
+  var tx=l==='pt'?{
+    header:'BACETECH PESQUISA',cat1:'ANÁLISE DE RISCO EM CAMPO',t1:'O Estado do Risco em Canteiros de Obra: Por Que 50% dos Incidentes Não São Mitigados',dl:'PDF · 2 páginas · Download gratuito',cat2:'MODELO DE MATURIDADE',t2:'Do Papel à IA Preditiva: O ROI do Registro Automatizado em Canteiros',soon:'Em breve',formTitle:'Baixar o relatório completo',name:'Nome',email:'E-mail',company:'Empresa',btn:'Baixar Relatório'
+  }:{
+    header:'BACETECH RESEARCH',cat1:'FIELD RISK ANALYSIS',t1:'The State of On-Site Construction Risk: Why 50% of Field Incidents Go Unmitigated',dl:'PDF · 2 pages · Free download',cat2:'MATURITY MODEL',t2:'From Paper to Predictive AI: The ROI of Automated Site Logging',soon:'Coming soon',formTitle:'Download the full report',name:'Name',email:'Email',company:'Company',btn:'Download Report'
+  };
+  var el;
+  el=document.querySelector('#resources-dropdown>div:first-child');if(el)el.textContent=tx.header;
+  el=document.querySelector('#res-card-1 div:nth-child(2)>div:first-child');if(el)el.textContent=tx.cat1;
+  el=document.getElementById('res-title-1');if(el)el.textContent=tx.t1;
+  el=document.querySelector('#res-card-1 div:nth-child(2)>div:last-child');if(el)el.textContent=tx.dl;
+  var card2=document.querySelector('#resources-dropdown>div:nth-child(3)');
+  if(card2){var d2=card2.querySelectorAll('div div');if(d2[0])d2[0].textContent=tx.cat2;if(d2[1])d2[1].textContent=tx.t2;if(d2[2])d2[2].textContent=tx.soon;}
+  el=document.getElementById('lead-form-title');if(el)el.textContent=tx.formTitle;
+  el=document.getElementById('lead-name');if(el)el.placeholder=tx.name;
+  el=document.getElementById('lead-email');if(el)el.placeholder=tx.email;
+  el=document.getElementById('lead-company');if(el)el.placeholder=tx.company;
+  el=document.getElementById('lead-btn');if(el)el.textContent=tx.btn;
+}
 function downloadReport(){var name=document.getElementById('lead-name').value;var email=document.getElementById('lead-email').value;var company=document.getElementById('lead-company').value;if(!name||!email){toast('Please fill in name and email');return;}console.log('Lead captured:',{name:name,email:email,company:company,lang:_leadLang,report:_leadReportId});if(dbOk&&dbCoId){db.from('leads').insert({name:name,email:email,company:company,lang:_leadLang,report_id:_leadReportId}).then(function(){console.log('Lead saved');}).catch(function(){console.log('Lead table may not exist yet');});}var url=_leadLang==='pt'?'https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/reports/report_01_pt.pdf':'https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/reports/report_01_en.pdf';window.open(url,'_blank');document.getElementById('lead-form').innerHTML='<div style="text-align:center;padding:12px;color:#4ade80;font-size:12px;">✓ Report sent! Check your download.</div>';}
 
 function translateNav(){
