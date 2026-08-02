@@ -759,12 +759,12 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               </div>
             </div>
             <!-- Report 2 (coming soon) -->
-            <div style="display:flex;gap:14px;padding:14px;border-radius:10px;background:#142536;border:1px solid rgba(255,255,255,0.04);opacity:0.5;">
+            <div id="res-card-2" style="display:flex;gap:14px;padding:14px;border-radius:10px;background:#142536;border:1px solid rgba(255,255,255,0.04);opacity:0.5;">
               <div style="width:40px;height:40px;border-radius:8px;background:rgba(96,165,250,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-file-report" style="font-size:18px;color:#6a6a75;"></i></div>
-              <div style="flex:1;">
-                <div style="font-size:8px;color:#6a6a75;font-weight:600;margin-bottom:3px;">MATURITY MODEL</div>
+              <div style="flex:1;min-width:0;">
+                <div id="res-cat-2" style="font-size:8px;color:#6a6a75;font-weight:600;margin-bottom:3px;">MATURITY MODEL</div>
                 <div id="res-title-2" style="font-size:12px;font-weight:600;color:#8a8a95;line-height:1.4;">From Paper to Predictive AI: The ROI of Automated Site Logging</div>
-                <div style="font-size:10px;color:#6a6a75;margin-top:4px;">Coming soon</div>
+                <div id="res-soon-2" style="font-size:10px;color:#6a6a75;margin-top:4px;">Coming soon</div>
               </div>
             </div>
             <!-- Lead capture form (hidden by default) -->
@@ -1304,8 +1304,9 @@ function setLeadLang(l){_leadLang=l;var en=document.getElementById('lead-lang-en
   el=document.querySelector('#res-card-1 div:nth-child(2)>div:first-child');if(el)el.textContent=tx.cat1;
   el=document.getElementById('res-title-1');if(el)el.textContent=tx.t1;
   el=document.querySelector('#res-card-1 div:nth-child(2)>div:last-child');if(el)el.textContent=tx.dl;
-  var card2=document.querySelector('#resources-dropdown>div:nth-child(3)');
-  if(card2){var d2=card2.querySelectorAll('div div');if(d2[0])d2[0].textContent=tx.cat2;if(d2[1])d2[1].textContent=tx.t2;if(d2[2])d2[2].textContent=tx.soon;}
+  el=document.getElementById('res-cat-2');if(el)el.textContent=tx.cat2;
+  el=document.getElementById('res-title-2');if(el)el.textContent=tx.t2;
+  el=document.getElementById('res-soon-2');if(el)el.textContent=tx.soon;
   el=document.getElementById('lead-form-title');if(el)el.textContent=tx.formTitle;
   el=document.getElementById('lead-name');if(el)el.placeholder=tx.name;
   el=document.getElementById('lead-email');if(el)el.placeholder=tx.email;
