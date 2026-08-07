@@ -37,6 +37,23 @@ body.light-mode #ai-insights{background:#ffffff;border-color:rgba(0,0,0,0.08);}
 body.light-mode .chat-input-wrap{background:#ffffff;border-color:rgba(0,0,0,0.12);}
 body.light-mode #chat-input{background:#f5f5f7;color:#2d2d3f;}
 body.light-mode .mobile-tabs{background:#ffffff;border-top:1px solid rgba(0,0,0,0.08);}
+body.light-mode .auth-left-panel{background:#f5f5f7 !important;}
+body.light-mode .auth-left-panel .auth-headline{color:#1a1a2e !important;}
+body.light-mode .auth-left-panel .auth-headline:last-of-type{color:#3b82f6 !important;}
+body.light-mode #auth-subline{color:#6b7280 !important;}
+body.light-mode .auth-tab-btn{color:#6b7280 !important;}
+body.light-mode .auth-tab-btn:first-child{background:rgba(59,130,246,0.15) !important;color:#3b82f6 !important;}
+body.light-mode #landing-nav{background:#ffffff !important;border-bottom:1px solid rgba(0,0,0,0.08) !important;}
+body.light-mode #landing-nav a{color:#6b7280 !important;}
+body.light-mode #landing-nav .sidebar-logo span,body.light-mode #landing-nav>div:first-child>a{color:#1a1a2e !important;}
+body.light-mode #landing-nav>div:first-child>a span{color:#3b82f6 !important;}
+body.light-mode #nav-contact{color:#2d2d3f !important;border-color:rgba(0,0,0,0.15) !important;}
+body.light-mode #nav-lang-select{color:#6b7280 !important;border-color:rgba(0,0,0,0.15) !important;background:#fff !important;}
+body.light-mode #nav-theme-toggle{color:#6b7280 !important;border-color:rgba(0,0,0,0.15) !important;}
+body.light-mode .auth-right-panel{background:#f5f5f7 !important;}
+body.light-mode #landing-mobile-menu{background:#ffffff !important;}
+body.light-mode #landing-mobile-menu a{color:#2d2d3f !important;}
+body.light-mode #topbar-lang-select{background:#fff;border-color:rgba(0,0,0,0.12);color:#6b7280;}
 body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-height:100vh;}
 .screen{display:none;}.screen.active{display:block;}
 /* ── Mobile bottom tab bar + FAB ── */
@@ -812,10 +829,13 @@ tr:hover td{background:rgba(255,255,255,0.02);}
     <div id="nav-right-desktop" style="display:flex;align-items:center;gap:10px;">
       <a href="mailto:contact@bace-tech.fr" id="nav-contact" style="font-size:12px;color:#f0f0f5;text-decoration:none;padding:8px 16px;border:1px solid rgba(255,255,255,0.15);border-radius:8px;" onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'" onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='#f0f0f5'">Falar com vendas</a>
       <a href="https://app.bace-tech.fr" id="nav-try" style="font-size:12px;color:#fff;text-decoration:none;padding:8px 16px;background:#60a5fa;border-radius:8px;font-weight:600;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Testar Bace</a>
+      <select id="nav-lang-select" onchange="changeLang(parseInt(this.value))" style="background:none;border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#f0f0f5;font-size:11px;padding:6px 8px;cursor:pointer;outline:none;font-family:var(--font-b);"><option value="0">FR</option><option value="1">EN</option><option value="2" selected>PT</option></select>
+      <button onclick="setTheme(document.body.classList.contains('light-mode')?'dark':'light')" id="nav-theme-toggle" style="background:none;border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#f0f0f5;font-size:14px;padding:5px 8px;cursor:pointer;display:flex;align-items:center;" title="Theme"><i class="ti ti-sun-moon"></i></button>
     </div>
     <div id="landing-mobile-cta" style="display:none;align-items:center;gap:6px;">
       <a href="mailto:contact@bace-tech.fr" id="mob-cta-contact" style="font-size:9px;color:#f0f0f5;text-decoration:none;padding:5px 8px;border:1px solid rgba(255,255,255,0.15);border-radius:6px;white-space:nowrap;">Falar com vendas</a>
       <a href="https://app.bace-tech.fr" id="mob-cta-try" style="font-size:9px;color:#fff;text-decoration:none;padding:5px 8px;background:#60a5fa;border-radius:6px;font-weight:600;white-space:nowrap;">Testar Bace</a>
+      <button onclick="setTheme(document.body.classList.contains('light-mode')?'dark':'light')" style="background:none;border:1px solid rgba(255,255,255,0.15);border-radius:5px;color:#f0f0f5;font-size:13px;padding:3px 6px;cursor:pointer;display:flex;align-items:center;"><i class="ti ti-sun-moon"></i></button>
       <button onclick="toggleLandingMenu()" style="background:none;border:none;color:#f0f0f5;font-size:20px;cursor:pointer;padding:2px;margin-left:2px;"><i class="ti ti-menu-2"></i></button>
     </div>
     <!-- Mobile CTA buttons in navbar -->
@@ -988,6 +1008,8 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <i class="ti ti-bell"></i>
             <div class="bell-dot" id="bell-dot" style="display:none;"></div>
           </div>
+          <select id="topbar-lang-select" onchange="changeLang(parseInt(this.value))" style="background:var(--navy2);border:1px solid var(--border2);border-radius:6px;color:var(--text2);font-size:10px;padding:4px 6px;cursor:pointer;outline:none;font-family:var(--font-b);"><option value="0">FR</option><option value="1">EN</option><option value="2">PT</option></select>
+          <button onclick="setTheme(document.body.classList.contains('light-mode')?'dark':'light')" class="bell-btn" style="color:var(--text2);font-size:16px;cursor:pointer;background:none;border:none;padding:4px;" title="Theme"><i class="ti ti-sun-moon"></i></button>
           
         <button class="mobile-avatar" id="mobile-avatar-btn" onclick="toggleMobileProfile()" style="display:none;background:none;border:none;cursor:pointer;margin-left:4px;"><div style="width:28px;height:28px;border-radius:50%;background:rgba(96,165,250,0.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#60a5fa;" id="mob-av-initials">DM</div></button>
         </div>
@@ -1344,10 +1366,12 @@ try{db=supabase.createClient(SB_URL,SB_KEY);}catch(e){console.error(e);}
 function setTheme(t){
   if(t==='light'){document.body.classList.add('light-mode');}else{document.body.classList.remove('light-mode');}
   localStorage.setItem('bacetech_theme',t);
-  document.getElementById('theme-btn-dark').classList.toggle('active',t==='dark');
-  document.getElementById('theme-btn-light').classList.toggle('active',t==='light');
+  var bd=document.getElementById('theme-btn-dark');var bl=document.getElementById('theme-btn-light');
+  if(bd)bd.classList.toggle('active',t==='dark');if(bl)bl.classList.toggle('active',t==='light');
 }
-// Restore theme on load
+function syncLangSelects(){
+  ['nav-lang-select','topbar-lang-select'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=lang;});
+}
 (function(){var t=localStorage.getItem('bacetech_theme');if(t==='light')setTheme('light');})();
 
 function toggleLandingMenu(){var m=document.getElementById('landing-mobile-menu');if(m)m.style.display=m.style.display==='none'||!m.style.display?'block':'none';}
@@ -1449,6 +1473,7 @@ function changeLang(i){
 
 function applyLang(){
   translateNav();
+  syncLangSelects();
   var S=STRINGS[lang];
   // Core UI IDs
   var ids={
