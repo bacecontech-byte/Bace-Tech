@@ -47,7 +47,6 @@ body.light-mode #landing-nav{background:#ffffff !important;border-bottom:1px sol
 body.light-mode #landing-nav a{color:#6b7280 !important;}
 body.light-mode #landing-nav .sidebar-logo span,body.light-mode #landing-nav>div:first-child>a{color:#1a1a2e !important;}
 body.light-mode #landing-nav>div:first-child>a span{color:#3b82f6 !important;}
-body.light-mode #nav-contact{color:#2d2d3f !important;border-color:rgba(0,0,0,0.15) !important;}
 body.light-mode #nav-lang-select{color:#6b7280 !important;border-color:rgba(0,0,0,0.15) !important;background:#fff !important;}
 body.light-mode #nav-theme-toggle{color:#6b7280 !important;border-color:rgba(0,0,0,0.15) !important;}
 body.light-mode .auth-right-panel{background:#f5f5f7 !important;}
@@ -827,14 +826,12 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       </div>
     </div>
     <div id="nav-right-desktop" style="display:flex;align-items:center;gap:10px;">
-      <a href="mailto:contact@bace-tech.fr" id="nav-contact" style="font-size:12px;color:#f0f0f5;text-decoration:none;padding:8px 16px;border:1px solid rgba(255,255,255,0.15);border-radius:8px;" onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'" onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='#f0f0f5'">Falar com vendas</a>
-      <a href="https://app.bace-tech.fr" id="nav-try" style="font-size:12px;color:#fff;text-decoration:none;padding:8px 16px;background:#60a5fa;border-radius:8px;font-weight:600;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Testar Bace</a>
+      <a href="https://calendar.app.google/Kfu81DSrNPFjTe7w5" target="_blank" id="nav-demo" style="font-size:12px;color:#fff;text-decoration:none;padding:8px 16px;background:#60a5fa;border-radius:8px;font-weight:600;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Schedule a demo</a>
       <select id="nav-lang-select" onchange="changeLang(parseInt(this.value))" style="background:none;border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#f0f0f5;font-size:11px;padding:6px 8px;cursor:pointer;outline:none;font-family:var(--font-b);"><option value="0">FR</option><option value="1">EN</option><option value="2" selected>PT</option></select>
       <button onclick="setTheme(document.body.classList.contains('light-mode')?'dark':'light')" id="nav-theme-toggle" style="background:none;border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#f0f0f5;font-size:14px;padding:5px 8px;cursor:pointer;display:flex;align-items:center;" title="Theme"><i class="ti ti-sun-moon"></i></button>
     </div>
     <div id="landing-mobile-cta" style="display:none;align-items:center;gap:6px;">
-      <a href="mailto:contact@bace-tech.fr" id="mob-cta-contact" style="font-size:9px;color:#f0f0f5;text-decoration:none;padding:5px 8px;border:1px solid rgba(255,255,255,0.15);border-radius:6px;white-space:nowrap;">Falar com vendas</a>
-      <a href="https://app.bace-tech.fr" id="mob-cta-try" style="font-size:9px;color:#fff;text-decoration:none;padding:5px 8px;background:#60a5fa;border-radius:6px;font-weight:600;white-space:nowrap;">Testar Bace</a>
+      <a href="https://calendar.app.google/Kfu81DSrNPFjTe7w5" target="_blank" id="mob-cta-demo" style="font-size:9px;color:#fff;text-decoration:none;padding:5px 8px;background:#60a5fa;border-radius:6px;font-weight:600;white-space:nowrap;">Schedule a demo</a>
       <button onclick="setTheme(document.body.classList.contains('light-mode')?'dark':'light')" style="background:none;border:1px solid rgba(255,255,255,0.15);border-radius:5px;color:#f0f0f5;font-size:13px;padding:3px 6px;cursor:pointer;display:flex;align-items:center;"><i class="ti ti-sun-moon"></i></button>
       <button onclick="toggleLandingMenu()" style="background:none;border:none;color:#f0f0f5;font-size:20px;cursor:pointer;padding:2px;margin-left:2px;"><i class="ti ti-menu-2"></i></button>
     </div>
@@ -1420,12 +1417,12 @@ function downloadReport(){var name=document.getElementById('lead-name').value;va
 
 function translateNav(){
   var t={
-    0:{home:"Home",solutions:"Solutions",pricing:"Plans",connexion:"Connexion",resources:"Ressources",contact:"Contacter un commercial",try:"Essayer Bace",capT:"Capture IA",capD:"Photo ou voix — l'IA analyse automatiquement",dashT:"Dashboard",dashD:"KPIs, insights IA et statut en temps réel",chatT:"Bace IA Chat",chatD:"Chatbot spécialisé en construction",projT:"Gestion de Projets",projD:"Chantiers organisés avec équipe et documents",docsT:"Documents",docsD:"Plans PDF indexés et analysés par l'IA",teamT:"Collaboration",teamD:"Notifications en temps réel entre l'équipe"},
-    1:{home:"Home",solutions:"Solutions",pricing:"Plans",connexion:"Sign in",resources:"Resources",contact:"Contact sales",try:"Try Bace",capT:"AI Capture",capD:"Photo or voice — AI analyzes automatically",dashT:"Dashboard",dashD:"KPIs, AI insights and real-time status",chatT:"Bace AI Chat",chatD:"Construction-specialized chatbot",projT:"Project Management",projD:"Organized sites with team and documents",docsT:"Documents",docsD:"PDF plans indexed and analyzed by AI",teamT:"Collaboration",teamD:"Real-time notifications across the team"},
-    2:{home:"Home",solutions:"Soluções",pricing:"Planos",connexion:"Entrar",resources:"Recursos",contact:"Falar com vendas",try:"Testar Bace",capT:"Captura IA",capD:"Foto ou voz — a IA analisa automaticamente",dashT:"Dashboard",dashD:"KPIs, insights IA e status em tempo real",chatT:"Bace IA Chat",chatD:"Chatbot especializado em construção",projT:"Gestão de Projetos",projD:"Canteiros organizados com equipe e documentos",docsT:"Documentos",docsD:"Planos PDF indexados e analisados pela IA",teamT:"Colaboração",teamD:"Notificações em tempo real entre a equipe"}
+    0:{home:"Home",solutions:"Solutions",pricing:"Plans",connexion:"Connexion",resources:"Ressources",demo:"Réserver une démo",capT:"Capture IA",capD:"Photo ou voix — l'IA analyse automatiquement",dashT:"Dashboard",dashD:"KPIs, insights IA et statut en temps réel",chatT:"Bace IA Chat",chatD:"Chatbot spécialisé en construction",projT:"Gestion de Projets",projD:"Chantiers organisés avec équipe et documents",docsT:"Documents",docsD:"Plans PDF indexés et analysés par l'IA",teamT:"Collaboration",teamD:"Notifications en temps réel entre l'équipe"},
+    1:{home:"Home",solutions:"Solutions",pricing:"Plans",connexion:"Sign in",resources:"Resources",demo:"Schedule a demo",capT:"AI Capture",capD:"Photo or voice — AI analyzes automatically",dashT:"Dashboard",dashD:"KPIs, AI insights and real-time status",chatT:"Bace AI Chat",chatD:"Construction-specialized chatbot",projT:"Project Management",projD:"Organized sites with team and documents",docsT:"Documents",docsD:"PDF plans indexed and analyzed by AI",teamT:"Collaboration",teamD:"Real-time notifications across the team"},
+    2:{home:"Home",solutions:"Soluções",pricing:"Planos",connexion:"Entrar",resources:"Recursos",demo:"Agendar uma demo",capT:"Captura IA",capD:"Foto ou voz — a IA analisa automaticamente",dashT:"Dashboard",dashD:"KPIs, insights IA e status em tempo real",chatT:"Bace IA Chat",chatD:"Chatbot especializado em construção",projT:"Gestão de Projetos",projD:"Canteiros organizados com equipe e documentos",docsT:"Documentos",docsD:"Planos PDF indexados e analisados pela IA",teamT:"Colaboração",teamD:"Notificações em tempo real entre a equipe"}
   };
   var l=t[lang]||t[2];
-  var ids={"nav-home":"home","nav-solutions":"solutions","nav-pricing":"pricing","nav-resources":"resources","nav-connexion":"connexion","nav-contact":"contact","nav-try":"try"};
+  var ids={"nav-home":"home","nav-solutions":"solutions","nav-pricing":"pricing","nav-resources":"resources","nav-demo":"demo"};
   Object.keys(ids).forEach(function(id){var el=document.getElementById(id);if(el){var v=l[ids[id]];if(id==="nav-home"||id==="nav-solutions"||id==="nav-pricing"||id==="nav-resources")el.innerHTML=v+' <span style="font-size:10px;">&#9662;</span>';else el.textContent=v;}});
   var sols={"sol-capture-t":"capT","sol-capture-d":"capD","sol-dash-t":"dashT","sol-dash-d":"dashD","sol-chat-t":"chatT","sol-chat-d":"chatD","sol-proj-t":"projT","sol-proj-d":"projD","sol-docs-t":"docsT","sol-docs-d":"docsD","sol-team-t":"teamT","sol-team-d":"teamD"};
   Object.keys(sols).forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=l[sols[id]];});
@@ -1437,8 +1434,7 @@ function translateNav(){
   var mobSol=document.getElementById("mob-menu-solutions");if(mobSol)mobSol.innerHTML=l.solutions+" &#9662;";
   var mobPri=document.getElementById("mob-menu-pricing");if(mobPri)mobPri.innerHTML=l.pricing+" &#9662;";
   var mobRes=document.getElementById("mob-menu-resources");if(mobRes)mobRes.innerHTML=l.resources+' &#9662;';
-  var mobCtaC=document.getElementById("mob-cta-contact");if(mobCtaC)mobCtaC.textContent=l.contact;
-  var mobCtaT=document.getElementById("mob-cta-try");if(mobCtaT)mobCtaT.textContent=l.try;
+  var mobCtaD=document.getElementById("mob-cta-demo");if(mobCtaD)mobCtaD.textContent=l.demo;
 }
 
 function setLang(i,btn){
