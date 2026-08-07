@@ -12,6 +12,31 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{--navy:#111114;--navy2:#18181c;--navy3:#222228;--blue:#60a5fa;--blue2:#7db8f0;--blue-light:rgba(96,165,250,0.08);--white:#f0f0f5;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.1);--text:#d0d0da;--text2:#8a8a95;--text3:#6a6a75;--green:#4ade80;--orange:#fbbf24;--red:#f87171;--font-d:"Syne",sans-serif;--font-b:"DM Sans",sans-serif;}
+body.light-mode{--navy:#f5f5f7;--navy2:#ffffff;--navy3:#eaeaef;--blue:#3b82f6;--blue2:#2563eb;--blue-light:rgba(59,130,246,0.06);--white:#1a1a2e;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.12);--text:#2d2d3f;--text2:#6b7280;--text3:#9ca3af;--green:#16a34a;--orange:#d97706;--red:#dc2626;}
+body.light-mode .sidebar{background:#ffffff;border-right:1px solid rgba(0,0,0,0.08);}
+body.light-mode .sidebar-logo span{color:#1a1a2e !important;}
+body.light-mode .sidebar-logo span:last-child{color:#3b82f6 !important;}
+body.light-mode .app-topbar{background:#ffffff;border-bottom:1px solid rgba(0,0,0,0.08);}
+body.light-mode .sidebar-link{color:#6b7280;}
+body.light-mode .sidebar-link.active{background:rgba(59,130,246,0.08);color:#3b82f6;}
+body.light-mode .sidebar-link:hover{background:rgba(0,0,0,0.04);}
+body.light-mode .kpi{background:#ffffff;border:1px solid rgba(0,0,0,0.08);}
+body.light-mode .dash-card{background:#ffffff;border:1px solid rgba(0,0,0,0.08);}
+body.light-mode .inc-item{border-bottom:1px solid rgba(0,0,0,0.06);}
+body.light-mode .inc-item:hover{background:rgba(0,0,0,0.02);}
+body.light-mode .form-input,body.light-mode .form-select{background:#f5f5f7;border-color:rgba(0,0,0,0.12);color:#2d2d3f;}
+body.light-mode .form-input::placeholder{color:#9ca3af;}
+body.light-mode .msg.bot .msg-bubble{background:#f0f0f3;color:#2d2d3f;}
+body.light-mode .msg.user .msg-bubble{background:#3b82f6;}
+body.light-mode .doc-upload-zone{border-color:rgba(0,0,0,0.15);background:#fafafa;}
+body.light-mode .doc-upload-zone:hover{background:rgba(59,130,246,0.04);border-color:#3b82f6;}
+body.light-mode .settings-panel{background:#ffffff;border:1px solid rgba(0,0,0,0.08);}
+body.light-mode .user-avatar{background:rgba(59,130,246,0.1);color:#3b82f6;}
+body.light-mode .modal-overlay>div{background:#ffffff;border:1px solid rgba(0,0,0,0.08);}
+body.light-mode #ai-insights{background:#ffffff;border-color:rgba(0,0,0,0.08);}
+body.light-mode .chat-input-wrap{background:#ffffff;border-color:rgba(0,0,0,0.12);}
+body.light-mode #chat-input{background:#f5f5f7;color:#2d2d3f;}
+body.light-mode .mobile-tabs{background:#ffffff;border-top:1px solid rgba(0,0,0,0.08);}
 body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-height:100vh;}
 .screen{display:none;}.screen.active{display:block;}
 /* ── Mobile bottom tab bar + FAB ── */
@@ -839,9 +864,9 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       </div>
       <!-- Report 2 -->
       <div onclick="toggleMobSection('mob-lead-form')" style="padding:12px;border-radius:10px;background:#142536;border:1px solid rgba(255,255,255,0.04);margin-bottom:10px;cursor:pointer;">
-        <div style="font-size:8px;color:#6a6a75;font-weight:600;margin-bottom:3px;" id="mob-res-cat2">MATURITY MODEL</div>
-        <div style="font-size:12px;font-weight:600;color:#8a8a95;line-height:1.4;" id="mob-res-title2">From Paper to Predictive AI: The ROI of Automated Site Logging</div>
-        <div style="font-size:10px;color:#6a6a75;margin-top:4px;" id="mob-res-soon2">Coming soon</div>
+        <div style="font-size:8px;color:#60a5fa;font-weight:600;margin-bottom:3px;" id="mob-res-cat2">MATURITY MODEL</div>
+        <div style="font-size:12px;font-weight:600;color:#f0f0f5;line-height:1.4;" id="mob-res-title2">From Paper to Predictive AI: The ROI of Automated Site Logging</div>
+        <div style="font-size:10px;color:#6a6a75;margin-top:4px;" id="mob-res-soon2">PDF · 6 pages · Free download</div>
       </div>
       <!-- Mobile lead form -->
       <div id="mob-lead-form" style="display:none;padding:14px;border-radius:10px;background:#111114;border:1px solid rgba(96,165,250,0.15);">
@@ -1272,6 +1297,14 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <button onclick="changeLang(2)" id="pp-lang-2" class="lang-pref-btn" style="padding:9px;font-size:12px">&#x1F1E7;&#x1F1F7; PT</button>
       </div>
     </div>
+    <!-- Theme toggle -->
+    <div style="margin-bottom:20px">
+      <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px" id="pp-theme-label">Theme</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button onclick="setTheme('dark')" id="theme-btn-dark" class="lang-pref-btn active" style="padding:9px;font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-moon" style="font-size:14px"></i> Dark</button>
+        <button onclick="setTheme('light')" id="theme-btn-light" class="lang-pref-btn" style="padding:9px;font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-sun" style="font-size:14px"></i> Light</button>
+      </div>
+    </div>
     <!-- AI Status -->
     <div style="font-size:12px;color:var(--green);padding:8px 12px;border-radius:8px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);margin-bottom:16px">&#x2705; <span id="pp-ai-status">IA active et sécurisée</span></div>
     <!-- Settings -->
@@ -1308,6 +1341,15 @@ var STRINGS=[
 
 try{db=supabase.createClient(SB_URL,SB_KEY);}catch(e){console.error(e);}
 
+function setTheme(t){
+  if(t==='light'){document.body.classList.add('light-mode');}else{document.body.classList.remove('light-mode');}
+  localStorage.setItem('bacetech_theme',t);
+  document.getElementById('theme-btn-dark').classList.toggle('active',t==='dark');
+  document.getElementById('theme-btn-light').classList.toggle('active',t==='light');
+}
+// Restore theme on load
+(function(){var t=localStorage.getItem('bacetech_theme');if(t==='light')setTheme('light');})();
+
 function toggleLandingMenu(){var m=document.getElementById('landing-mobile-menu');if(m)m.style.display=m.style.display==='none'||!m.style.display?'block':'none';}
 function toggleMobSection(id){var el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'||!el.style.display?'block':'none';}
 function closeAllDropdowns(except){['home-dropdown','solutions-dropdown','pricing-dropdown','resources-dropdown'].forEach(function(id){if(id!==except){var d=document.getElementById(id);if(d)d.style.display='none';}});}
@@ -1325,7 +1367,7 @@ function setMobLeadLang(l){_mobLeadLang=l;var en=document.getElementById('mob-le
   var ph={'mob-lead-name':'name','mob-lead-email':'email','mob-lead-company':'company'};
   Object.keys(ph).forEach(function(id){var el=document.getElementById(id);if(el)el.placeholder=tx[ph[id]];});
 }
-function downloadMobReport(){var name=document.getElementById('mob-lead-name').value;var email=document.getElementById('mob-lead-email').value;var company=document.getElementById('mob-lead-company').value;if(!name||!email){toast('Please fill in name and email');return;}console.log('Mobile lead:',{name:name,email:email,company:company,lang:_mobLeadLang});if(dbOk&&dbCoId){db.from('leads').insert({name:name,email:email,company:company,lang:_mobLeadLang,report_id:1}).then(function(){}).catch(function(){});}var url=_mobLeadLang==='pt'?'https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/reports/report_01_pt.pdf':'https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/reports/report_01_en.pdf';window.open(url,'_blank');document.getElementById('mob-lead-form').innerHTML='<div style="text-align:center;padding:12px;color:#4ade80;font-size:13px;">✓ Report sent!</div>';}
+function downloadMobReport(){var name=document.getElementById('mob-lead-name').value;var email=document.getElementById('mob-lead-email').value;var company=document.getElementById('mob-lead-company').value;if(!name||!email){toast('Please fill in name and email');return;}console.log('Mobile lead:',{name:name,email:email,company:company,lang:_mobLeadLang});if(dbOk&&dbCoId){db.from('leads').insert({name:name,email:email,company:company,lang:_mobLeadLang,report_id:1}).then(function(){}).catch(function(){});}var rpt='report_01';var url=_mobLeadLang==='pt'?'https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/reports/'+rpt+'_pt.pdf':'https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/reports/'+rpt+'_en.pdf';window.open(url,'_blank');document.getElementById('mob-lead-form').innerHTML='<div style="text-align:center;padding:12px;color:#4ade80;font-size:13px;">✓ Report sent!</div>';}
 
 var _leadLang='en';
 var _leadReportId=1;
