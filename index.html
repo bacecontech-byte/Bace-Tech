@@ -946,10 +946,16 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 
 <!-- ═══ CONTENT PAGE (About/Solutions/Plans/Resources) ═══ -->
 <div id="s-content" class="screen" style="display:none;min-height:100vh;background:var(--navy);">
-  <!-- Content page header -->
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:56px;background:var(--navy2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;">
-    <a href="#" onclick="showAuthPage();return false;" style="font-family:var(--font-d);font-size:16px;font-weight:600;color:var(--white);text-decoration:none;letter-spacing:-0.4px;cursor:pointer;">Bace<span style="font-weight:800;color:#60a5fa;">Tech</span></a>
-    <div style="display:flex;align-items:center;gap:12px;">
+  <!-- Content page header with tabs inline -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:56px;background:var(--navy2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;" id="content-header">
+    <a href="#" onclick="showAuthPage();return false;" style="font-family:var(--font-d);font-size:16px;font-weight:600;color:var(--white);text-decoration:none;letter-spacing:-0.4px;cursor:pointer;flex-shrink:0;">Bace<span style="font-weight:800;color:#60a5fa;">Tech</span></a>
+    <div style="display:flex;align-items:center;gap:0;" id="content-tabs">
+      <button onclick="showContentTab(0)" class="content-tab active" id="ctab-0">About us</button>
+      <button onclick="showContentTab(1)" class="content-tab" id="ctab-1">Solutions</button>
+      <button onclick="showContentTab(2)" class="content-tab" id="ctab-2">Plans</button>
+      <button onclick="showContentTab(3)" class="content-tab" id="ctab-3">Resources</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
       <a href="https://calendar.app.google/Kfu81DSrNPFjTe7w5" target="_blank" id="content-demo-btn" style="font-size:12px;color:#fff;text-decoration:none;padding:8px 20px;background:#60a5fa;border-radius:8px;font-weight:600;">Schedule a demo</a>
       <div style="display:flex;align-items:center;gap:4px;">
         <span onclick="changeLang(1)" style="cursor:pointer;font-size:16px;opacity:0.5;" id="cflag-en">🇬🇧</span>
@@ -958,14 +964,6 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       </div>
       <button onclick="setTheme(document.body.classList.contains('light-mode')?'dark':'light')" style="background:none;border:none;color:var(--text2);font-size:16px;padding:4px;cursor:pointer;"><i class="ti ti-sun-moon"></i></button>
     </div>
-  </div>
-
-  <!-- Tab bar -->
-  <div style="background:var(--navy2);border-bottom:1px solid var(--border);padding:0 40px;display:flex;align-items:center;justify-content:center;gap:0;" id="content-tabs">
-    <button onclick="showContentTab(0)" class="content-tab active" id="ctab-0">About us</button>
-    <button onclick="showContentTab(1)" class="content-tab" id="ctab-1">Solutions</button>
-    <button onclick="showContentTab(2)" class="content-tab" id="ctab-2">Plans</button>
-    <button onclick="showContentTab(3)" class="content-tab" id="ctab-3">Resources</button>
   </div>
 
   <!-- TAB 0: About Us -->
@@ -1593,9 +1591,14 @@ function showContentPage(tabIdx){
   window.scrollTo(0,0);
 }
 function showAuthPage(){
-  document.getElementById('s-auth').style.display='block';
+  document.getElementById('s-auth').style.display='grid';
   document.getElementById('s-content').style.display='none';
   window.scrollTo(0,0);
+  // Restart animation
+  renderFeatTabs();
+  renderFeatPreview(currentFeat);
+  clearInterval(featTimer);
+  featTimer=setInterval(autoNextFeat,4000);
 }
 function showContentTab(idx){
   for(var i=0;i<4;i++){
@@ -2165,13 +2168,11 @@ function applyAuthLang(){
   if(l1)l1.textContent=h.l1;
   if(l2)l2.textContent=h.l2;
   if(sub)sub.textContent=h.sub;
-  // Tab buttons
   var S=STRINGS[lang];
   var ta=document.getElementById("tab-a");
   var tb=document.getElementById("tab-b");
   if(ta)ta.textContent=S.tabA||"Connexion";
   if(tb)tb.textContent=S.tabB||"Créer un compte";
-  // Login button
   var bl=document.getElementById("btn-login");
   if(bl)bl.textContent=S.btnLogin||"Se connecter";
   var bs=document.getElementById("btn-signup");
@@ -2179,6 +2180,9 @@ function applyAuthLang(){
 
   renderFeatTabs();
   renderFeatPreview(currentFeat);
+  // Always restart auto-rotation timer
+  clearInterval(featTimer);
+  featTimer=setInterval(autoNextFeat,4000);
 }
 
 function autoNextFeat(){
