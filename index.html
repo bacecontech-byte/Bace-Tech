@@ -692,6 +692,10 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   .pricing-grid{grid-template-columns:1fr !important;}
   .impact-grid{grid-template-columns:1fr 1fr !important;}
   .about-grid{grid-template-columns:1fr !important;}
+  .about-hero-grid{grid-template-columns:1fr !important;}
+  .about-hero-grid>div:first-child{padding:32px 20px !important;}
+  .about-hero-grid>div:first-child>div:first-child{font-size:32px !important;}
+  .about-values{padding:32px 20px !important;}
   .impact-grid-content{grid-template-columns:1fr 1fr !important;}
   .sol-grid{grid-template-columns:1fr !important;}
   .plan-grid{grid-template-columns:1fr !important;}
@@ -953,45 +957,109 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   </div>
 
   <!-- TAB 0: About Us -->
-  <div id="content-panel-0" class="content-panel" style="padding:60px 40px;">
-    <div style="max-width:900px;margin:0 auto;">
-      <!-- Hero -->
-      <div style="text-align:center;margin-bottom:48px;">
-        <div style="font-family:var(--font-d);font-size:42px;font-weight:800;color:var(--white);line-height:1.15;margin-bottom:12px;" id="about-title">Viu, registrou.<br><span style="color:#60a5fa;">Nunca mais se perde.</span></div>
-        <div style="font-size:16px;color:var(--text2);max-width:600px;margin:0 auto;line-height:1.6;" id="about-sub">A plataforma de inteligência artificial que transforma a gestão de qualidade e segurança na construção civil.</div>
+  <div id="content-panel-0" class="content-panel" style="padding:0;">
+    <!-- Hero section -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;min-height:calc(100vh - 100px);" class="about-hero-grid">
+      <!-- Left: headline -->
+      <div style="display:flex;flex-direction:column;justify-content:center;padding:60px 60px 60px 80px;">
+        <div style="font-family:var(--font-d);font-size:52px;font-weight:800;color:var(--white);line-height:1.1;letter-spacing:-1px;margin-bottom:20px;" id="about-headline">Meet your<br>construction<br>buddy.</div>
+        <div style="font-size:17px;color:var(--text2);line-height:1.6;max-width:440px;margin-bottom:40px;" id="about-hero-sub">Capture, analyze, and resolve site incidents with AI — in under 60 seconds.</div>
+        <a href="https://calendar.app.google/Kfu81DSrNPFjTe7w5" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:#60a5fa;color:#fff;padding:14px 28px;border-radius:10px;font-size:15px;font-weight:600;text-decoration:none;width:fit-content;font-family:var(--font-d);transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'" id="about-cta">Schedule a demo <span style="font-size:18px;">→</span></a>
       </div>
-      <!-- Vision -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:48px;" class="about-grid">
-        <div style="background:var(--navy2);border:1px solid var(--border);border-radius:16px;padding:32px;">
-          <div style="font-size:13px;color:#60a5fa;font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;" id="about-vision-label">Nossa Visão</div>
-          <div style="font-size:14px;color:var(--text);line-height:1.7;" id="about-vision">Acreditamos que cada incidente em um canteiro de obras é uma oportunidade de aprendizado. O problema é que a maioria nunca é registrada. BaceTech muda isso — transformando cada foto, cada observação verbal e cada registro em conhecimento institucional que torna cada projeto mais seguro que o anterior.</div>
+      <!-- Right: network visualization -->
+      <div style="display:flex;align-items:center;justify-content:center;padding:40px;position:relative;overflow:hidden;">
+        <svg viewBox="0 0 500 500" width="100%" style="max-width:480px;">
+          <!-- Connection lines -->
+          <line x1="250" y1="250" x2="120" y2="80" stroke="var(--border2)" stroke-width="1"/>
+          <line x1="250" y1="250" x2="400" y2="100" stroke="var(--border2)" stroke-width="1"/>
+          <line x1="250" y1="250" x2="80" y2="250" stroke="var(--border2)" stroke-width="1"/>
+          <line x1="250" y1="250" x2="420" y2="280" stroke="var(--border2)" stroke-width="1"/>
+          <line x1="250" y1="250" x2="140" y2="400" stroke="var(--border2)" stroke-width="1"/>
+          <line x1="250" y1="250" x2="380" y2="420" stroke="var(--border2)" stroke-width="1"/>
+          <line x1="250" y1="250" x2="250" y2="80" stroke="var(--border2)" stroke-width="1"/>
+          <line x1="250" y1="250" x2="430" y2="180" stroke="var(--border2)" stroke-width="1"/>
+          <line x1="250" y1="250" x2="70" y2="160" stroke="var(--border2)" stroke-width="1"/>
+          <line x1="250" y1="250" x2="250" y2="440" stroke="var(--border2)" stroke-width="1"/>
+          <line x1="250" y1="250" x2="80" y2="340" stroke="var(--border2)" stroke-width="1"/>
+          <line x1="250" y1="250" x2="420" y2="370" stroke="var(--border2)" stroke-width="1"/>
+          <!-- Center logo -->
+          <circle cx="250" cy="250" r="48" fill="#60a5fa" opacity="0.12"/>
+          <text x="215" y="255" font-family="Syne,sans-serif" font-weight="600" font-size="16" fill="var(--white)">Bace</text>
+          <text x="265" y="255" font-family="Syne,sans-serif" font-weight="800" font-size="16" fill="#60a5fa">Tech</text>
+          <!-- Surrounding terms -->
+          <text x="100" y="75" font-size="14" fill="var(--text2)" font-family="DM Sans,sans-serif" font-weight="600">Safety</text>
+          <text x="370" y="95" font-size="13" fill="var(--text2)" font-family="DM Sans,sans-serif">Compliance</text>
+          <text x="20" y="255" font-size="14" fill="var(--text2)" font-family="DM Sans,sans-serif" font-weight="600">Quality</text>
+          <text x="390" y="285" font-size="13" fill="var(--text2)" font-family="DM Sans,sans-serif">Documentation</text>
+          <text x="100" y="410" font-size="13" fill="var(--text2)" font-family="DM Sans,sans-serif">AI Analysis</text>
+          <text x="350" y="430" font-size="14" fill="var(--text2)" font-family="DM Sans,sans-serif" font-weight="600">Norms</text>
+          <text x="220" y="72" font-size="14" fill="var(--text2)" font-family="DM Sans,sans-serif" font-weight="600">Incidents</text>
+          <text x="395" y="178" font-size="13" fill="var(--text2)" font-family="DM Sans,sans-serif">Photo Capture</text>
+          <text x="20" y="158" font-size="13" fill="var(--text2)" font-family="DM Sans,sans-serif">Voice Logging</text>
+          <text x="200" y="450" font-size="13" fill="var(--text2)" font-family="DM Sans,sans-serif">Reports</text>
+          <text x="30" y="345" font-size="14" fill="var(--text2)" font-family="DM Sans,sans-serif" font-weight="600">Projects</text>
+          <text x="388" y="375" font-size="13" fill="var(--text2)" font-family="DM Sans,sans-serif">Dashboard</text>
+          <!-- Accent dots -->
+          <circle cx="120" cy="80" r="4" fill="#60a5fa" opacity="0.4"/>
+          <circle cx="400" cy="100" r="4" fill="#4ade80" opacity="0.4"/>
+          <circle cx="80" cy="250" r="4" fill="#60a5fa" opacity="0.4"/>
+          <circle cx="420" cy="280" r="4" fill="#fbbf24" opacity="0.4"/>
+          <circle cx="140" cy="400" r="4" fill="#38bdf8" opacity="0.4"/>
+          <circle cx="380" cy="420" r="4" fill="#60a5fa" opacity="0.4"/>
+          <circle cx="250" cy="80" r="4" fill="#f87171" opacity="0.4"/>
+          <circle cx="430" cy="180" r="4" fill="#4ade80" opacity="0.4"/>
+          <circle cx="70" cy="160" r="4" fill="#fbbf24" opacity="0.4"/>
+          <circle cx="250" cy="440" r="4" fill="#38bdf8" opacity="0.4"/>
+          <circle cx="80" cy="340" r="4" fill="#60a5fa" opacity="0.4"/>
+          <circle cx="420" cy="370" r="4" fill="#4ade80" opacity="0.4"/>
+        </svg>
+      </div>
+    </div>
+    <!-- Value propositions -->
+    <div style="padding:60px 80px;border-top:1px solid var(--border);" class="about-values">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:60px;" class="about-grid">
+        <div>
+          <!-- Value 1 -->
+          <div style="margin-bottom:48px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;"><i class="ti ti-camera" style="font-size:22px;color:#60a5fa;"></i><div style="font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--white);" id="v1-title">Capture what matters, instantly</div></div>
+            <div style="font-size:14px;color:var(--text2);line-height:1.7;padding-left:34px;" id="v1-desc">Photo or voice — BaceTech turns a 30-minute paper report into a 60-second AI-analyzed incident record. Description, probable cause, recommended solution, and applicable norms — all generated automatically.</div>
+          </div>
+          <div style="border-top:1px solid var(--border);margin-bottom:48px;"></div>
+          <!-- Value 2 -->
+          <div style="margin-bottom:48px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;"><i class="ti ti-brain" style="font-size:22px;color:#60a5fa;"></i><div style="font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--white);" id="v2-title">Build institutional memory</div></div>
+            <div style="font-size:14px;color:var(--text2);line-height:1.7;padding-left:34px;" id="v2-desc">Every incident captured becomes searchable knowledge. After 90 days, BaceTech identifies patterns humans miss — recurring categories, high-risk trades, projects that need attention. Your next project starts smarter than your last.</div>
+          </div>
+          <div style="border-top:1px solid var(--border);margin-bottom:48px;"></div>
+          <!-- Value 3 -->
+          <div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;"><i class="ti ti-shield-check" style="font-size:22px;color:#60a5fa;"></i><div style="font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--white);" id="v3-title">Stay compliant, stay protected</div></div>
+            <div style="font-size:14px;color:var(--text2);line-height:1.7;padding-left:34px;" id="v3-desc">Every record is timestamped, geotagged, and audit-ready. BaceTech automatically references applicable norms (ABNT NBR, NRs, DTU) — so when inspectors or lawyers come knocking, your documentation speaks for itself.</div>
+          </div>
         </div>
-        <div style="background:var(--navy2);border:1px solid var(--border);border-radius:16px;padding:32px;">
-          <div style="font-size:13px;color:#60a5fa;font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;" id="about-concept-label">O Conceito</div>
-          <div style="font-size:14px;color:var(--text);line-height:1.7;" id="about-concept">Capture um incidente em menos de 60 segundos — por foto ou voz. A IA analisa automaticamente: descrição, causa provável, solução recomendada e normas aplicáveis (ABNT NBR, NRs, DTU). Sem papel, sem WhatsApp, sem perda de informação. Tudo centralizado, rastreável e pesquisável.</div>
+        <!-- Right: Impact metrics -->
+        <div style="display:flex;flex-direction:column;justify-content:center;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div style="background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:28px 20px;text-align:center;">
+              <div style="font-family:var(--font-d);font-size:40px;font-weight:800;color:#60a5fa;">70%</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:8px;" id="imp-1">less time documenting</div>
+            </div>
+            <div style="background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:28px 20px;text-align:center;">
+              <div style="font-family:var(--font-d);font-size:40px;font-weight:800;color:#4ade80;">3x</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:8px;" id="imp-2">faster pattern detection</div>
+            </div>
+            <div style="background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:28px 20px;text-align:center;">
+              <div style="font-family:var(--font-d);font-size:40px;font-weight:800;color:#38bdf8;">100%</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:8px;" id="imp-3">incidents traceable</div>
+            </div>
+            <div style="background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:28px 20px;text-align:center;">
+              <div style="font-family:var(--font-d);font-size:40px;font-weight:800;color:#fbbf24;">0</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:8px;" id="imp-4">paper needed — 100% digital</div>
+            </div>
+          </div>
+          <div style="text-align:center;margin-top:24px;font-size:14px;color:var(--text3);font-style:italic;" id="about-tagline">Built by engineers, for engineers.</div>
         </div>
       </div>
-      <!-- Impact metrics -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:48px;" class="impact-grid-content">
-        <div style="background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:28px 16px;text-align:center;">
-          <div style="font-family:var(--font-d);font-size:40px;font-weight:800;color:#60a5fa;">70%</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:8px;line-height:1.5;" id="imp-1">menos tempo em documentação</div>
-        </div>
-        <div style="background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:28px 16px;text-align:center;">
-          <div style="font-family:var(--font-d);font-size:40px;font-weight:800;color:#4ade80;">3x</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:8px;line-height:1.5;" id="imp-2">mais rápido para identificar padrões</div>
-        </div>
-        <div style="background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:28px 16px;text-align:center;">
-          <div style="font-family:var(--font-d);font-size:40px;font-weight:800;color:#38bdf8;">100%</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:8px;line-height:1.5;" id="imp-3">dos incidentes rastreáveis</div>
-        </div>
-        <div style="background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:28px 16px;text-align:center;">
-          <div style="font-family:var(--font-d);font-size:40px;font-weight:800;color:#fbbf24;">0</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:8px;line-height:1.5;" id="imp-4">papel necessário — 100% digital</div>
-        </div>
-      </div>
-      <!-- Tagline -->
-      <div style="text-align:center;font-size:16px;color:var(--text2);font-style:italic;" id="about-tagline">Desenvolvido por engenheiros, para engenheiros.</div>
     </div>
   </div>
 
