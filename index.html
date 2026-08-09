@@ -707,6 +707,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   footer{padding:40px 24px 24px !important;}
   .impact-grid-content{grid-template-columns:1fr 1fr !important;}
   .sol-grid{grid-template-columns:1fr !important;}
+  .sol-columns{grid-template-columns:1fr 1fr !important;gap:32px !important;}
   .plan-grid{grid-template-columns:1fr !important;}
   .res-grid{grid-template-columns:1fr !important;}
   #content-tabs{padding:0 16px !important;gap:0 !important;overflow-x:auto;}
@@ -1094,23 +1095,65 @@ tr:hover td{background:rgba(255,255,255,0.02);}
     </div>
   </div>
   <div id="content-panel-1" class="content-panel" style="display:none;padding:60px 40px;">
-    <div style="max-width:960px;margin:0 auto;">
-      <div style="text-align:center;margin-bottom:40px;">
-        <div style="font-family:var(--font-d);font-size:32px;font-weight:800;color:var(--white);margin-bottom:8px;" id="sol-title">Tudo que você precisa, em um app</div>
-        <div style="font-size:14px;color:var(--text2);" id="sol-sub">Capture, analise e resolva incidentes com IA — direto do canteiro.</div>
+    <div style="max-width:1200px;margin:0 auto;">
+      <div style="text-align:center;margin-bottom:56px;">
+        <div style="font-family:var(--font-d);font-size:36px;font-weight:800;color:var(--white);margin-bottom:12px;line-height:1.15;" id="sol-title">One platform. Every layer of your construction data.</div>
+        <div style="font-size:15px;color:var(--text2);max-width:600px;margin:0 auto;line-height:1.6;" id="sol-sub">From field capture to institutional knowledge — BaceTech connects it all.</div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;" class="sol-grid">
-        <div style="background:var(--navy2);border:1px solid var(--border);border-radius:16px;padding:28px 24px;"><div style="width:44px;height:44px;border-radius:10px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;margin-bottom:14px;"><i class="ti ti-camera" style="font-size:22px;color:#60a5fa;"></i></div><div style="font-size:16px;font-weight:700;color:var(--white);margin-bottom:6px;" id="sf-1t">Captura IA</div><div style="font-size:13px;color:var(--text2);line-height:1.6;" id="sf-1d">Tire uma foto ou grave uma descrição por voz. A IA analisa automaticamente: descrição, causa provável, solução e normas aplicáveis.</div></div>
-        <div style="background:var(--navy2);border:1px solid var(--border);border-radius:16px;padding:28px 24px;"><div style="width:44px;height:44px;border-radius:10px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;margin-bottom:14px;"><i class="ti ti-layout-dashboard" style="font-size:22px;color:#60a5fa;"></i></div><div style="font-size:16px;font-weight:700;color:var(--white);margin-bottom:6px;" id="sf-2t">Dashboard Inteligente</div><div style="font-size:13px;color:var(--text2);line-height:1.6;" id="sf-2d">Visão geral com KPIs, insights automáticos da IA, incidentes recentes e status por projeto — tudo em tempo real.</div></div>
-        <div style="background:var(--navy2);border:1px solid var(--border);border-radius:16px;padding:28px 24px;"><div style="width:44px;height:44px;border-radius:10px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;margin-bottom:14px;"><i class="ti ti-robot" style="font-size:22px;color:#60a5fa;"></i></div><div style="font-size:16px;font-weight:700;color:var(--white);margin-bottom:6px;" id="sf-3t">Bace IA Chat</div><div style="font-size:13px;color:var(--text2);line-height:1.6;" id="sf-3d">Chatbot especializado em construção civil. Responde dúvidas técnicas com base nos dados do canteiro e normas brasileiras.</div></div>
-        <div style="background:var(--navy2);border:1px solid var(--border);border-radius:16px;padding:28px 24px;"><div style="width:44px;height:44px;border-radius:10px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;margin-bottom:14px;"><i class="ti ti-building-skyscraper" style="font-size:22px;color:#60a5fa;"></i></div><div style="font-size:16px;font-weight:700;color:var(--white);margin-bottom:6px;" id="sf-4t">Gestão de Projetos</div><div style="font-size:13px;color:var(--text2);line-height:1.6;" id="sf-4d">Cada canteiro tem seus incidentes, documentos e equipe — tudo organizado, acessível e pesquisável.</div></div>
-        <div style="background:var(--navy2);border:1px solid var(--border);border-radius:16px;padding:28px 24px;"><div style="width:44px;height:44px;border-radius:10px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;margin-bottom:14px;"><i class="ti ti-files" style="font-size:22px;color:#60a5fa;"></i></div><div style="font-size:16px;font-weight:700;color:var(--white);margin-bottom:6px;" id="sf-5t">Documentos</div><div style="font-size:13px;color:var(--text2);line-height:1.6;" id="sf-5d">Planos PDF indexados e analisados pela IA. Dimensões, anotações e normas extraídas automaticamente.</div></div>
-        <div style="background:var(--navy2);border:1px solid var(--border);border-radius:16px;padding:28px 24px;"><div style="width:44px;height:44px;border-radius:10px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;margin-bottom:14px;"><i class="ti ti-users" style="font-size:22px;color:#60a5fa;"></i></div><div style="font-size:16px;font-weight:700;color:var(--white);margin-bottom:6px;" id="sf-6t">Colaboração em Tempo Real</div><div style="font-size:13px;color:var(--text2);line-height:1.6;" id="sf-6d">Notificações instantâneas entre membros da equipe quando um incidente é registrado ou resolvido.</div></div>
+      <!-- 4-column multi-section layout -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:40px;" class="sol-columns">
+        <!-- Column 1: AI Agents -->
+        <div>
+          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;font-weight:600;" id="sol-h1">AI Agents</div>
+          <div style="display:flex;flex-direction:column;gap:20px;">
+            <div><div style="font-size:15px;font-weight:600;color:var(--white);margin-bottom:4px;" id="sol-a1t">Capture Agent</div><div style="font-size:12px;color:var(--text2);line-height:1.5;" id="sol-a1d">Turns a photo or voice note into a structured incident record — with description, cause and solution — in under 60 seconds.</div></div>
+            <div><div style="font-size:15px;font-weight:600;color:var(--white);margin-bottom:4px;" id="sol-a2t">Document Agent</div><div style="font-size:12px;color:var(--text2);line-height:1.5;" id="sol-a2d">Reads PDF plans, contracts and specs. Extracts dimensions, references and requirements automatically.</div></div>
+            <div><div style="font-size:15px;font-weight:600;color:var(--white);margin-bottom:4px;" id="sol-a3t">Norm Agent</div><div style="font-size:12px;color:var(--text2);line-height:1.5;" id="sol-a3d">Matches every incident to applicable standards (ABNT NBR, NRs, DTU, Eurocode) — so compliance is automatic, not manual.</div></div>
+            <div><div style="font-size:15px;font-weight:600;color:var(--white);margin-bottom:4px;" id="sol-a4t">Insight Agent</div><div style="font-size:12px;color:var(--text2);line-height:1.5;" id="sol-a4d">Detects recurring patterns and risk trends across projects. Surfaces issues before they escalate.</div></div>
+          </div>
+        </div>
+        <!-- Column 2: Bace Core -->
+        <div>
+          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;font-weight:600;" id="sol-h2">Bace Core</div>
+          <div style="display:flex;flex-direction:column;gap:20px;">
+            <div><div style="font-size:15px;font-weight:600;color:var(--white);margin-bottom:4px;" id="sol-c1t">Bace IA Chat</div><div style="font-size:12px;color:var(--text2);line-height:1.5;" id="sol-c1d">A construction-specialized assistant that answers technical questions using your project data and applicable norms.</div></div>
+            <div><div style="font-size:15px;font-weight:600;color:var(--white);margin-bottom:4px;" id="sol-c2t">Dashboard</div><div style="font-size:12px;color:var(--text2);line-height:1.5;" id="sol-c2d">KPIs, AI insights and real-time incident status across all your projects — one view, always up to date.</div></div>
+            <div><div style="font-size:15px;font-weight:600;color:var(--white);margin-bottom:4px;" id="sol-c3t">Knowledge Base</div><div style="font-size:12px;color:var(--text2);line-height:1.5;" id="sol-c3d">Every incident becomes searchable knowledge. Your next project starts smarter than your last.</div></div>
+            <div><div style="font-size:15px;font-weight:600;color:var(--white);margin-bottom:4px;" id="sol-c4t">Real-time Collaboration</div><div style="font-size:12px;color:var(--text2);line-height:1.5;" id="sol-c4d">Instant notifications between team members when an incident is captured or resolved.</div></div>
+          </div>
+        </div>
+        <!-- Column 3: Industries -->
+        <div>
+          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;font-weight:600;" id="sol-h3">Industries</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="font-size:14px;color:var(--white);" id="sol-i1">Civil construction</div>
+            <div style="font-size:14px;color:var(--white);" id="sol-i2">Architecture</div>
+            <div style="font-size:14px;color:var(--white);" id="sol-i3">Structural engineering</div>
+            <div style="font-size:14px;color:var(--white);" id="sol-i4">Infrastructure &amp; public works</div>
+            <div style="font-size:14px;color:var(--white);" id="sol-i5">Renovation &amp; retrofit</div>
+            <div style="font-size:14px;color:var(--white);" id="sol-i6">Real estate development</div>
+          </div>
+        </div>
+        <!-- Column 4: Company size & Markets -->
+        <div>
+          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;font-weight:600;" id="sol-h4">Company size</div>
+          <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:32px;">
+            <div style="font-size:14px;color:var(--white);" id="sol-s1">Independent professionals</div>
+            <div style="font-size:14px;color:var(--white);" id="sol-s2">Small construction firms</div>
+            <div style="font-size:14px;color:var(--white);" id="sol-s3">Mid-size contractors</div>
+            <div style="font-size:14px;color:var(--white);" id="sol-s4">Large enterprises</div>
+          </div>
+          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;font-weight:600;" id="sol-h5">Markets</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="font-size:14px;color:var(--white);display:flex;align-items:center;gap:8px;">🇧🇷 <span id="sol-m1">Brazil</span></div>
+            <div style="font-size:14px;color:var(--white);display:flex;align-items:center;gap:8px;">🇫🇷 <span id="sol-m2">France</span></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- TAB 2: Plans -->
+    <!-- TAB 2: Plans -->
   <div id="content-panel-2" class="content-panel" style="display:none;padding:60px 40px;">
     <div style="max-width:900px;margin:0 auto;">
       <div style="text-align:center;margin-bottom:40px;">
@@ -1768,6 +1811,10 @@ function translateNav(){
   var ftT=lang===0?{tag:'Capture d\'incidents et gestion de connaissances par IA pour le secteur du BTP.',h1:'Produit',h2:'Entreprise',h3:'Légal',l1:'Solutions',l2:'Tarifs',l3:'Ressources',l4:'Se connecter',l5:'À propos',l6:'Réserver une démo',l7:'Contact',l8:'Politique de confidentialité',l9:'Conditions d\'utilisation',l10:'Politique des cookies',cr:'© 2026 BaceTech. Tous droits réservés.',mw:'Conçu par des ingénieurs, pour des ingénieurs.'}:lang===2?{tag:'Captura de incidentes e gestão de conhecimento com IA para a indústria da construção.',h1:'Produto',h2:'Empresa',h3:'Legal',l1:'Soluções',l2:'Planos',l3:'Recursos',l4:'Entrar',l5:'Sobre nós',l6:'Agendar uma demo',l7:'Contato',l8:'Política de Privacidade',l9:'Termos de Serviço',l10:'Política de Cookies',cr:'© 2026 BaceTech. Todos os direitos reservados.',mw:'Desenvolvido por engenheiros, para engenheiros.'}:{tag:'AI-powered incident capture and knowledge management for the construction industry.',h1:'Product',h2:'Company',h3:'Legal',l1:'Solutions',l2:'Plans',l3:'Resources',l4:'Sign in',l5:'About us',l6:'Schedule a demo',l7:'Contact',l8:'Privacy Policy',l9:'Terms of Service',l10:'Cookie Policy',cr:'© 2026 BaceTech. All rights reserved.',mw:'Built by engineers, for engineers.'};
   var ftIds={'footer-tagline':'tag','footer-h1':'h1','footer-h2':'h2','footer-h3':'h3','footer-l1':'l1','footer-l2':'l2','footer-l3':'l3','footer-l4':'l4','footer-l5':'l5','footer-l6':'l6','footer-l7':'l7','footer-l8':'l8','footer-l9':'l9','footer-l10':'l10','footer-copyright':'cr','footer-madewith':'mw'};
   Object.keys(ftIds).forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=ftT[ftIds[id]];});
+  // Solutions tab translations
+  var solT=lang===0?{title:'Une plateforme. Chaque couche de vos données de chantier.',sub:'De la capture terrain à la mémoire institutionnelle — BaceTech connecte le tout.',h1:'Agents IA',h2:'Bace Core',h3:'Secteurs',h4:'Taille d\'entreprise',h5:'Marchés',a1t:'Agent Capture',a1d:'Transforme une photo ou une note vocale en un rapport d\'incident structuré — avec description, cause et solution — en moins de 60 secondes.',a2t:'Agent Document',a2d:'Lit les plans PDF, contrats et cahiers des charges. Extrait automatiquement les dimensions, références et exigences.',a3t:'Agent Norme',a3d:'Associe chaque incident aux normes applicables (NF, DTU, Eurocode, ABNT) — la conformité devient automatique.',a4t:'Agent Insight',a4d:'Détecte les schémas récurrents et les tendances de risque entre projets. Fait remonter les problèmes avant qu\'ils s\'aggravent.',c1t:'Bace IA Chat',c1d:'Un assistant spécialisé BTP qui répond aux questions techniques à partir des données du projet et des normes.',c2t:'Tableau de bord',c2d:'KPI, insights IA et statut des incidents en temps réel sur tous vos projets — une vue, toujours à jour.',c3t:'Base de connaissances',c3d:'Chaque incident devient un savoir consultable. Votre prochain projet démarre plus intelligemment.',c4t:'Collaboration temps réel',c4d:'Notifications instantanées entre les membres de l\'équipe à chaque incident capturé ou résolu.',i1:'Construction civile',i2:'Architecture',i3:'Ingénierie structurelle',i4:'Infrastructure & travaux publics',i5:'Rénovation & réhabilitation',i6:'Promotion immobilière',s1:'Professionnels indépendants',s2:'Petites entreprises',s3:'Contractants moyens',s4:'Grandes entreprises',m1:'Brésil',m2:'France'}:lang===2?{title:'Uma plataforma. Cada camada dos seus dados de obra.',sub:'Da captura em campo ao conhecimento institucional — BaceTech conecta tudo.',h1:'Agentes IA',h2:'Bace Core',h3:'Setores',h4:'Tamanho da empresa',h5:'Mercados',a1t:'Agente Captura',a1d:'Transforma uma foto ou nota de voz em um registro estruturado — com descrição, causa e solução — em menos de 60 segundos.',a2t:'Agente Documento',a2d:'Lê plantas PDF, contratos e especificações. Extrai automaticamente dimensões, referências e requisitos.',a3t:'Agente Norma',a3d:'Vincula cada incidente às normas aplicáveis (ABNT NBR, NRs, DTU, Eurocode) — a conformidade fica automática.',a4t:'Agente Insight',a4d:'Detecta padrões recorrentes e tendências de risco entre projetos. Traz problemas à tona antes que se agravem.',c1t:'Bace IA Chat',c1d:'Assistente especializado em construção que responde perguntas técnicas com base nos dados do projeto e normas aplicáveis.',c2t:'Dashboard',c2d:'KPIs, insights de IA e status de incidentes em tempo real em todos os seus projetos — uma visão, sempre atualizada.',c3t:'Base de conhecimento',c3d:'Cada incidente vira conhecimento pesquisável. Seu próximo projeto começa mais inteligente.',c4t:'Colaboração em tempo real',c4d:'Notificações instantâneas entre membros da equipe quando um incidente é registrado ou resolvido.',i1:'Construção civil',i2:'Arquitetura',i3:'Engenharia estrutural',i4:'Infraestrutura & obras públicas',i5:'Reforma & retrofit',i6:'Incorporação imobiliária',s1:'Profissionais autônomos',s2:'Pequenas construtoras',s3:'Empreiteiras médias',s4:'Grandes empresas',m1:'Brasil',m2:'França'}:{title:'One platform. Every layer of your construction data.',sub:'From field capture to institutional knowledge — BaceTech connects it all.',h1:'AI Agents',h2:'Bace Core',h3:'Industries',h4:'Company size',h5:'Markets',a1t:'Capture Agent',a1d:'Turns a photo or voice note into a structured incident record — with description, cause and solution — in under 60 seconds.',a2t:'Document Agent',a2d:'Reads PDF plans, contracts and specs. Extracts dimensions, references and requirements automatically.',a3t:'Norm Agent',a3d:'Matches every incident to applicable standards (ABNT NBR, NRs, DTU, Eurocode) — so compliance is automatic, not manual.',a4t:'Insight Agent',a4d:'Detects recurring patterns and risk trends across projects. Surfaces issues before they escalate.',c1t:'Bace IA Chat',c1d:'A construction-specialized assistant that answers technical questions using your project data and applicable norms.',c2t:'Dashboard',c2d:'KPIs, AI insights and real-time incident status across all your projects — one view, always up to date.',c3t:'Knowledge Base',c3d:'Every incident becomes searchable knowledge. Your next project starts smarter than your last.',c4t:'Real-time Collaboration',c4d:'Instant notifications between team members when an incident is captured or resolved.',i1:'Civil construction',i2:'Architecture',i3:'Structural engineering',i4:'Infrastructure & public works',i5:'Renovation & retrofit',i6:'Real estate development',s1:'Independent professionals',s2:'Small construction firms',s3:'Mid-size contractors',s4:'Large enterprises',m1:'Brazil',m2:'France'};
+  var solIds={'sol-title':'title','sol-sub':'sub','sol-h1':'h1','sol-h2':'h2','sol-h3':'h3','sol-h4':'h4','sol-h5':'h5','sol-a1t':'a1t','sol-a1d':'a1d','sol-a2t':'a2t','sol-a2d':'a2d','sol-a3t':'a3t','sol-a3d':'a3d','sol-a4t':'a4t','sol-a4d':'a4d','sol-c1t':'c1t','sol-c1d':'c1d','sol-c2t':'c2t','sol-c2d':'c2d','sol-c3t':'c3t','sol-c3d':'c3d','sol-c4t':'c4t','sol-c4d':'c4d','sol-i1':'i1','sol-i2':'i2','sol-i3':'i3','sol-i4':'i4','sol-i5':'i5','sol-i6':'i6','sol-s1':'s1','sol-s2':'s2','sol-s3':'s3','sol-s4':'s4','sol-m1':'m1','sol-m2':'m2'};
+  Object.keys(solIds).forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=solT[solIds[id]];});
   var hyub=document.getElementById('use-bace-title');
   if(hyub)hyub.textContent=lang===0?'Comment utiliser Bace':lang===2?'Como você pode usar a Bace':'How you can use Bace';
 }
