@@ -943,6 +943,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   </div>
 
 </div>
+</div>
 
 <!-- ═══ CONTENT PAGE (About/Solutions/Plans/Resources) ═══ -->
 <div id="s-content" class="screen" style="min-height:100vh;background:var(--navy);">
@@ -1584,16 +1585,15 @@ function syncLangSelects(){
 function toggleLandingMenu(){var m=document.getElementById('landing-mobile-menu');if(m)m.style.display=m.style.display==='none'||!m.style.display?'block':'none';}
 
 function showContentPage(tabIdx){
-  document.getElementById('s-auth').style.display='none';
+  document.getElementById('s-login').classList.remove('active');
   document.getElementById('s-content').classList.add('active');
   showContentTab(tabIdx||0);
   window.scrollTo(0,0);
 }
 function showAuthPage(){
-  document.getElementById('s-auth').style.display='grid';
   document.getElementById('s-content').classList.remove('active');
+  document.getElementById('s-login').classList.add('active');
   window.scrollTo(0,0);
-  // Restart animation
   renderFeatTabs();
   renderFeatPreview(currentFeat);
   clearInterval(featTimer);
