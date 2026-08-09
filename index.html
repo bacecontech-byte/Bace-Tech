@@ -1764,6 +1764,8 @@ function showContentTab(idx){
     var p=document.getElementById('content-panel-'+i);if(p)p.style.display=i===idx?'block':'none';
     var t=document.getElementById('ctab-'+i);if(t)t.classList.toggle('active',i===idx);
   }
+  localStorage.setItem('bacetech_current_page','content');
+  localStorage.setItem('bacetech_current_tab',idx);
 }
 
 function renderSolSections(){
