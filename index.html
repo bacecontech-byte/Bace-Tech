@@ -1072,9 +1072,9 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         </div>
       </div>
     <!-- How you can use Bace showcase -->
-    <div style="padding:80px 40px;border-top:1px solid var(--border);background:var(--navy2);">
+    <div style="padding:120px 40px 100px;border-top:1px solid var(--border);background:var(--navy2);">
       <div style="max-width:1100px;margin:0 auto;">
-        <div style="text-align:center;margin-bottom:48px;">
+        <div style="text-align:center;margin-bottom:56px;">
           <div style="font-family:var(--font-d);font-size:44px;font-weight:800;color:var(--white);line-height:1.15;letter-spacing:-1px;" id="use-bace-title">How you can use Bace</div>
         </div>
         <!-- Feature tabs pill container -->
@@ -2221,12 +2221,6 @@ function applyAuthLang(){
   // Always restart auto-rotation timer
   clearInterval(featTimer);
   featTimer=setInterval(autoNextFeat,4000);
-}
-
-function autoNextFeat(){
-  currentFeat=(currentFeat+1)%FEAT_DATA.length;
-  renderFeatTabs();
-  renderFeatPreview(currentFeat);
 }
 
 function initLoginScreen(){
