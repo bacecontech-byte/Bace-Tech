@@ -1072,17 +1072,13 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         </div>
       </div>
     <!-- How you can use Bace showcase -->
-    <div style="padding:120px 40px 100px;border-top:1px solid var(--border);background:var(--navy2);">
-      <div style="max-width:1100px;margin:0 auto;">
-        <div style="text-align:center;margin-bottom:56px;">
-          <div style="font-family:var(--font-d);font-size:44px;font-weight:800;color:var(--white);line-height:1.15;letter-spacing:-1px;" id="use-bace-title">How you can use Bace</div>
+    <div style="padding:0 80px;">
+      <div style="border-top:1px solid var(--border);padding:48px 0;">
+        <div style="text-align:center;margin-bottom:32px;">
+          <div style="font-family:var(--font-d);font-size:32px;font-weight:800;color:var(--white);line-height:1.15;letter-spacing:-0.5px;" id="use-bace-title">How you can use Bace</div>
         </div>
-        <!-- Feature tabs pill container -->
-        <div style="display:flex;justify-content:center;margin-bottom:40px;">
-          <div id="hyub-tabs" style="display:inline-flex;background:var(--navy);border:1px solid var(--border);border-radius:100px;padding:6px;gap:2px;flex-wrap:wrap;justify-content:center;"></div>
-        </div>
-        <!-- Preview area -->
-        <div id="hyub-preview-wrap" style="background:var(--navy);border:1px solid var(--border);border-radius:20px;padding:40px;min-height:360px;box-shadow:0 20px 60px rgba(0,0,0,0.15);"></div>
+        <div id="hyub-tabs" style="display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-bottom:18px;"></div>
+        <div id="hyub-preview-wrap" style="border-radius:14px;background:rgba(255,255,255,0.03);border:0.5px solid rgba(96,165,250,0.1);padding:22px;min-height:220px;max-width:700px;margin:0 auto;"></div>
       </div>
     </div>
   </div>
@@ -2186,14 +2182,13 @@ function renderHYUB(){
   tabs.innerHTML="";
   FEAT_DATA.forEach(function(f,i){
     var btn=document.createElement("button");
-    var isActive=i===currentFeat;
-    btn.style.cssText='background:'+(isActive?'var(--white)':'transparent')+';color:'+(isActive?'var(--navy)':'var(--text2)')+';border:none;padding:10px 20px;font-size:14px;font-weight:'+(isActive?'600':'500')+';border-radius:100px;cursor:pointer;transition:all 0.2s;font-family:var(--font-b);white-space:nowrap;';
+    btn.className="feat-tab"+(i===currentFeat?" active":"");
     btn.textContent=f[lk].tab;
     btn.onclick=(function(idx){return function(){currentFeat=idx;renderFeatTabs();renderFeatPreview(currentFeat);renderHYUB();clearInterval(featTimer);featTimer=setInterval(autoNextFeat,4000);};})(i);
     tabs.appendChild(btn);
   });
   var f=FEAT_DATA[currentFeat][lk];
-  wrap.innerHTML='<div style="font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--white);margin-bottom:8px;">'+f.title+'</div><div style="font-size:14px;color:var(--text2);margin-bottom:24px;line-height:1.6;">'+f.desc+'</div>'+buildFeatContent(f.content,lk);
+  wrap.innerHTML='<div class="fp-title">'+f.title+'</div><div class="fp-desc">'+f.desc+'</div>'+buildFeatContent(f.content,lk);
 }
 
 function applyAuthLang(){
