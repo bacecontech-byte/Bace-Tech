@@ -703,6 +703,8 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   .about-hero-grid>div:first-child{padding:32px 20px !important;}
   .about-hero-grid>div:first-child>div:first-child{font-size:32px !important;}
   .about-values{padding:32px 20px !important;}
+  .footer-grid{grid-template-columns:1fr 1fr !important;gap:32px !important;}
+  footer{padding:40px 24px 24px !important;}
   .impact-grid-content{grid-template-columns:1fr 1fr !important;}
   .sol-grid{grid-template-columns:1fr !important;}
   .plan-grid{grid-template-columns:1fr !important;}
@@ -1178,10 +1180,54 @@ tr:hover td{background:rgba(255,255,255,0.02);}
     </div>
   </div>
 
-  <!-- Back to sign in -->
-  <div style="text-align:center;padding:32px;border-top:1px solid var(--border);">
-    <a href="#" onclick="showAuthPage();return false;" style="color:#60a5fa;font-size:14px;text-decoration:none;font-weight:500;" id="back-signin">← Voltar ao login</a>
-  </div>
+  <!-- Footer -->
+  <footer style="background:var(--navy2);border-top:1px solid var(--border);padding:60px 80px 32px;margin-top:60px;">
+    <div style="max-width:1200px;margin:0 auto;">
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px;" class="footer-grid">
+        <!-- Brand column -->
+        <div>
+          <a href="#" onclick="showAuthPage();return false;" style="font-family:var(--font-d);font-size:22px;font-weight:600;color:var(--white);text-decoration:none;letter-spacing:-0.4px;cursor:pointer;">Bace<span style="font-weight:800;color:#60a5fa;">Tech</span></a>
+          <div style="font-size:14px;color:var(--text2);line-height:1.6;margin-top:16px;max-width:320px;" id="footer-tagline">AI-powered incident capture and knowledge management for the construction industry.</div>
+          <div style="display:flex;gap:12px;margin-top:20px;">
+            <a href="mailto:bacecontech@gmail.com" style="display:flex;align-items:center;gap:6px;color:var(--text2);text-decoration:none;font-size:13px;transition:color 0.15s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='var(--text2)'"><i class="ti ti-mail" style="font-size:16px;"></i> bacecontech@gmail.com</a>
+          </div>
+        </div>
+        <!-- Product -->
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;" id="footer-h1">Product</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <a href="#" onclick="showContentPage(1);return false;" style="color:var(--text2);font-size:13px;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='var(--text2)'" id="footer-l1">Solutions</a>
+            <a href="#" onclick="showContentPage(2);return false;" style="color:var(--text2);font-size:13px;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='var(--text2)'" id="footer-l2">Plans</a>
+            <a href="#" onclick="showContentPage(3);return false;" style="color:var(--text2);font-size:13px;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='var(--text2)'" id="footer-l3">Resources</a>
+            <a href="#" onclick="showAuthPage();return false;" style="color:var(--text2);font-size:13px;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='var(--text2)'" id="footer-l4">Sign in</a>
+          </div>
+        </div>
+        <!-- Company -->
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;" id="footer-h2">Company</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <a href="#" onclick="showContentPage(0);return false;" style="color:var(--text2);font-size:13px;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='var(--text2)'" id="footer-l5">About us</a>
+            <a href="https://calendar.app.google/Kfu81DSrNPFjTe7w5" target="_blank" style="color:var(--text2);font-size:13px;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='var(--text2)'" id="footer-l6">Schedule a demo</a>
+            <a href="mailto:bacecontech@gmail.com" style="color:var(--text2);font-size:13px;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='var(--text2)'" id="footer-l7">Contact</a>
+          </div>
+        </div>
+        <!-- Legal -->
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;" id="footer-h3">Legal</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <a href="#" style="color:var(--text2);font-size:13px;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='var(--text2)'" id="footer-l8">Privacy Policy</a>
+            <a href="#" style="color:var(--text2);font-size:13px;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='var(--text2)'" id="footer-l9">Terms of Service</a>
+            <a href="#" style="color:var(--text2);font-size:13px;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='var(--text2)'" id="footer-l10">Cookie Policy</a>
+          </div>
+        </div>
+      </div>
+      <!-- Bottom bar -->
+      <div style="padding-top:28px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+        <div style="font-size:12px;color:var(--text3);" id="footer-copyright">© 2026 BaceTech. All rights reserved.</div>
+        <div style="font-size:12px;color:var(--text3);" id="footer-madewith">Built by engineers, for engineers.</div>
+      </div>
+    </div>
+  </footer>
 </div>
 
 <div id="s-app" class="screen">
@@ -1718,6 +1764,10 @@ function translateNav(){
   var aboutIds={'about-headline':'headline','about-hero-sub':'sub','about-input-placeholder':'inputPlaceholder','v1-title':'v1t','v1-desc':'v1d','v2-title':'v2t','v2-desc':'v2d','v3-title':'v3t','v3-desc':'v3d','imp-1':'i1','imp-2':'i2','imp-3':'i3','imp-4':'i4','about-tagline':'tag'};
   Object.keys(aboutIds).forEach(function(id){var el=document.getElementById(id);if(el){if(id==='about-headline')el.innerHTML=aboutT[aboutIds[id]];else el.textContent=aboutT[aboutIds[id]];}});
   var askBtn=document.getElementById('about-ask-btn');if(askBtn)askBtn.innerHTML=aboutT.askBtn+' <span style="font-size:15px;">↑</span>';
+  // Footer translations
+  var ftT=lang===0?{tag:'Capture d\'incidents et gestion de connaissances par IA pour le secteur du BTP.',h1:'Produit',h2:'Entreprise',h3:'Légal',l1:'Solutions',l2:'Tarifs',l3:'Ressources',l4:'Se connecter',l5:'À propos',l6:'Réserver une démo',l7:'Contact',l8:'Politique de confidentialité',l9:'Conditions d\'utilisation',l10:'Politique des cookies',cr:'© 2026 BaceTech. Tous droits réservés.',mw:'Conçu par des ingénieurs, pour des ingénieurs.'}:lang===2?{tag:'Captura de incidentes e gestão de conhecimento com IA para a indústria da construção.',h1:'Produto',h2:'Empresa',h3:'Legal',l1:'Soluções',l2:'Planos',l3:'Recursos',l4:'Entrar',l5:'Sobre nós',l6:'Agendar uma demo',l7:'Contato',l8:'Política de Privacidade',l9:'Termos de Serviço',l10:'Política de Cookies',cr:'© 2026 BaceTech. Todos os direitos reservados.',mw:'Desenvolvido por engenheiros, para engenheiros.'}:{tag:'AI-powered incident capture and knowledge management for the construction industry.',h1:'Product',h2:'Company',h3:'Legal',l1:'Solutions',l2:'Plans',l3:'Resources',l4:'Sign in',l5:'About us',l6:'Schedule a demo',l7:'Contact',l8:'Privacy Policy',l9:'Terms of Service',l10:'Cookie Policy',cr:'© 2026 BaceTech. All rights reserved.',mw:'Built by engineers, for engineers.'};
+  var ftIds={'footer-tagline':'tag','footer-h1':'h1','footer-h2':'h2','footer-h3':'h3','footer-l1':'l1','footer-l2':'l2','footer-l3':'l3','footer-l4':'l4','footer-l5':'l5','footer-l6':'l6','footer-l7':'l7','footer-l8':'l8','footer-l9':'l9','footer-l10':'l10','footer-copyright':'cr','footer-madewith':'mw'};
+  Object.keys(ftIds).forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=ftT[ftIds[id]];});
   var hyub=document.getElementById('use-bace-title');
   if(hyub)hyub.textContent=lang===0?'Comment utiliser Bace':lang===2?'Como você pode usar a Bace':'How you can use Bace';
 }
