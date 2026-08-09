@@ -977,7 +977,51 @@ tr:hover td{background:rgba(255,255,255,0.02);}
     <a href="#" onclick="showAuthPage();return false;" style="font-family:var(--font-d);font-size:16px;font-weight:600;color:var(--white);text-decoration:none;letter-spacing:-0.4px;cursor:pointer;flex-shrink:0;">Bace<span style="font-weight:800;color:#60a5fa;">Tech</span></a>
     <div style="display:flex;align-items:center;gap:0;" id="content-tabs">
       <button onclick="showContentTab(0)" class="content-tab active" id="ctab-0">About us</button>
-      <button onclick="showContentTab(1)" class="content-tab" id="ctab-1">Solutions</button>
+      <div style="position:relative;" onmouseenter="document.getElementById('sol-tab-dropdown').style.display='block'" onmouseleave="document.getElementById('sol-tab-dropdown').style.display='none'">
+        <button onclick="showContentTab(1)" class="content-tab" id="ctab-1">Solutions <span style="font-size:10px;margin-left:4px;">▾</span></button>
+        <div id="sol-tab-dropdown" style="display:none;position:absolute;top:100%;left:50%;transform:translateX(-50%);background:var(--navy2);border:1px solid var(--border2);border-radius:14px;padding:20px;min-width:640px;box-shadow:0 20px 60px rgba(0,0,0,0.4);z-index:300;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;">
+            <div>
+              <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;font-weight:700;" id="soldd-h1">Bace AI Agents</div>
+              <div style="display:flex;flex-direction:column;gap:2px;">
+                <div onclick="jumpToSol(1,'sec-a1')" class="sol-menu-item" id="soldd-a1">Capture Agent</div>
+                <div onclick="jumpToSol(1,'sec-a2')" class="sol-menu-item" id="soldd-a2">Docs Agent</div>
+                <div onclick="jumpToSol(1,'sec-a3')" class="sol-menu-item" id="soldd-a3">Norm Agent</div>
+                <div onclick="jumpToSol(1,'sec-a4')" class="sol-menu-item" id="soldd-a4">Insight Agent</div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;font-weight:700;" id="soldd-h2">Bace Core</div>
+              <div style="display:flex;flex-direction:column;gap:2px;">
+                <div onclick="jumpToSol(1,'sec-c1')" class="sol-menu-item" id="soldd-c1">Bace IA Chat</div>
+                <div onclick="jumpToSol(1,'sec-c2')" class="sol-menu-item" id="soldd-c2">Dashboard</div>
+                <div onclick="jumpToSol(1,'sec-c3')" class="sol-menu-item" id="soldd-c3">Knowledge Base</div>
+                <div onclick="jumpToSol(1,'sec-c4')" class="sol-menu-item" id="soldd-c4">Real-time Collaboration</div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;font-weight:700;" id="soldd-h3">Industries</div>
+              <div style="display:flex;flex-direction:column;gap:2px;">
+                <div onclick="jumpToSol(1,'sec-i1')" class="sol-menu-item" id="soldd-i1">Civil construction</div>
+                <div onclick="jumpToSol(1,'sec-i2')" class="sol-menu-item" id="soldd-i2">Architecture</div>
+                <div onclick="jumpToSol(1,'sec-i3')" class="sol-menu-item" id="soldd-i3">Structural engineering</div>
+                <div onclick="jumpToSol(1,'sec-i4')" class="sol-menu-item" id="soldd-i4">Infrastructure &amp; public works</div>
+                <div onclick="jumpToSol(1,'sec-i5')" class="sol-menu-item" id="soldd-i5">Renovation &amp; retrofit</div>
+                <div onclick="jumpToSol(1,'sec-i6')" class="sol-menu-item" id="soldd-i6">Real estate development</div>
+              </div>
+            </div>
+          </div>
+          <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:14px;">
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;font-weight:700;" id="soldd-h4">Company size</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <div class="sol-tag" id="soldd-s1">Independent professionals</div>
+              <div class="sol-tag" id="soldd-s2">Small construction firms</div>
+              <div class="sol-tag" id="soldd-s3">Mid-size contractors</div>
+              <div class="sol-tag" id="soldd-s4">Large enterprises</div>
+            </div>
+          </div>
+        </div>
+      </div>
       <button onclick="showContentTab(2)" class="content-tab" id="ctab-2">Plans</button>
       <button onclick="showContentTab(3)" class="content-tab" id="ctab-3">Resources</button>
     </div>
@@ -1110,65 +1154,52 @@ tr:hover td{background:rgba(255,255,255,0.02);}
     </div>
   </div>
   <div id="content-panel-1" class="content-panel" style="display:none;padding:0;">
-    <div style="max-width:900px;margin:0 auto;padding:60px 40px;">
-      <div style="text-align:center;margin-bottom:56px;">
-        <div style="font-family:var(--font-d);font-size:36px;font-weight:800;color:var(--white);margin-bottom:12px;line-height:1.15;" id="sol-title">One platform. Every layer of your construction data.</div>
-        <div style="font-size:15px;color:var(--text2);max-width:600px;margin:0 auto;line-height:1.6;" id="sol-sub">From field capture to institutional knowledge — BaceTech connects it all.</div>
+    <div style="max-width:1100px;margin:0 auto;padding:60px 40px;">
+      <div style="text-align:center;margin-bottom:64px;">
+        <div style="font-family:var(--font-d);font-size:56px;font-weight:800;color:var(--white);line-height:1.05;letter-spacing:-1.5px;" id="sol-title">The frontier, on every site</div>
       </div>
-      <!-- Explore dropdown -->
-      <div style="display:flex;justify-content:center;margin-bottom:60px;">
-        <div style="position:relative;" onmouseenter="document.getElementById('sol-explore-menu').style.display='block'" onmouseleave="document.getElementById('sol-explore-menu').style.display='none'">
-          <button style="display:flex;align-items:center;gap:8px;background:var(--navy2);border:1px solid var(--border2);color:var(--white);padding:12px 24px;border-radius:100px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font-b);"><span id="sol-explore-label">Explore Solutions</span> <span style="font-size:11px;transition:transform 0.2s;" id="sol-explore-caret">▼</span></button>
-          <div id="sol-explore-menu" style="display:none;position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--navy2);border:1px solid var(--border2);border-radius:14px;padding:20px;min-width:640px;box-shadow:0 20px 60px rgba(0,0,0,0.4);z-index:100;">
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;">
-              <!-- AI Agents -->
-              <div>
-                <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;font-weight:700;" id="sol-h1">AI Agents</div>
-                <div style="display:flex;flex-direction:column;gap:2px;">
-                  <div onclick="scrollToSol('sec-a1')" class="sol-menu-item" id="sol-a1-nav">Capture Agent</div>
-                  <div onclick="scrollToSol('sec-a2')" class="sol-menu-item" id="sol-a2-nav">Document Agent</div>
-                  <div onclick="scrollToSol('sec-a3')" class="sol-menu-item" id="sol-a3-nav">Norm Agent</div>
-                  <div onclick="scrollToSol('sec-a4')" class="sol-menu-item" id="sol-a4-nav">Insight Agent</div>
-                </div>
-              </div>
-              <!-- Bace Core -->
-              <div>
-                <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;font-weight:700;" id="sol-h2">Bace Core</div>
-                <div style="display:flex;flex-direction:column;gap:2px;">
-                  <div onclick="scrollToSol('sec-c1')" class="sol-menu-item" id="sol-c1-nav">Bace IA Chat</div>
-                  <div onclick="scrollToSol('sec-c2')" class="sol-menu-item" id="sol-c2-nav">Dashboard</div>
-                  <div onclick="scrollToSol('sec-c3')" class="sol-menu-item" id="sol-c3-nav">Knowledge Base</div>
-                  <div onclick="scrollToSol('sec-c4')" class="sol-menu-item" id="sol-c4-nav">Real-time Collaboration</div>
-                </div>
-              </div>
-              <!-- Industries -->
-              <div>
-                <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;font-weight:700;" id="sol-h3">Industries</div>
-                <div style="display:flex;flex-direction:column;gap:2px;">
-                  <div onclick="scrollToSol('sec-i1')" class="sol-menu-item" id="sol-i1-nav">Civil construction</div>
-                  <div onclick="scrollToSol('sec-i2')" class="sol-menu-item" id="sol-i2-nav">Architecture</div>
-                  <div onclick="scrollToSol('sec-i3')" class="sol-menu-item" id="sol-i3-nav">Structural engineering</div>
-                  <div onclick="scrollToSol('sec-i4')" class="sol-menu-item" id="sol-i4-nav">Infrastructure &amp; public works</div>
-                  <div onclick="scrollToSol('sec-i5')" class="sol-menu-item" id="sol-i5-nav">Renovation &amp; retrofit</div>
-                  <div onclick="scrollToSol('sec-i6')" class="sol-menu-item" id="sol-i6-nav">Real estate development</div>
-                </div>
-              </div>
-            </div>
-            <!-- Company Size (not clickable) -->
-            <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px;">
-              <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;font-weight:700;" id="sol-h4">Company size</div>
-              <div style="display:flex;flex-wrap:wrap;gap:8px;">
-                <div class="sol-tag" id="sol-s1-nav">Independent professionals</div>
-                <div class="sol-tag" id="sol-s2-nav">Small construction firms</div>
-                <div class="sol-tag" id="sol-s3-nav">Mid-size contractors</div>
-                <div class="sol-tag" id="sol-s4-nav">Large enterprises</div>
-              </div>
-            </div>
-          </div>
+      <!-- Bace AI Agents section (once) -->
+      <div style="margin-bottom:64px;">
+        <div style="font-size:12px;color:#60a5fa;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:24px;" id="sol-h1">Bace AI Agents</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px 48px;" class="sol-content-grid">
+          <div id="sec-a1"><div style="font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--white);margin-bottom:8px;" id="sol-a1-t">Capture Agent</div><div style="font-size:13px;color:var(--text2);line-height:1.65;" id="sol-a1-d">Turns a photo or voice note into a structured incident record — description, cause, solution — in under 60 seconds.</div></div>
+          <div id="sec-a2"><div style="font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--white);margin-bottom:8px;" id="sol-a2-t">Docs Agent</div><div style="font-size:13px;color:var(--text2);line-height:1.65;" id="sol-a2-d">Reads PDF plans, contracts and specs. Extracts dimensions, references and requirements automatically.</div></div>
+          <div id="sec-a3"><div style="font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--white);margin-bottom:8px;" id="sol-a3-t">Norm Agent</div><div style="font-size:13px;color:var(--text2);line-height:1.65;" id="sol-a3-d">Matches every incident to applicable standards — ABNT NBR, NRs, DTU, Eurocode. Compliance becomes automatic.</div></div>
+          <div id="sec-a4"><div style="font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--white);margin-bottom:8px;" id="sol-a4-t">Insight Agent</div><div style="font-size:13px;color:var(--text2);line-height:1.65;" id="sol-a4-d">Detects recurring patterns and risk trends across projects. Surfaces issues before they escalate.</div></div>
         </div>
       </div>
-      <!-- Detailed sections, one per item, stacked -->
-      <div id="sol-sections"></div>
+      <!-- Bace Core section (once) -->
+      <div style="margin-bottom:64px;border-top:1px solid var(--border);padding-top:48px;">
+        <div style="font-size:12px;color:#60a5fa;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:24px;" id="sol-h2">Bace Core</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px 48px;" class="sol-content-grid">
+          <div id="sec-c1"><div style="font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--white);margin-bottom:8px;" id="sol-c1-t">Bace IA Chat</div><div style="font-size:13px;color:var(--text2);line-height:1.65;" id="sol-c1-d">A construction-specialized assistant that answers technical questions using your project data and applicable norms.</div></div>
+          <div id="sec-c2"><div style="font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--white);margin-bottom:8px;" id="sol-c2-t">Dashboard</div><div style="font-size:13px;color:var(--text2);line-height:1.65;" id="sol-c2-d">KPIs, AI insights and real-time incident status across all your projects — one view, always up to date.</div></div>
+          <div id="sec-c3"><div style="font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--white);margin-bottom:8px;" id="sol-c3-t">Knowledge Base</div><div style="font-size:13px;color:var(--text2);line-height:1.65;" id="sol-c3-d">Every incident becomes searchable knowledge. Your next project starts smarter than your last.</div></div>
+          <div id="sec-c4"><div style="font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--white);margin-bottom:8px;" id="sol-c4-t">Real-time Collaboration</div><div style="font-size:13px;color:var(--text2);line-height:1.65;" id="sol-c4-d">Instant notifications between team members when an incident is captured or resolved.</div></div>
+        </div>
+      </div>
+      <!-- Industries section (once) -->
+      <div style="margin-bottom:64px;border-top:1px solid var(--border);padding-top:48px;">
+        <div style="font-size:12px;color:#60a5fa;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:24px;" id="sol-h3">Industries</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px 48px;" class="sol-content-grid">
+          <div id="sec-i1"><div style="font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--white);margin-bottom:8px;" id="sol-i1-t">Civil construction</div><div style="font-size:13px;color:var(--text2);line-height:1.65;" id="sol-i1-d">Residential and commercial builds, from single-family homes to high-rise developments. Foundation, structural, quality control and safety captures.</div></div>
+          <div id="sec-i2"><div style="font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--white);margin-bottom:8px;" id="sol-i2-t">Architecture</div><div style="font-size:13px;color:var(--text2);line-height:1.65;" id="sol-i2-d">Track how designs are executed on site, document deviations, and maintain a visual record of the built reality vs. the planned design.</div></div>
+          <div id="sec-i3"><div style="font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--white);margin-bottom:8px;" id="sol-i3-t">Structural engineering</div><div style="font-size:13px;color:var(--text2);line-height:1.65;" id="sol-i3-d">Cracks, deflections, settlement — captured, referenced against NBR 6118 or Eurocode 2, and turned into defensible records.</div></div>
+          <div id="sec-i4"><div style="font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--white);margin-bottom:8px;" id="sol-i4-t">Infrastructure &amp; public works</div><div style="font-size:13px;color:var(--text2);line-height:1.65;" id="sol-i4-d">Roads, bridges, tunnels, water systems. Timestamped, geotagged, norm-referenced records that hold up in audits and tenders.</div></div>
+          <div id="sec-i5"><div style="font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--white);margin-bottom:8px;" id="sol-i5-t">Renovation &amp; retrofit</div><div style="font-size:13px;color:var(--text2);line-height:1.65;" id="sol-i5-d">Document what plans do not show: hidden pipes, unexpected structural conditions, materials that no longer meet current codes.</div></div>
+          <div id="sec-i6"><div style="font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--white);margin-bottom:8px;" id="sol-i6-t">Real estate development</div><div style="font-size:13px;color:var(--text2);line-height:1.65;" id="sol-i6-d">Portfolio-scale visibility across multiple sites. Cross-project pattern detection and early warning on troubled projects.</div></div>
+        </div>
+      </div>
+      <!-- Company size (compact) -->
+      <div style="border-top:1px solid var(--border);padding-top:48px;">
+        <div style="font-size:12px;color:#60a5fa;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:20px;" id="sol-h4">Company size</div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;">
+          <div class="sol-tag" id="sol-s1">Independent professionals</div>
+          <div class="sol-tag" id="sol-s2">Small construction firms</div>
+          <div class="sol-tag" id="sol-s3">Mid-size contractors</div>
+          <div class="sol-tag" id="sol-s4">Large enterprises</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1743,7 +1774,6 @@ function showContentTab(idx){
     var p=document.getElementById('content-panel-'+i);if(p)p.style.display=i===idx?'block':'none';
     var t=document.getElementById('ctab-'+i);if(t)t.classList.toggle('active',i===idx);
   }
-  if(idx===1)renderSolSections();
 }
 
 function renderSolSections(){
@@ -1766,8 +1796,12 @@ function renderSolSections(){
   container.innerHTML=html;
 }
 
+function jumpToSol(tabIdx,secId){
+  document.getElementById('sol-tab-dropdown').style.display='none';
+  showContentTab(tabIdx);
+  setTimeout(function(){var el=document.getElementById(secId);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},50);
+}
 function scrollToSol(id){
-  document.getElementById('sol-explore-menu').style.display='none';
   var el=document.getElementById(id);
   if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -1928,21 +1962,16 @@ function translateNav(){
   var ftIds={'footer-tagline':'tag','footer-h1':'h1','footer-h2':'h2','footer-h3':'h3','footer-l1':'l1','footer-l2':'l2','footer-l3':'l3','footer-l4':'l4','footer-l5':'l5','footer-l6':'l6','footer-l7':'l7','footer-l8':'l8','footer-l9':'l9','footer-l10':'l10','footer-copyright':'cr','footer-madewith':'mw'};
   Object.keys(ftIds).forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=ftT[ftIds[id]];});
   // Solutions tab translations
-  var solT=lang===0?{title:'Une plateforme. Chaque couche de vos données de chantier.',sub:'De la capture terrain à la mémoire institutionnelle — BaceTech connecte le tout.',h1:'Agents IA',h2:'Bace Core',h3:'Secteurs',h4:'Taille d\'entreprise',h5:'Marchés',a1t:'Agent Capture',a1d:'Transforme une photo ou une note vocale en un rapport d\'incident structuré — avec description, cause et solution — en moins de 60 secondes.',a2t:'Agent Document',a2d:'Lit les plans PDF, contrats et cahiers des charges. Extrait automatiquement les dimensions, références et exigences.',a3t:'Agent Norme',a3d:'Associe chaque incident aux normes applicables (NF, DTU, Eurocode, ABNT) — la conformité devient automatique.',a4t:'Agent Insight',a4d:'Détecte les schémas récurrents et les tendances de risque entre projets. Fait remonter les problèmes avant qu\'ils s\'aggravent.',c1t:'Bace IA Chat',c1d:'Un assistant spécialisé BTP qui répond aux questions techniques à partir des données du projet et des normes.',c2t:'Tableau de bord',c2d:'KPI, insights IA et statut des incidents en temps réel sur tous vos projets — une vue, toujours à jour.',c3t:'Base de connaissances',c3d:'Chaque incident devient un savoir consultable. Votre prochain projet démarre plus intelligemment.',c4t:'Collaboration temps réel',c4d:'Notifications instantanées entre les membres de l\'équipe à chaque incident capturé ou résolu.',i1:'Construction civile',i2:'Architecture',i3:'Ingénierie structurelle',i4:'Infrastructure & travaux publics',i5:'Rénovation & réhabilitation',i6:'Promotion immobilière',s1:'Professionnels indépendants',s2:'Petites entreprises',s3:'Contractants moyens',s4:'Grandes entreprises',m1:'Brésil',m2:'France'}:lang===2?{title:'Uma plataforma. Cada camada dos seus dados de obra.',sub:'Da captura em campo ao conhecimento institucional — BaceTech conecta tudo.',h1:'Agentes IA',h2:'Bace Core',h3:'Setores',h4:'Tamanho da empresa',h5:'Mercados',a1t:'Agente Captura',a1d:'Transforma uma foto ou nota de voz em um registro estruturado — com descrição, causa e solução — em menos de 60 segundos.',a2t:'Agente Documento',a2d:'Lê plantas PDF, contratos e especificações. Extrai automaticamente dimensões, referências e requisitos.',a3t:'Agente Norma',a3d:'Vincula cada incidente às normas aplicáveis (ABNT NBR, NRs, DTU, Eurocode) — a conformidade fica automática.',a4t:'Agente Insight',a4d:'Detecta padrões recorrentes e tendências de risco entre projetos. Traz problemas à tona antes que se agravem.',c1t:'Bace IA Chat',c1d:'Assistente especializado em construção que responde perguntas técnicas com base nos dados do projeto e normas aplicáveis.',c2t:'Dashboard',c2d:'KPIs, insights de IA e status de incidentes em tempo real em todos os seus projetos — uma visão, sempre atualizada.',c3t:'Base de conhecimento',c3d:'Cada incidente vira conhecimento pesquisável. Seu próximo projeto começa mais inteligente.',c4t:'Colaboração em tempo real',c4d:'Notificações instantâneas entre membros da equipe quando um incidente é registrado ou resolvido.',i1:'Construção civil',i2:'Arquitetura',i3:'Engenharia estrutural',i4:'Infraestrutura & obras públicas',i5:'Reforma & retrofit',i6:'Incorporação imobiliária',s1:'Profissionais autônomos',s2:'Pequenas construtoras',s3:'Empreiteiras médias',s4:'Grandes empresas',m1:'Brasil',m2:'França'}:{title:'One platform. Every layer of your construction data.',sub:'From field capture to institutional knowledge — BaceTech connects it all.',h1:'AI Agents',h2:'Bace Core',h3:'Industries',h4:'Company size',h5:'Markets',a1t:'Capture Agent',a1d:'Turns a photo or voice note into a structured incident record — with description, cause and solution — in under 60 seconds.',a2t:'Document Agent',a2d:'Reads PDF plans, contracts and specs. Extracts dimensions, references and requirements automatically.',a3t:'Norm Agent',a3d:'Matches every incident to applicable standards (ABNT NBR, NRs, DTU, Eurocode) — so compliance is automatic, not manual.',a4t:'Insight Agent',a4d:'Detects recurring patterns and risk trends across projects. Surfaces issues before they escalate.',c1t:'Bace IA Chat',c1d:'A construction-specialized assistant that answers technical questions using your project data and applicable norms.',c2t:'Dashboard',c2d:'KPIs, AI insights and real-time incident status across all your projects — one view, always up to date.',c3t:'Knowledge Base',c3d:'Every incident becomes searchable knowledge. Your next project starts smarter than your last.',c4t:'Real-time Collaboration',c4d:'Instant notifications between team members when an incident is captured or resolved.',i1:'Civil construction',i2:'Architecture',i3:'Structural engineering',i4:'Infrastructure & public works',i5:'Renovation & retrofit',i6:'Real estate development',s1:'Independent professionals',s2:'Small construction firms',s3:'Mid-size contractors',s4:'Large enterprises',m1:'Brazil',m2:'France'};
-  var solIds={'sol-title':'title','sol-sub':'sub','sol-h1':'h1','sol-h2':'h2','sol-h3':'h3','sol-h4':'h4','sol-h5':'h5','sol-a1t':'a1t','sol-a1d':'a1d','sol-a2t':'a2t','sol-a2d':'a2d','sol-a3t':'a3t','sol-a3d':'a3d','sol-a4t':'a4t','sol-a4d':'a4d','sol-c1t':'c1t','sol-c1d':'c1d','sol-c2t':'c2t','sol-c2d':'c2d','sol-c3t':'c3t','sol-c3d':'c3d','sol-c4t':'c4t','sol-c4d':'c4d','sol-i1':'i1','sol-i2':'i2','sol-i3':'i3','sol-i4':'i4','sol-i5':'i5','sol-i6':'i6','sol-s1':'s1','sol-s2':'s2','sol-s3':'s3','sol-s4':'s4','sol-m1':'m1','sol-m2':'m2'};
-  Object.keys(solIds).forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=solT[solIds[id]];});
-  // Update dropdown menu labels from SOL_CONTENT titles
-  var lk=getLangKey();var solData=SOL_CONTENT[lk]||SOL_CONTENT.en;
-  var itemKeys=['a1','a2','a3','a4','c1','c2','c3','c4','i1','i2','i3','i4','i5','i6'];
-  itemKeys.forEach(function(key){var el=document.getElementById('sol-'+key+'-nav');if(el&&solData[key])el.textContent=solData[key].title;});
-  // Company size tags translation
-  var sizeLabels=lang===0?['Professionnels indépendants','Petites entreprises','Contractants moyens','Grandes entreprises']:lang===2?['Profissionais autônomos','Pequenas construtoras','Empreiteiras médias','Grandes empresas']:['Independent professionals','Small construction firms','Mid-size contractors','Large enterprises'];
-  ['s1','s2','s3','s4'].forEach(function(key,i){var el=document.getElementById('sol-'+key+'-nav');if(el)el.textContent=sizeLabels[i];});
-  // Explore button label
-  var expLbl=document.getElementById('sol-explore-label');
-  if(expLbl)expLbl.textContent=lang===0?'Explorer les solutions':lang===2?'Explorar Soluções':'Explore Solutions';
-  // Rebuild sections if Solutions tab is visible
-  if(document.getElementById('content-panel-1')&&document.getElementById('content-panel-1').style.display==='block')renderSolSections();
+  var solT=lang===0?{title:'La frontière, sur chaque chantier',h1:'Agents IA Bace',h2:'Bace Core',h3:'Secteurs',h4:'Taille d\'entreprise',a1t:'Agent Capture',a1d:'Transforme une photo ou une note vocale en un rapport d\'incident structuré — description, cause, solution — en moins de 60 secondes.',a2t:'Agent Docs',a2d:'Lit les plans PDF, contrats et cahiers des charges. Extrait dimensions, références et exigences automatiquement.',a3t:'Agent Norme',a3d:'Associe chaque incident aux normes applicables — NF, DTU, Eurocode, ABNT. La conformité devient automatique.',a4t:'Agent Insight',a4d:'Détecte les schémas récurrents et les tendances de risque entre projets. Remonte les problèmes avant qu\'ils s\'aggravent.',c1t:'Bace IA Chat',c1d:'Un assistant spécialisé BTP qui répond aux questions techniques à partir des données du projet et des normes.',c2t:'Tableau de bord',c2d:'KPI, insights IA et statut des incidents en temps réel sur tous vos projets — une vue, toujours à jour.',c3t:'Base de connaissances',c3d:'Chaque incident devient un savoir consultable. Votre prochain projet démarre plus intelligemment.',c4t:'Collaboration temps réel',c4d:'Notifications instantanées entre les membres de l\'équipe à chaque incident capturé ou résolu.',i1t:'Construction civile',i1d:'Résidentiel et commercial, de la maison individuelle aux immeubles de grande hauteur. Fondations, structures, qualité et sécurité.',i2t:'Architecture',i2d:'Suivez l\'exécution des plans sur site, documentez les écarts, gardez un registre visuel du bâti vs. le projet.',i3t:'Ingénierie structurelle',i3d:'Fissures, déformations, tassements — capturés, référencés à l\'Eurocode 2 ou NBR 6118, transformés en enregistrements défendables.',i4t:'Infrastructure & travaux publics',i4d:'Routes, ponts, tunnels, réseaux. Enregistrements horodatés, géolocalisés, référencés qui tiennent en audit et en appel d\'offres.',i5t:'Rénovation & réhabilitation',i5d:'Documentez ce que les plans ne montrent pas : tuyauteries cachées, conditions inattendues, matériaux non conformes.',i6t:'Promotion immobilière',i6d:'Visibilité portefeuille sur plusieurs sites. Détection de schémas et alerte précoce sur les chantiers en difficulté.',s1:'Professionnels indépendants',s2:'Petites entreprises',s3:'Contractants moyens',s4:'Grandes entreprises'}:lang===2?{title:'A fronteira, em cada canteiro',h1:'Agentes IA Bace',h2:'Bace Core',h3:'Setores',h4:'Tamanho da empresa',a1t:'Agente Captura',a1d:'Transforma uma foto ou nota de voz em um registro estruturado — descrição, causa, solução — em menos de 60 segundos.',a2t:'Agente Docs',a2d:'Lê plantas PDF, contratos e especificações. Extrai dimensões, referências e requisitos automaticamente.',a3t:'Agente Norma',a3d:'Vincula cada incidente às normas aplicáveis — ABNT NBR, NRs, DTU, Eurocode. A conformidade fica automática.',a4t:'Agente Insight',a4d:'Detecta padrões recorrentes e tendências de risco entre projetos. Traz problemas à tona antes que se agravem.',c1t:'Bace IA Chat',c1d:'Assistente especializado em construção que responde perguntas técnicas com base nos dados do projeto e normas.',c2t:'Dashboard',c2d:'KPIs, insights de IA e status de incidentes em tempo real em todos os seus projetos — uma visão, sempre atualizada.',c3t:'Base de conhecimento',c3d:'Cada incidente vira conhecimento pesquisável. Seu próximo projeto começa mais inteligente.',c4t:'Colaboração em tempo real',c4d:'Notificações instantâneas entre membros da equipe quando um incidente é registrado ou resolvido.',i1t:'Construção civil',i1d:'Residencial e comercial, de casas unifamiliares a edifícios de grande porte. Fundação, estrutura, qualidade e segurança.',i2t:'Arquitetura',i2d:'Acompanhe a execução dos projetos em obra, documente desvios, mantenha registro visual do construído vs. o projetado.',i3t:'Engenharia estrutural',i3d:'Fissuras, deformações, recalques — capturados, referenciados à NBR 6118 ou Eurocode 2, virados em registros defensáveis.',i4t:'Infraestrutura & obras públicas',i4d:'Rodovias, pontes, túneis, redes. Registros com data/hora, geolocalização e referência normativa que se sustentam em auditorias.',i5t:'Reforma & retrofit',i5d:'Documente o que as plantas não mostram: tubulações escondidas, condições inesperadas, materiais fora de norma.',i6t:'Incorporação imobiliária',i6d:'Visibilidade de portfólio em vários canteiros. Detecção de padrões e alerta precoce em obras problemáticas.',s1:'Profissionais autônomos',s2:'Pequenas construtoras',s3:'Empreiteiras médias',s4:'Grandes empresas'}:{title:'The frontier, on every site',h1:'Bace AI Agents',h2:'Bace Core',h3:'Industries',h4:'Company size',a1t:'Capture Agent',a1d:'Turns a photo or voice note into a structured incident record — description, cause, solution — in under 60 seconds.',a2t:'Docs Agent',a2d:'Reads PDF plans, contracts and specs. Extracts dimensions, references and requirements automatically.',a3t:'Norm Agent',a3d:'Matches every incident to applicable standards — ABNT NBR, NRs, DTU, Eurocode. Compliance becomes automatic.',a4t:'Insight Agent',a4d:'Detects recurring patterns and risk trends across projects. Surfaces issues before they escalate.',c1t:'Bace IA Chat',c1d:'A construction-specialized assistant that answers technical questions using your project data and applicable norms.',c2t:'Dashboard',c2d:'KPIs, AI insights and real-time incident status across all your projects — one view, always up to date.',c3t:'Knowledge Base',c3d:'Every incident becomes searchable knowledge. Your next project starts smarter than your last.',c4t:'Real-time Collaboration',c4d:'Instant notifications between team members when an incident is captured or resolved.',i1t:'Civil construction',i1d:'Residential and commercial builds, from single-family homes to high-rise developments. Foundation, structural, quality control and safety captures.',i2t:'Architecture',i2d:'Track how designs are executed on site, document deviations, and maintain a visual record of the built reality vs. the planned design.',i3t:'Structural engineering',i3d:'Cracks, deflections, settlement — captured, referenced against NBR 6118 or Eurocode 2, and turned into defensible records.',i4t:'Infrastructure & public works',i4d:'Roads, bridges, tunnels, water systems. Timestamped, geotagged, norm-referenced records that hold up in audits and tenders.',i5t:'Renovation & retrofit',i5d:'Document what plans do not show: hidden pipes, unexpected structural conditions, materials that no longer meet current codes.',i6t:'Real estate development',i6d:'Portfolio-scale visibility across multiple sites. Cross-project pattern detection and early warning on troubled projects.',s1:'Independent professionals',s2:'Small construction firms',s3:'Mid-size contractors',s4:'Large enterprises'};
+  // Main panel IDs
+  var mainIds=['sol-title','sol-h1','sol-h2','sol-h3','sol-h4','sol-a1-t','sol-a1-d','sol-a2-t','sol-a2-d','sol-a3-t','sol-a3-d','sol-a4-t','sol-a4-d','sol-c1-t','sol-c1-d','sol-c2-t','sol-c2-d','sol-c3-t','sol-c3-d','sol-c4-t','sol-c4-d','sol-i1-t','sol-i1-d','sol-i2-t','sol-i2-d','sol-i3-t','sol-i3-d','sol-i4-t','sol-i4-d','sol-i5-t','sol-i5-d','sol-i6-t','sol-i6-d','sol-s1','sol-s2','sol-s3','sol-s4'];
+  var keyMap={'sol-title':'title','sol-h1':'h1','sol-h2':'h2','sol-h3':'h3','sol-h4':'h4'};
+  ['a1','a2','a3','a4','c1','c2','c3','c4','i1','i2','i3','i4','i5','i6'].forEach(function(k){keyMap['sol-'+k+'-t']=k+'t';keyMap['sol-'+k+'-d']=k+'d';});
+  ['s1','s2','s3','s4'].forEach(function(k){keyMap['sol-'+k]=k;});
+  mainIds.forEach(function(id){var el=document.getElementById(id);if(el&&solT[keyMap[id]])el.textContent=solT[keyMap[id]];});
+  // Dropdown labels
+  var ddMap={'soldd-h1':'h1','soldd-h2':'h2','soldd-h3':'h3','soldd-h4':'h4','soldd-a1':'a1t','soldd-a2':'a2t','soldd-a3':'a3t','soldd-a4':'a4t','soldd-c1':'c1t','soldd-c2':'c2t','soldd-c3':'c3t','soldd-c4':'c4t','soldd-i1':'i1t','soldd-i2':'i2t','soldd-i3':'i3t','soldd-i4':'i4t','soldd-i5':'i5t','soldd-i6':'i6t','soldd-s1':'s1','soldd-s2':'s2','soldd-s3':'s3','soldd-s4':'s4'};
+  Object.keys(ddMap).forEach(function(id){var el=document.getElementById(id);if(el&&solT[ddMap[id]])el.textContent=solT[ddMap[id]];});
   var hyub=document.getElementById('use-bace-title');
   if(hyub)hyub.textContent=lang===0?'Comment utiliser Bace':lang===2?'Como você pode usar a Bace':'How you can use Bace';
 }
