@@ -44,6 +44,12 @@ body.light-mode .auth-left-panel{background:#f5f5f7 !important;}
 .sol-item{padding:9px 12px;border-radius:8px;color:var(--text);font-size:14px;cursor:pointer;transition:all 0.15s;font-family:var(--font-b);}
 .sol-item:hover{background:rgba(96,165,250,0.08);color:#60a5fa;}
 .sol-item.active{background:rgba(96,165,250,0.12);color:#60a5fa;font-weight:600;}
+.sol-menu-item{padding:8px 10px;border-radius:6px;color:var(--text);font-size:13px;cursor:pointer;transition:all 0.15s;font-family:var(--font-b);}
+.sol-menu-item:hover{background:rgba(96,165,250,0.08);color:#60a5fa;}
+.sol-tag{padding:6px 12px;border-radius:100px;background:var(--navy);border:1px solid var(--border);color:var(--text2);font-size:12px;font-family:var(--font-b);}
+body.light-mode .sol-menu-item{color:#2d2d3f;}
+body.light-mode .sol-menu-item:hover{background:rgba(59,130,246,0.06);color:#3b82f6;}
+body.light-mode .sol-tag{background:#f5f5f7;color:#6b7280;border-color:rgba(0,0,0,0.08);}
 body.light-mode .sol-item{color:#2d2d3f;}
 body.light-mode .sol-item:hover{background:rgba(59,130,246,0.06);color:#3b82f6;}
 body.light-mode .sol-item.active{background:rgba(59,130,246,0.1);color:#3b82f6;}
@@ -1104,66 +1110,65 @@ tr:hover td{background:rgba(255,255,255,0.02);}
     </div>
   </div>
   <div id="content-panel-1" class="content-panel" style="display:none;padding:0;">
-    <div style="max-width:1300px;margin:0 auto;display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 100px);" class="sol-layout">
-      <!-- LEFT: Sidebar with categorized list -->
-      <div style="border-right:1px solid var(--border);padding:48px 32px;background:var(--navy2);" class="sol-sidebar">
-        <!-- AI Agents -->
-        <div style="margin-bottom:32px;">
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;font-weight:700;" id="sol-h1">AI Agents</div>
-          <div style="display:flex;flex-direction:column;gap:2px;">
-            <div onclick="showSolItem('a1')" class="sol-item" data-item="a1"><span id="sol-a1-nav">Capture Agent</span></div>
-            <div onclick="showSolItem('a2')" class="sol-item" data-item="a2"><span id="sol-a2-nav">Document Agent</span></div>
-            <div onclick="showSolItem('a3')" class="sol-item" data-item="a3"><span id="sol-a3-nav">Norm Agent</span></div>
-            <div onclick="showSolItem('a4')" class="sol-item" data-item="a4"><span id="sol-a4-nav">Insight Agent</span></div>
-          </div>
-        </div>
-        <!-- Bace Core -->
-        <div style="margin-bottom:32px;">
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;font-weight:700;" id="sol-h2">Bace Core</div>
-          <div style="display:flex;flex-direction:column;gap:2px;">
-            <div onclick="showSolItem('c1')" class="sol-item" data-item="c1"><span id="sol-c1-nav">Bace IA Chat</span></div>
-            <div onclick="showSolItem('c2')" class="sol-item" data-item="c2"><span id="sol-c2-nav">Dashboard</span></div>
-            <div onclick="showSolItem('c3')" class="sol-item" data-item="c3"><span id="sol-c3-nav">Knowledge Base</span></div>
-            <div onclick="showSolItem('c4')" class="sol-item" data-item="c4"><span id="sol-c4-nav">Real-time Collaboration</span></div>
-          </div>
-        </div>
-        <!-- Industries -->
-        <div style="margin-bottom:32px;">
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;font-weight:700;" id="sol-h3">Industries</div>
-          <div style="display:flex;flex-direction:column;gap:2px;">
-            <div onclick="showSolItem('i1')" class="sol-item" data-item="i1"><span id="sol-i1-nav">Civil construction</span></div>
-            <div onclick="showSolItem('i2')" class="sol-item" data-item="i2"><span id="sol-i2-nav">Architecture</span></div>
-            <div onclick="showSolItem('i3')" class="sol-item" data-item="i3"><span id="sol-i3-nav">Structural engineering</span></div>
-            <div onclick="showSolItem('i4')" class="sol-item" data-item="i4"><span id="sol-i4-nav">Infrastructure &amp; public works</span></div>
-            <div onclick="showSolItem('i5')" class="sol-item" data-item="i5"><span id="sol-i5-nav">Renovation &amp; retrofit</span></div>
-            <div onclick="showSolItem('i6')" class="sol-item" data-item="i6"><span id="sol-i6-nav">Real estate development</span></div>
-          </div>
-        </div>
-        <!-- Company size -->
-        <div style="margin-bottom:32px;">
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;font-weight:700;" id="sol-h4">Company size</div>
-          <div style="display:flex;flex-direction:column;gap:2px;">
-            <div onclick="showSolItem('s1')" class="sol-item" data-item="s1"><span id="sol-s1-nav">Independent professionals</span></div>
-            <div onclick="showSolItem('s2')" class="sol-item" data-item="s2"><span id="sol-s2-nav">Small construction firms</span></div>
-            <div onclick="showSolItem('s3')" class="sol-item" data-item="s3"><span id="sol-s3-nav">Mid-size contractors</span></div>
-            <div onclick="showSolItem('s4')" class="sol-item" data-item="s4"><span id="sol-s4-nav">Large enterprises</span></div>
-          </div>
-        </div>
-        <!-- Markets -->
-        <div>
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;font-weight:700;" id="sol-h5">Markets</div>
-          <div style="display:flex;flex-direction:column;gap:2px;">
-            <div onclick="showSolItem('m1')" class="sol-item" data-item="m1"><span style="display:flex;align-items:center;gap:8px;">🇧🇷 <span id="sol-m1-nav">Brazil</span></span></div>
-            <div onclick="showSolItem('m2')" class="sol-item" data-item="m2"><span style="display:flex;align-items:center;gap:8px;">🇫🇷 <span id="sol-m2-nav">France</span></span></div>
+    <div style="max-width:900px;margin:0 auto;padding:60px 40px;">
+      <div style="text-align:center;margin-bottom:56px;">
+        <div style="font-family:var(--font-d);font-size:36px;font-weight:800;color:var(--white);margin-bottom:12px;line-height:1.15;" id="sol-title">One platform. Every layer of your construction data.</div>
+        <div style="font-size:15px;color:var(--text2);max-width:600px;margin:0 auto;line-height:1.6;" id="sol-sub">From field capture to institutional knowledge — BaceTech connects it all.</div>
+      </div>
+      <!-- Explore dropdown -->
+      <div style="display:flex;justify-content:center;margin-bottom:60px;">
+        <div style="position:relative;" onmouseenter="document.getElementById('sol-explore-menu').style.display='block'" onmouseleave="document.getElementById('sol-explore-menu').style.display='none'">
+          <button style="display:flex;align-items:center;gap:8px;background:var(--navy2);border:1px solid var(--border2);color:var(--white);padding:12px 24px;border-radius:100px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font-b);"><span id="sol-explore-label">Explore Solutions</span> <span style="font-size:11px;transition:transform 0.2s;" id="sol-explore-caret">▼</span></button>
+          <div id="sol-explore-menu" style="display:none;position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--navy2);border:1px solid var(--border2);border-radius:14px;padding:20px;min-width:640px;box-shadow:0 20px 60px rgba(0,0,0,0.4);z-index:100;">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;">
+              <!-- AI Agents -->
+              <div>
+                <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;font-weight:700;" id="sol-h1">AI Agents</div>
+                <div style="display:flex;flex-direction:column;gap:2px;">
+                  <div onclick="scrollToSol('sec-a1')" class="sol-menu-item" id="sol-a1-nav">Capture Agent</div>
+                  <div onclick="scrollToSol('sec-a2')" class="sol-menu-item" id="sol-a2-nav">Document Agent</div>
+                  <div onclick="scrollToSol('sec-a3')" class="sol-menu-item" id="sol-a3-nav">Norm Agent</div>
+                  <div onclick="scrollToSol('sec-a4')" class="sol-menu-item" id="sol-a4-nav">Insight Agent</div>
+                </div>
+              </div>
+              <!-- Bace Core -->
+              <div>
+                <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;font-weight:700;" id="sol-h2">Bace Core</div>
+                <div style="display:flex;flex-direction:column;gap:2px;">
+                  <div onclick="scrollToSol('sec-c1')" class="sol-menu-item" id="sol-c1-nav">Bace IA Chat</div>
+                  <div onclick="scrollToSol('sec-c2')" class="sol-menu-item" id="sol-c2-nav">Dashboard</div>
+                  <div onclick="scrollToSol('sec-c3')" class="sol-menu-item" id="sol-c3-nav">Knowledge Base</div>
+                  <div onclick="scrollToSol('sec-c4')" class="sol-menu-item" id="sol-c4-nav">Real-time Collaboration</div>
+                </div>
+              </div>
+              <!-- Industries -->
+              <div>
+                <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;font-weight:700;" id="sol-h3">Industries</div>
+                <div style="display:flex;flex-direction:column;gap:2px;">
+                  <div onclick="scrollToSol('sec-i1')" class="sol-menu-item" id="sol-i1-nav">Civil construction</div>
+                  <div onclick="scrollToSol('sec-i2')" class="sol-menu-item" id="sol-i2-nav">Architecture</div>
+                  <div onclick="scrollToSol('sec-i3')" class="sol-menu-item" id="sol-i3-nav">Structural engineering</div>
+                  <div onclick="scrollToSol('sec-i4')" class="sol-menu-item" id="sol-i4-nav">Infrastructure &amp; public works</div>
+                  <div onclick="scrollToSol('sec-i5')" class="sol-menu-item" id="sol-i5-nav">Renovation &amp; retrofit</div>
+                  <div onclick="scrollToSol('sec-i6')" class="sol-menu-item" id="sol-i6-nav">Real estate development</div>
+                </div>
+              </div>
+            </div>
+            <!-- Company Size (not clickable) -->
+            <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px;">
+              <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;font-weight:700;" id="sol-h4">Company size</div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                <div class="sol-tag" id="sol-s1-nav">Independent professionals</div>
+                <div class="sol-tag" id="sol-s2-nav">Small construction firms</div>
+                <div class="sol-tag" id="sol-s3-nav">Mid-size contractors</div>
+                <div class="sol-tag" id="sol-s4-nav">Large enterprises</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      <!-- RIGHT: Content pane -->
-      <div style="padding:60px 60px;" class="sol-content">
-        <div id="sol-detail">
-          <!-- Content injected by JS -->
-        </div>
-      </div>
+      <!-- Detailed sections, one per item, stacked -->
+      <div id="sol-sections"></div>
     </div>
   </div>
 
@@ -1738,8 +1743,33 @@ function showContentTab(idx){
     var p=document.getElementById('content-panel-'+i);if(p)p.style.display=i===idx?'block':'none';
     var t=document.getElementById('ctab-'+i);if(t)t.classList.toggle('active',i===idx);
   }
-  // If Solutions tab, show first item by default
-  if(idx===1)showSolItem('a1');
+  if(idx===1)renderSolSections();
+}
+
+function renderSolSections(){
+  var lk=getLangKey();
+  var data=SOL_CONTENT[lk]||SOL_CONTENT.en;
+  var container=document.getElementById('sol-sections');
+  if(!container)return;
+  // Order: AI Agents, Bace Core, Industries
+  var order=['a1','a2','a3','a4','c1','c2','c3','c4','i1','i2','i3','i4','i5','i6'];
+  var html='';
+  order.forEach(function(key,idx){
+    var d=data[key];if(!d)return;
+    html+='<div id="sec-'+key+'" style="scroll-margin-top:120px;padding:'+(idx===0?'0':'56px')+' 0;'+(idx>0?'border-top:1px solid var(--border);':'')+'">';
+    html+='<div style="font-size:12px;color:#60a5fa;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:14px;">'+d.cat+'</div>';
+    html+='<div style="font-family:var(--font-d);font-size:36px;font-weight:800;color:var(--white);line-height:1.15;letter-spacing:-0.6px;margin-bottom:16px;">'+d.title+'</div>';
+    html+='<div style="font-size:17px;color:var(--text);line-height:1.55;margin-bottom:24px;max-width:720px;">'+d.lead+'</div>';
+    d.body.forEach(function(p){html+='<div style="font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:16px;max-width:720px;">'+p+'</div>';});
+    html+='</div>';
+  });
+  container.innerHTML=html;
+}
+
+function scrollToSol(id){
+  document.getElementById('sol-explore-menu').style.display='none';
+  var el=document.getElementById(id);
+  if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 var SOL_CONTENT={
@@ -1811,20 +1841,6 @@ var SOL_CONTENT={
   }
 };
 
-function showSolItem(key){
-  var lk=getLangKey();
-  var data=(SOL_CONTENT[lk]||SOL_CONTENT.en)[key];
-  if(!data)return;
-  document.querySelectorAll('.sol-item').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-item')===key);});
-  var detail=document.getElementById('sol-detail');
-  if(!detail)return;
-  var html='<div style="font-size:12px;color:#60a5fa;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:14px;">'+data.cat+'</div>';
-  html+='<div style="font-family:var(--font-d);font-size:44px;font-weight:800;color:var(--white);line-height:1.1;letter-spacing:-0.8px;margin-bottom:20px;">'+data.title+'</div>';
-  html+='<div style="font-size:18px;color:var(--text);line-height:1.55;margin-bottom:32px;max-width:640px;">'+data.lead+'</div>';
-  data.body.forEach(function(p){html+='<div style="font-size:15px;color:var(--text2);line-height:1.7;margin-bottom:20px;max-width:680px;">'+p+'</div>';});
-  html+='<button onclick="showAuthPage()" style="margin-top:16px;background:#60a5fa;color:#fff;border:none;padding:14px 28px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-b);transition:opacity 0.15s;" onmouseover="this.style.opacity=\'0.85\'" onmouseout="this.style.opacity=\'1\'">'+data.cta+' →</button>';
-  detail.innerHTML=html;
-}
 var _resLang='en';
 function setResLang(l){_resLang=l;var en=document.getElementById('res-lang-en');var pt=document.getElementById('res-lang-pt');if(l==='en'){en.style.background='rgba(96,165,250,0.1)';en.style.borderColor='rgba(96,165,250,0.3)';en.style.color='#60a5fa';pt.style.background='none';pt.style.borderColor='var(--border2)';pt.style.color='var(--text2)';}else{pt.style.background='rgba(96,165,250,0.1)';pt.style.borderColor='rgba(96,165,250,0.3)';pt.style.color='#60a5fa';en.style.background='none';en.style.borderColor='var(--border2)';en.style.color='var(--text2)';}}
 function downloadResReport(){var n=document.getElementById('res-f-name').value;var e=document.getElementById('res-f-email').value;if(!n||!e){toast('Please fill in name and email');return;}var url=_resLang==='pt'?'https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/reports/report_01_pt.pdf':'https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/reports/report_01_en.pdf';window.open(url,'_blank');document.getElementById('res-lead-form').innerHTML='<div style="text-align:center;padding:20px;color:#4ade80;font-size:14px;font-weight:500;">✓ Report ready! Check your download.</div>';}
@@ -1915,12 +1931,18 @@ function translateNav(){
   var solT=lang===0?{title:'Une plateforme. Chaque couche de vos données de chantier.',sub:'De la capture terrain à la mémoire institutionnelle — BaceTech connecte le tout.',h1:'Agents IA',h2:'Bace Core',h3:'Secteurs',h4:'Taille d\'entreprise',h5:'Marchés',a1t:'Agent Capture',a1d:'Transforme une photo ou une note vocale en un rapport d\'incident structuré — avec description, cause et solution — en moins de 60 secondes.',a2t:'Agent Document',a2d:'Lit les plans PDF, contrats et cahiers des charges. Extrait automatiquement les dimensions, références et exigences.',a3t:'Agent Norme',a3d:'Associe chaque incident aux normes applicables (NF, DTU, Eurocode, ABNT) — la conformité devient automatique.',a4t:'Agent Insight',a4d:'Détecte les schémas récurrents et les tendances de risque entre projets. Fait remonter les problèmes avant qu\'ils s\'aggravent.',c1t:'Bace IA Chat',c1d:'Un assistant spécialisé BTP qui répond aux questions techniques à partir des données du projet et des normes.',c2t:'Tableau de bord',c2d:'KPI, insights IA et statut des incidents en temps réel sur tous vos projets — une vue, toujours à jour.',c3t:'Base de connaissances',c3d:'Chaque incident devient un savoir consultable. Votre prochain projet démarre plus intelligemment.',c4t:'Collaboration temps réel',c4d:'Notifications instantanées entre les membres de l\'équipe à chaque incident capturé ou résolu.',i1:'Construction civile',i2:'Architecture',i3:'Ingénierie structurelle',i4:'Infrastructure & travaux publics',i5:'Rénovation & réhabilitation',i6:'Promotion immobilière',s1:'Professionnels indépendants',s2:'Petites entreprises',s3:'Contractants moyens',s4:'Grandes entreprises',m1:'Brésil',m2:'France'}:lang===2?{title:'Uma plataforma. Cada camada dos seus dados de obra.',sub:'Da captura em campo ao conhecimento institucional — BaceTech conecta tudo.',h1:'Agentes IA',h2:'Bace Core',h3:'Setores',h4:'Tamanho da empresa',h5:'Mercados',a1t:'Agente Captura',a1d:'Transforma uma foto ou nota de voz em um registro estruturado — com descrição, causa e solução — em menos de 60 segundos.',a2t:'Agente Documento',a2d:'Lê plantas PDF, contratos e especificações. Extrai automaticamente dimensões, referências e requisitos.',a3t:'Agente Norma',a3d:'Vincula cada incidente às normas aplicáveis (ABNT NBR, NRs, DTU, Eurocode) — a conformidade fica automática.',a4t:'Agente Insight',a4d:'Detecta padrões recorrentes e tendências de risco entre projetos. Traz problemas à tona antes que se agravem.',c1t:'Bace IA Chat',c1d:'Assistente especializado em construção que responde perguntas técnicas com base nos dados do projeto e normas aplicáveis.',c2t:'Dashboard',c2d:'KPIs, insights de IA e status de incidentes em tempo real em todos os seus projetos — uma visão, sempre atualizada.',c3t:'Base de conhecimento',c3d:'Cada incidente vira conhecimento pesquisável. Seu próximo projeto começa mais inteligente.',c4t:'Colaboração em tempo real',c4d:'Notificações instantâneas entre membros da equipe quando um incidente é registrado ou resolvido.',i1:'Construção civil',i2:'Arquitetura',i3:'Engenharia estrutural',i4:'Infraestrutura & obras públicas',i5:'Reforma & retrofit',i6:'Incorporação imobiliária',s1:'Profissionais autônomos',s2:'Pequenas construtoras',s3:'Empreiteiras médias',s4:'Grandes empresas',m1:'Brasil',m2:'França'}:{title:'One platform. Every layer of your construction data.',sub:'From field capture to institutional knowledge — BaceTech connects it all.',h1:'AI Agents',h2:'Bace Core',h3:'Industries',h4:'Company size',h5:'Markets',a1t:'Capture Agent',a1d:'Turns a photo or voice note into a structured incident record — with description, cause and solution — in under 60 seconds.',a2t:'Document Agent',a2d:'Reads PDF plans, contracts and specs. Extracts dimensions, references and requirements automatically.',a3t:'Norm Agent',a3d:'Matches every incident to applicable standards (ABNT NBR, NRs, DTU, Eurocode) — so compliance is automatic, not manual.',a4t:'Insight Agent',a4d:'Detects recurring patterns and risk trends across projects. Surfaces issues before they escalate.',c1t:'Bace IA Chat',c1d:'A construction-specialized assistant that answers technical questions using your project data and applicable norms.',c2t:'Dashboard',c2d:'KPIs, AI insights and real-time incident status across all your projects — one view, always up to date.',c3t:'Knowledge Base',c3d:'Every incident becomes searchable knowledge. Your next project starts smarter than your last.',c4t:'Real-time Collaboration',c4d:'Instant notifications between team members when an incident is captured or resolved.',i1:'Civil construction',i2:'Architecture',i3:'Structural engineering',i4:'Infrastructure & public works',i5:'Renovation & retrofit',i6:'Real estate development',s1:'Independent professionals',s2:'Small construction firms',s3:'Mid-size contractors',s4:'Large enterprises',m1:'Brazil',m2:'France'};
   var solIds={'sol-title':'title','sol-sub':'sub','sol-h1':'h1','sol-h2':'h2','sol-h3':'h3','sol-h4':'h4','sol-h5':'h5','sol-a1t':'a1t','sol-a1d':'a1d','sol-a2t':'a2t','sol-a2d':'a2d','sol-a3t':'a3t','sol-a3d':'a3d','sol-a4t':'a4t','sol-a4d':'a4d','sol-c1t':'c1t','sol-c1d':'c1d','sol-c2t':'c2t','sol-c2d':'c2d','sol-c3t':'c3t','sol-c3d':'c3d','sol-c4t':'c4t','sol-c4d':'c4d','sol-i1':'i1','sol-i2':'i2','sol-i3':'i3','sol-i4':'i4','sol-i5':'i5','sol-i6':'i6','sol-s1':'s1','sol-s2':'s2','sol-s3':'s3','sol-s4':'s4','sol-m1':'m1','sol-m2':'m2'};
   Object.keys(solIds).forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=solT[solIds[id]];});
-  // Update sidebar nav labels from SOL_CONTENT titles
+  // Update dropdown menu labels from SOL_CONTENT titles
   var lk=getLangKey();var solData=SOL_CONTENT[lk]||SOL_CONTENT.en;
-  Object.keys(solData).forEach(function(key){var el=document.getElementById('sol-'+key+'-nav');if(el)el.textContent=solData[key].title;});
-  // Refresh current selected item content
-  var activeItem=document.querySelector('.sol-item.active');
-  if(activeItem){var key=activeItem.getAttribute('data-item');if(key)showSolItem(key);}
+  var itemKeys=['a1','a2','a3','a4','c1','c2','c3','c4','i1','i2','i3','i4','i5','i6'];
+  itemKeys.forEach(function(key){var el=document.getElementById('sol-'+key+'-nav');if(el&&solData[key])el.textContent=solData[key].title;});
+  // Company size tags translation
+  var sizeLabels=lang===0?['Professionnels indépendants','Petites entreprises','Contractants moyens','Grandes entreprises']:lang===2?['Profissionais autônomos','Pequenas construtoras','Empreiteiras médias','Grandes empresas']:['Independent professionals','Small construction firms','Mid-size contractors','Large enterprises'];
+  ['s1','s2','s3','s4'].forEach(function(key,i){var el=document.getElementById('sol-'+key+'-nav');if(el)el.textContent=sizeLabels[i];});
+  // Explore button label
+  var expLbl=document.getElementById('sol-explore-label');
+  if(expLbl)expLbl.textContent=lang===0?'Explorer les solutions':lang===2?'Explorar Soluções':'Explore Solutions';
+  // Rebuild sections if Solutions tab is visible
+  if(document.getElementById('content-panel-1')&&document.getElementById('content-panel-1').style.display==='block')renderSolSections();
   var hyub=document.getElementById('use-bace-title');
   if(hyub)hyub.textContent=lang===0?'Comment utiliser Bace':lang===2?'Como você pode usar a Bace':'How you can use Bace';
 }
