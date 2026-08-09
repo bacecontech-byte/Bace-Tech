@@ -1071,10 +1071,21 @@ tr:hover td{background:rgba(255,255,255,0.02);}
           <div style="text-align:center;margin-top:24px;font-size:14px;color:var(--text3);font-style:italic;" id="about-tagline">Built by engineers, for engineers.</div>
         </div>
       </div>
+    <!-- How you can use Bace showcase -->
+    <div style="padding:80px 40px;border-top:1px solid var(--border);background:var(--navy2);">
+      <div style="max-width:1100px;margin:0 auto;">
+        <div style="text-align:center;margin-bottom:48px;">
+          <div style="font-family:var(--font-d);font-size:44px;font-weight:800;color:var(--white);line-height:1.15;letter-spacing:-1px;" id="use-bace-title">How you can use Bace</div>
+        </div>
+        <!-- Feature tabs pill container -->
+        <div style="display:flex;justify-content:center;margin-bottom:40px;">
+          <div id="hyub-tabs" style="display:inline-flex;background:var(--navy);border:1px solid var(--border);border-radius:100px;padding:6px;gap:2px;flex-wrap:wrap;justify-content:center;"></div>
+        </div>
+        <!-- Preview area -->
+        <div id="hyub-preview-wrap" style="background:var(--navy);border:1px solid var(--border);border-radius:20px;padding:40px;min-height:360px;box-shadow:0 20px 60px rgba(0,0,0,0.15);"></div>
+      </div>
     </div>
   </div>
-
-  <!-- TAB 1: Solutions -->
   <div id="content-panel-1" class="content-panel" style="display:none;padding:60px 40px;">
     <div style="max-width:960px;margin:0 auto;">
       <div style="text-align:center;margin-bottom:40px;">
@@ -1686,6 +1697,8 @@ function translateNav(){
   var aboutT=lang===0?{headline:'Rencontrez votre<br>copain de<br>chantier.',sub:'Capturez, analysez et résolvez les incidents sur site avec l\'IA — en moins de 60 secondes.',cta:'Réserver une démo →',v1t:'Capturez l\'essentiel, instantanément',v1d:'Photo ou voix — BaceTech transforme un rapport papier de 30 minutes en un enregistrement analysé par IA en 60 secondes. Description, cause probable, solution recommandée et normes applicables — tout est généré automatiquement.',v2t:'Construisez une mémoire institutionnelle',v2d:'Chaque incident capturé devient un savoir consultable. Au bout de 90 jours, BaceTech identifie les schémas que les humains manquent — catégories récurrentes, corps de métier à risque, projets à surveiller. Votre prochain projet démarre plus intelligemment que le précédent.',v3t:'Restez conformes, restez protégés',v3d:'Chaque enregistrement est horodaté, géolocalisé et prêt pour l\'audit. BaceTech référence automatiquement les normes applicables (NF, DTU, Eurocode) — ainsi, quand les inspecteurs ou les avocats se présentent, votre documentation parle d\'elle-même.',i1:'moins de temps de documentation',i2:'détection de schémas plus rapide',i3:'des incidents traçables',i4:'papier nécessaire — 100% digital',tag:'Conçu par des ingénieurs, pour des ingénieurs.'}:lang===2?{headline:'Conheça seu<br>parceiro de<br>obra.',sub:'Capture, analise e resolva incidentes de canteiro com IA — em menos de 60 segundos.',cta:'Agendar uma demo →',v1t:'Capture o essencial, instantaneamente',v1d:'Foto ou voz — BaceTech transforma um relatório em papel de 30 minutos em um registro analisado por IA em 60 segundos. Descrição, causa provável, solução recomendada e normas aplicáveis — tudo gerado automaticamente.',v2t:'Construa memória institucional',v2d:'Cada incidente capturado vira conhecimento pesquisável. Após 90 dias, BaceTech identifica padrões que humanos não veem — categorias recorrentes, especialidades de risco, projetos que precisam de atenção. Seu próximo projeto começa mais inteligente que o anterior.',v3t:'Mantenha-se em conformidade, protegido',v3d:'Cada registro tem data/hora, geolocalização e está pronto para auditoria. BaceTech referencia automaticamente normas aplicáveis (ABNT NBR, NRs, DTU) — assim, quando fiscais ou advogados aparecem, sua documentação fala por si.',i1:'menos tempo em documentação',i2:'mais rápido para identificar padrões',i3:'dos incidentes rastreáveis',i4:'papel necessário — 100% digital',tag:'Desenvolvido por engenheiros, para engenheiros.'}:{headline:'Meet your<br>construction<br>buddy.',sub:'Capture, analyze, and resolve site incidents with AI — in under 60 seconds.',cta:'Schedule a demo →',v1t:'Capture what matters, instantly',v1d:'Photo or voice — BaceTech turns a 30-minute paper report into a 60-second AI-analyzed incident record. Description, probable cause, recommended solution, and applicable norms — all generated automatically.',v2t:'Build institutional memory',v2d:'Every incident captured becomes searchable knowledge. After 90 days, BaceTech identifies patterns humans miss — recurring categories, high-risk trades, projects that need attention. Your next project starts smarter than your last.',v3t:'Stay compliant, stay protected',v3d:'Every record is timestamped, geotagged, and audit-ready. BaceTech automatically references applicable norms (ABNT NBR, NRs, DTU) — so when inspectors or lawyers come knocking, your documentation speaks for itself.',i1:'less time documenting',i2:'faster pattern detection',i3:'incidents traceable',i4:'paper needed — 100% digital',tag:'Built by engineers, for engineers.'};
   var aboutIds={'about-headline':'headline','about-hero-sub':'sub','about-cta':'cta','v1-title':'v1t','v1-desc':'v1d','v2-title':'v2t','v2-desc':'v2d','v3-title':'v3t','v3-desc':'v3d','imp-1':'i1','imp-2':'i2','imp-3':'i3','imp-4':'i4','about-tagline':'tag'};
   Object.keys(aboutIds).forEach(function(id){var el=document.getElementById(id);if(el){if(id==='about-headline')el.innerHTML=aboutT[aboutIds[id]];else el.textContent=aboutT[aboutIds[id]];}});
+  var hyub=document.getElementById('use-bace-title');
+  if(hyub)hyub.textContent=lang===0?'Comment utiliser Bace':lang===2?'Como você pode usar a Bace':'How you can use Bace';
 }
 
 function setLang(i,btn){
@@ -2160,6 +2173,27 @@ function autoNextFeat(){
   currentFeat=(currentFeat+1)%FEAT_DATA.length;
   renderFeatTabs();
   renderFeatPreview(currentFeat);
+  renderHYUB();
+}
+
+// HYUB: How You Use Bace showcase on About Us tab
+var hyubTimer=null;
+function renderHYUB(){
+  var lk=getLangKey();
+  var tabs=document.getElementById("hyub-tabs");
+  var wrap=document.getElementById("hyub-preview-wrap");
+  if(!tabs||!wrap)return;
+  tabs.innerHTML="";
+  FEAT_DATA.forEach(function(f,i){
+    var btn=document.createElement("button");
+    var isActive=i===currentFeat;
+    btn.style.cssText='background:'+(isActive?'var(--white)':'transparent')+';color:'+(isActive?'var(--navy)':'var(--text2)')+';border:none;padding:10px 20px;font-size:14px;font-weight:'+(isActive?'600':'500')+';border-radius:100px;cursor:pointer;transition:all 0.2s;font-family:var(--font-b);white-space:nowrap;';
+    btn.textContent=f[lk].tab;
+    btn.onclick=(function(idx){return function(){currentFeat=idx;renderFeatTabs();renderFeatPreview(currentFeat);renderHYUB();clearInterval(featTimer);featTimer=setInterval(autoNextFeat,4000);};})(i);
+    tabs.appendChild(btn);
+  });
+  var f=FEAT_DATA[currentFeat][lk];
+  wrap.innerHTML='<div style="font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--white);margin-bottom:8px;">'+f.title+'</div><div style="font-size:14px;color:var(--text2);margin-bottom:24px;line-height:1.6;">'+f.desc+'</div>'+buildFeatContent(f.content,lk);
 }
 
 function applyAuthLang(){
@@ -2183,6 +2217,7 @@ function applyAuthLang(){
 
   renderFeatTabs();
   renderFeatPreview(currentFeat);
+  renderHYUB();
   // Always restart auto-rotation timer
   clearInterval(featTimer);
   featTimer=setInterval(autoNextFeat,4000);
