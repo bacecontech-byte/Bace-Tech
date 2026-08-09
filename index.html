@@ -58,6 +58,13 @@ body.light-mode .auth-right-panel{background:#f5f5f7 !important;}
 body.light-mode .auth-right-panel .feat-tab{color:#6b7280 !important;border-color:rgba(0,0,0,0.15) !important;}
 body.light-mode .auth-right-panel .feat-tab.active{color:#3b82f6 !important;background:rgba(59,130,246,0.08) !important;border-color:#3b82f6 !important;}
 body.light-mode .auth-right-panel #feat-preview-wrap{background:rgba(0,0,0,0.03) !important;border-color:rgba(0,0,0,0.1) !important;}
+body.light-mode #hyub-preview-wrap{background:rgba(0,0,0,0.03) !important;border-color:rgba(0,0,0,0.1) !important;}
+body.light-mode #hyub-preview-wrap .fp-title{color:#1a1a2e !important;}
+body.light-mode #hyub-preview-wrap .fp-desc{color:#6b7280 !important;}
+body.light-mode #hyub-preview-wrap b{color:#2d2d3f !important;}
+body.light-mode #hyub-tabs .feat-tab{color:#6b7280 !important;border-color:rgba(0,0,0,0.15) !important;}
+body.light-mode #hyub-tabs .feat-tab.active{color:#3b82f6 !important;background:rgba(59,130,246,0.08) !important;border-color:#3b82f6 !important;}
+body.light-mode #use-bace-title{color:#1a1a2e !important;}
 body.light-mode #landing-mobile-menu{background:#ffffff !important;}
 body.light-mode #landing-mobile-menu a{color:#2d2d3f !important;}
 body.light-mode #landing-mobile-cta button{color:#3b82f6 !important;border-color:rgba(0,0,0,0.15) !important;}
@@ -1595,17 +1602,32 @@ function showContentPage(tabIdx){
   document.getElementById('s-login').classList.remove('active');
   document.getElementById('s-content').classList.add('active');
   showContentTab(tabIdx||0);
+  localStorage.setItem('bacetech_current_page','content');
+  localStorage.setItem('bacetech_current_tab',tabIdx||0);
   window.scrollTo(0,0);
 }
 function showAuthPage(){
   document.getElementById('s-content').classList.remove('active');
   document.getElementById('s-login').classList.add('active');
+  localStorage.setItem('bacetech_current_page','auth');
   window.scrollTo(0,0);
   renderFeatTabs();
   renderFeatPreview(currentFeat);
   clearInterval(featTimer);
   featTimer=setInterval(autoNextFeat,4000);
 }
+// Restore page on load
+(function(){
+  var page=localStorage.getItem('bacetech_current_page');
+  if(page==='content'){
+    setTimeout(function(){
+      var tab=parseInt(localStorage.getItem('bacetech_current_tab'))||0;
+      var sc=document.getElementById('s-content');
+      var sl=document.getElementById('s-login');
+      if(sc&&sl){sl.classList.remove('active');sc.classList.add('active');showContentTab(tab);}
+    },100);
+  }
+})();
 function showContentTab(idx){
   for(var i=0;i<4;i++){
     var p=document.getElementById('content-panel-'+i);if(p)p.style.display=i===idx?'block':'none';
@@ -2085,13 +2107,13 @@ function buildFeatContent(type,lk){
   }
   if(type==="chat"){
     return'<div style="position:relative;padding-bottom:8px;">'+
-    '<div class="fp-chat fp-user" id="demo-chat-q" style="opacity:0;transition:opacity 0.4s;">'+d.q+'</div>'+
-    '<div class="fp-chat fp-bot" id="demo-chat-a" style="opacity:0;transition:opacity 0.5s;">'+d.a+'</div>'+
-    '<div id="demo-chat-input" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(96,165,250,0.2);border-radius:8px;padding:8px 12px;margin-top:8px;font-size:11px;color:#6a6a75;position:relative;">'+
-    '<span id="demo-typing-text" style="color:#60a5fa;font-size:11px;min-height:14px;"></span>'+
-    '<span class="fp-cursor-blink" id="demo-blink"></span>'+
+    '<div class="fp-chat fp-user demo-chat-q" style="opacity:0;transition:opacity 0.4s;">'+d.q+'</div>'+
+    '<div class="fp-chat fp-bot demo-chat-a" style="opacity:0;transition:opacity 0.5s;">'+d.a+'</div>'+
+    '<div class="demo-chat-input" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(96,165,250,0.2);border-radius:8px;padding:8px 12px;margin-top:8px;font-size:11px;color:#6a6a75;position:relative;">'+
+    '<span class="demo-typing-text" style="color:#60a5fa;font-size:11px;min-height:14px;"></span>'+
+    '<span class="fp-cursor-blink demo-blink"></span>'+
     '</div>'+
-    '<div class="hand-cursor" id="hand-chat" style="top:70%;left:60%;opacity:0;">'+
+    '<div class="hand-cursor hand-chat" style="top:70%;left:60%;opacity:0;">'+
     '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 11V6a1.5 1.5 0 0 1 3 0v5m0 0V5a1.5 1.5 0 0 1 3 0v6m0 0V7a1.5 1.5 0 0 1 3 0v7c0 3.314-2.686 6-6 6a6 6 0 0 1-6-6v-3a1.5 1.5 0 0 1 3 0v3" stroke="#60a5fa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
     '</div></div>';
   }
@@ -2099,14 +2121,14 @@ function buildFeatContent(type,lk){
     var labels={fr:{p:"Problème",c:"Cause",s:"Solution"},en:{p:"Problem",c:"Cause",s:"Solution"},pt:{p:"Problema",c:"Causa",s:"Solução"}};
     var lb=labels[lk];
     return'<div style="position:relative;">'+
-    '<div id="demo-photo-zone" style="height:58px;border-radius:8px;background:rgba(255,255,255,0.03);border:0.5px dashed rgba(96,165,250,0.2);display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:20px;transition:background 0.3s,border-color 0.3s;cursor:pointer;">📷</div>'+
-    '<div id="demo-photo-results" style="opacity:0;transition:opacity 0.5s;">'+
+    '<div class="demo-photo-zone" style="height:58px;border-radius:8px;background:rgba(255,255,255,0.03);border:0.5px dashed rgba(96,165,250,0.2);display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:20px;transition:background 0.3s,border-color 0.3s;cursor:pointer;">📷</div>'+
+    '<div class="demo-photo-results" style="opacity:0;transition:opacity 0.5s;">'+
     '<div style="font-size:11px;margin-bottom:4px;"><span style="color:#6a6a75;display:inline-block;width:65px">'+lb.p+'</span><span style="color:#6a6a75">'+d.prob+'</span></div>'+
     '<div style="font-size:11px;margin-bottom:4px;"><span style="color:#6a6a75;display:inline-block;width:65px">'+lb.c+'</span><span style="color:#6a6a75">'+d.cause+'</span></div>'+
     '<div style="font-size:11px;margin-bottom:8px;"><span style="color:#6a6a75;display:inline-block;width:65px">'+lb.s+'</span><span style="color:#4ade80">'+d.sol+'</span></div>'+
     '<div class="fp-norm-row"><span class="fp-norm">NBR 6118</span><span class="fp-norm">NR-18</span><span class="fp-norm">DTU 21</span></div>'+
     '</div>'+
-    '<div class="hand-cursor" id="hand-photo" style="top:20%;left:55%;opacity:0;">'+
+    '<div class="hand-cursor hand-photo" style="top:20%;left:55%;opacity:0;">'+
     '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 11V6a1.5 1.5 0 0 1 3 0v5m0 0V5a1.5 1.5 0 0 1 3 0v6m0 0V7a1.5 1.5 0 0 1 3 0v7c0 3.314-2.686 6-6 6a6 6 0 0 1-6-6v-3a1.5 1.5 0 0 1 3 0v3" stroke="#60a5fa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
     '</div></div>';
   }
@@ -2241,55 +2263,50 @@ var demoPhotoTimer=null;
 
 function runChatDemo(){
   clearTimeout(demoChatTimer);
-  var hand=document.getElementById("hand-chat");
-  var input=document.getElementById("demo-chat-input");
-  var typingEl=document.getElementById("demo-typing-text");
-  var blink=document.getElementById("demo-blink");
-  var qEl=document.getElementById("demo-chat-q");
-  var aEl=document.getElementById("demo-chat-a");
-  if(!hand||!input)return;
-  // Reset
-  if(qEl)qEl.style.opacity="0";
-  if(aEl)aEl.style.opacity="0";
-  if(typingEl)typingEl.textContent="";
-  hand.style.opacity="0";
-  hand.style.transition="top 0.6s cubic-bezier(0.4,0,0.2,1),left 0.6s cubic-bezier(0.4,0,0.2,1),opacity 0.3s";
+  var hands=document.querySelectorAll(".hand-chat");
+  var inputs=document.querySelectorAll(".demo-chat-input");
+  var typingEls=document.querySelectorAll(".demo-typing-text");
+  var blinks=document.querySelectorAll(".demo-blink");
+  var qEls=document.querySelectorAll(".demo-chat-q");
+  var aEls=document.querySelectorAll(".demo-chat-a");
+  if(!hands.length||!inputs.length)return;
+  // Reset all
+  qEls.forEach(function(el){el.style.opacity="0";});
+  aEls.forEach(function(el){el.style.opacity="0";});
+  typingEls.forEach(function(el){el.textContent="";});
+  hands.forEach(function(hand){
+    hand.style.opacity="0";
+    hand.style.transition="top 0.6s cubic-bezier(0.4,0,0.2,1),left 0.6s cubic-bezier(0.4,0,0.2,1),opacity 0.3s";
+  });
   // Step 1: cursor appears and moves to input
   demoChatTimer=setTimeout(function(){
-    hand.style.opacity="1";
-    hand.style.top="68%";
-    hand.style.left="30%";
+    hands.forEach(function(hand){hand.style.opacity="1";hand.style.top="68%";hand.style.left="30%";});
   },300);
   // Step 2: click the input
   demoChatTimer=setTimeout(function(){
-    hand.classList.add("hand-clicking");
-    if(input){input.style.borderColor="rgba(96,165,250,0.5)";}
-    setTimeout(function(){hand.classList.remove("hand-clicking");},250);
+    hands.forEach(function(hand){hand.classList.add("hand-clicking");});
+    inputs.forEach(function(input){input.style.borderColor="rgba(96,165,250,0.5)";});
+    setTimeout(function(){hands.forEach(function(hand){hand.classList.remove("hand-clicking");});},250);
   },950);
   // Step 3: type the question character by character
-  var S=STRINGS[lang];
   var lk=getLangKey();
   var chatD=FEAT_CONTENT_DATA.chat[lk];
   var question=chatD.q;
   var i=0;
   demoChatTimer=setTimeout(function(){
-    hand.style.opacity="0";
-    if(blink)blink.style.display="inline-block";
+    hands.forEach(function(hand){hand.style.opacity="0";});
+    blinks.forEach(function(blink){blink.style.display="inline-block";});
     function typeNext(){
       if(i<question.length){
-        if(typingEl)typingEl.textContent=question.substring(0,i+1);
+        typingEls.forEach(function(el){el.textContent=question.substring(0,i+1);});
         i++;
         demoChatTimer=setTimeout(typeNext,38);
       } else {
-        // Step 4: show the question bubble, clear input
         setTimeout(function(){
-          if(typingEl)typingEl.textContent="";
-          if(blink)blink.style.display="none";
-          if(qEl)qEl.style.opacity="1";
-          // Step 5: show answer after delay
-          setTimeout(function(){
-            if(aEl)aEl.style.opacity="1";
-          },700);
+          typingEls.forEach(function(el){el.textContent="";});
+          blinks.forEach(function(blink){blink.style.display="none";});
+          qEls.forEach(function(el){el.style.opacity="1";});
+          setTimeout(function(){aEls.forEach(function(el){el.style.opacity="1";});},700);
         },300);
       }
     }
@@ -2299,45 +2316,27 @@ function runChatDemo(){
 
 function runPhotoDemo(){
   clearTimeout(demoPhotoTimer);
-  var hand=document.getElementById("hand-photo");
-  var zone=document.getElementById("demo-photo-zone");
-  var results=document.getElementById("demo-photo-results");
-  if(!hand||!zone)return;
-  // Reset
-  if(results)results.style.opacity="0";
-  zone.style.background="rgba(255,255,255,0.03)";
-  zone.style.borderColor="rgba(96,165,250,0.2)";
-  zone.innerHTML="📷";
-  hand.style.opacity="0";
-  hand.style.top="20%";
-  hand.style.left="55%";
-  // Step 1: cursor appears above photo zone
+  var hands=document.querySelectorAll(".hand-photo");
+  var zones=document.querySelectorAll(".demo-photo-zone");
+  var results=document.querySelectorAll(".demo-photo-results");
+  if(!hands.length||!zones.length)return;
+  results.forEach(function(el){el.style.opacity="0";});
+  zones.forEach(function(zone){zone.style.background="rgba(255,255,255,0.03)";zone.style.borderColor="rgba(96,165,250,0.2)";zone.innerHTML="📷";});
+  hands.forEach(function(hand){hand.style.opacity="0";hand.style.top="20%";hand.style.left="55%";});
+  demoPhotoTimer=setTimeout(function(){hands.forEach(function(hand){hand.style.opacity="1";});},300);
+  demoPhotoTimer=setTimeout(function(){hands.forEach(function(hand){hand.style.top="10%";hand.style.left="44%";});},700);
   demoPhotoTimer=setTimeout(function(){
-    hand.style.opacity="1";
-  },300);
-  // Step 2: move to center of zone
-  demoPhotoTimer=setTimeout(function(){
-    hand.style.top="10%";
-    hand.style.left="44%";
-  },700);
-  // Step 3: click zone
-  demoPhotoTimer=setTimeout(function(){
-    hand.classList.add("hand-tapping");
-    zone.style.background="rgba(96,165,250,0.08)";
-    zone.style.borderColor="rgba(96,165,250,0.5)";
-    setTimeout(function(){hand.classList.remove("hand-tapping");},250);
+    hands.forEach(function(hand){hand.classList.add("hand-tapping");});
+    zones.forEach(function(zone){zone.style.background="rgba(96,165,250,0.08)";zone.style.borderColor="rgba(96,165,250,0.5)";});
+    setTimeout(function(){hands.forEach(function(hand){hand.classList.remove("hand-tapping");});},250);
   },1250);
-  // Step 4: show scanning indicator
   demoPhotoTimer=setTimeout(function(){
-    zone.innerHTML='<span style="font-size:10px;color:#60a5fa;display:flex;align-items:center;gap:5px;"><span style="display:inline-flex;gap:2px"><span style="width:4px;height:4px;border-radius:50%;background:#60a5fa;animation:pulse-d 1s infinite 0s"></span><span style="width:4px;height:4px;border-radius:50%;background:#60a5fa;animation:pulse-d 1s infinite 0.2s"></span><span style="width:4px;height:4px;border-radius:50%;background:#60a5fa;animation:pulse-d 1s infinite 0.4s"></span></span>Bace IA analyzing…</span>';
-    hand.style.opacity="0";
+    zones.forEach(function(zone){zone.innerHTML='<span style="font-size:10px;color:#60a5fa;display:flex;align-items:center;gap:5px;"><span style="display:inline-flex;gap:2px"><span style="width:4px;height:4px;border-radius:50%;background:#60a5fa;animation:pulse-d 1s infinite 0s"></span><span style="width:4px;height:4px;border-radius:50%;background:#60a5fa;animation:pulse-d 1s infinite 0.2s"></span><span style="width:4px;height:4px;border-radius:50%;background:#60a5fa;animation:pulse-d 1s infinite 0.4s"></span></span>Bace IA analyzing…</span>';});
+    hands.forEach(function(hand){hand.style.opacity="0";});
   },1550);
-  // Step 5: show results
   demoPhotoTimer=setTimeout(function(){
-    zone.innerHTML="✅";
-    zone.style.background="rgba(99,153,34,0.08)";
-    zone.style.borderColor="rgba(99,153,34,0.3)";
-    if(results)results.style.opacity="1";
+    zones.forEach(function(zone){zone.innerHTML="✅";zone.style.background="rgba(99,153,34,0.08)";zone.style.borderColor="rgba(99,153,34,0.3)";});
+    results.forEach(function(el){el.style.opacity="1";});
   },3000);
 }
 
