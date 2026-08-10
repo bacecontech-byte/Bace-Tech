@@ -81,6 +81,9 @@ body.light-mode #landing-mobile-menu{background:#ffffff !important;}
 body.light-mode #landing-mobile-menu a{color:#2d2d3f !important;}
 body.light-mode #landing-mobile-cta button{color:#3b82f6 !important;border-color:rgba(0,0,0,0.15) !important;}
 body.light-mode #topbar-lang-select{background:#fff;border-color:rgba(0,0,0,0.12);color:#6b7280;}
+/* Login screen: hide nav content, keep only logo */
+#s-login #nav-links-desktop,#s-login #nav-right-desktop,#s-login #landing-mobile-cta{display:none !important;}
+#s-login #landing-nav>a{cursor:pointer;}
 body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-height:100vh;}
 .screen{display:none;}.screen.active{display:block;}
 /* ── Mobile bottom tab bar + FAB ── */
@@ -824,12 +827,12 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   <div class="notif-header"><div class="notif-header-title"><span id="notif-title">Notifications</span></div><div class="notif-clear" onclick="clearNotifs()"><span id="notif-clear-txt">Effacer</span></div></div>
   <div class="notif-list" id="notif-list"><div class="notif-empty"><span id="notif-empty-txt">Aucune notification</span></div></div>
 </div>
-<div id="s-login" class="screen active">
+<div id="s-login" class="screen">
 <div id="s-auth" class="auth-mobile-grid" style="min-height:100vh;display:grid;grid-template-columns:1fr 1fr;">
 
   <!-- TOP NAVBAR -->
   <nav id="landing-nav" style="grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:56px;background:#111114;border-bottom:1px solid rgba(255,255,255,0.06);position:sticky;top:0;z-index:200;">
-    <a href="#" style="font-family:var(--font-d);font-size:16px;font-weight:600;color:#fff;text-decoration:none;letter-spacing:-0.4px;flex-shrink:0;">Bace<span style="font-weight:800;color:#60a5fa;">Tech</span></a>
+    <a href="#" onclick="event.preventDefault();showContentTab(0);document.getElementById('s-login').classList.remove('active');document.getElementById('s-content').classList.add('active');localStorage.setItem('bacetech_current_page','content');" style="font-family:var(--font-d);font-size:16px;font-weight:600;color:#fff;text-decoration:none;letter-spacing:-0.4px;flex-shrink:0;">Bace<span style="font-weight:800;color:#60a5fa;">Tech</span></a>
     <div id="nav-links-desktop" style="display:flex;align-items:center;gap:22px;">
       <div style="position:relative;" id="home-dropdown-wrap"><a href="#" onclick="showContentPage(0);return false;" id="nav-home" style="font-size:14px;color:rgba(255,255,255,0.7);text-decoration:none;cursor:pointer;display:flex;align-items:center;gap:4px;transition:color 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Home <span style="font-size:10px;">&#9662;</span></a><div id="home-dropdown" style="display:none;position:absolute;top:32px;left:-20px;background:#18181c;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:24px;width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.5);z-index:300;"><div style="font-size:11px;font-weight:600;color:#8a8a95;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;" id="why-title">Impacto</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div style="text-align:center;padding:16px 10px;border-radius:10px;background:#142536;"><div style="font-family:var(--font-d);font-size:28px;font-weight:800;color:#60a5fa;">70%</div><div style="font-size:10px;color:#8a8a95;margin-top:4px;" id="why-1">menos tempo em documentação</div></div><div style="text-align:center;padding:16px 10px;border-radius:10px;background:#142536;"><div style="font-family:var(--font-d);font-size:28px;font-weight:800;color:#4ade80;">3x</div><div style="font-size:10px;color:#8a8a95;margin-top:4px;" id="why-2">mais rápido para identificar padrões</div></div><div style="text-align:center;padding:16px 10px;border-radius:10px;background:#142536;"><div style="font-family:var(--font-d);font-size:28px;font-weight:800;color:#38bdf8;">100%</div><div style="font-size:10px;color:#8a8a95;margin-top:4px;" id="why-3">dos incidentes rastreáveis</div></div><div style="text-align:center;padding:16px 10px;border-radius:10px;background:#142536;"><div style="font-family:var(--font-d);font-size:28px;font-weight:800;color:#fbbf24;">0</div><div style="font-size:10px;color:#8a8a95;margin-top:4px;" id="why-4">papel — 100% digital</div></div></div><div style="margin-top:14px;font-size:11px;color:#6a6a75;font-style:italic;text-align:center;" id="why-tagline">Desenvolvido por engenheiros, para engenheiros.</div></div></div>
       <div style="position:relative;" id="solutions-dropdown-wrap"><a href="#" onclick="showContentPage(1);return false;" id="nav-solutions" style="font-size:14px;color:rgba(255,255,255,0.7);text-decoration:none;cursor:pointer;display:flex;align-items:center;gap:4px;transition:color 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Solutions <span style="font-size:10px;">&#9662;</span></a><div id="solutions-dropdown" style="display:none;position:absolute;top:32px;left:-20px;background:#18181c;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:24px;width:560px;box-shadow:0 20px 60px rgba(0,0,0,0.5);z-index:300;"><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"><a onclick="toggleSolutionsDropdown()" style="display:flex;gap:10px;padding:12px;border-radius:10px;cursor:pointer;text-decoration:none;" onmouseover="this.style.background='rgba(96,165,250,0.06)'" onmouseout="this.style.background='none'"><div style="width:32px;height:32px;border-radius:8px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-camera" style="font-size:16px;color:#60a5fa;"></i></div><div><div id="sol-capture-t" style="font-size:13px;font-weight:600;color:#f0f0f5;">Captura IA</div><div id="sol-capture-d" style="font-size:11px;color:#6a6a75;margin-top:2px;">Foto ou voz — a IA analisa automaticamente</div></div></a><a onclick="toggleSolutionsDropdown()" style="display:flex;gap:10px;padding:12px;border-radius:10px;cursor:pointer;text-decoration:none;" onmouseover="this.style.background='rgba(96,165,250,0.06)'" onmouseout="this.style.background='none'"><div style="width:32px;height:32px;border-radius:8px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-layout-dashboard" style="font-size:16px;color:#60a5fa;"></i></div><div><div id="sol-dash-t" style="font-size:13px;font-weight:600;color:#f0f0f5;">Dashboard</div><div id="sol-dash-d" style="font-size:11px;color:#6a6a75;margin-top:2px;">KPIs, insights IA e status em tempo real</div></div></a><a onclick="toggleSolutionsDropdown()" style="display:flex;gap:10px;padding:12px;border-radius:10px;cursor:pointer;text-decoration:none;" onmouseover="this.style.background='rgba(96,165,250,0.06)'" onmouseout="this.style.background='none'"><div style="width:32px;height:32px;border-radius:8px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-robot" style="font-size:16px;color:#60a5fa;"></i></div><div><div id="sol-chat-t" style="font-size:13px;font-weight:600;color:#f0f0f5;">Bace IA Chat</div><div id="sol-chat-d" style="font-size:11px;color:#6a6a75;margin-top:2px;">Chatbot especializado em construção</div></div></a><a onclick="toggleSolutionsDropdown()" style="display:flex;gap:10px;padding:12px;border-radius:10px;cursor:pointer;text-decoration:none;" onmouseover="this.style.background='rgba(96,165,250,0.06)'" onmouseout="this.style.background='none'"><div style="width:32px;height:32px;border-radius:8px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-building-skyscraper" style="font-size:16px;color:#60a5fa;"></i></div><div><div id="sol-proj-t" style="font-size:13px;font-weight:600;color:#f0f0f5;">Gestão de Projetos</div><div id="sol-proj-d" style="font-size:11px;color:#6a6a75;margin-top:2px;">Canteiros organizados com equipe e documentos</div></div></a><a onclick="toggleSolutionsDropdown()" style="display:flex;gap:10px;padding:12px;border-radius:10px;cursor:pointer;text-decoration:none;" onmouseover="this.style.background='rgba(96,165,250,0.06)'" onmouseout="this.style.background='none'"><div style="width:32px;height:32px;border-radius:8px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-files" style="font-size:16px;color:#60a5fa;"></i></div><div><div id="sol-docs-t" style="font-size:13px;font-weight:600;color:#f0f0f5;">Documentos</div><div id="sol-docs-d" style="font-size:11px;color:#6a6a75;margin-top:2px;">Planos PDF indexados e analisados pela IA</div></div></a><a onclick="toggleSolutionsDropdown()" style="display:flex;gap:10px;padding:12px;border-radius:10px;cursor:pointer;text-decoration:none;" onmouseover="this.style.background='rgba(96,165,250,0.06)'" onmouseout="this.style.background='none'"><div style="width:32px;height:32px;border-radius:8px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-users" style="font-size:16px;color:#60a5fa;"></i></div><div><div id="sol-team-t" style="font-size:13px;font-weight:600;color:#f0f0f5;">Colaboração</div><div id="sol-team-d" style="font-size:11px;color:#6a6a75;margin-top:2px;">Notificações em tempo real entre a equipe</div></div></a></div></div></div>
@@ -974,7 +977,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 </div>
 
 <!-- ═══ CONTENT PAGE (About/Solutions/Plans/Resources) ═══ -->
-<div id="s-content" class="screen" style="min-height:100vh;background:var(--navy);">
+<div id="s-content" class="screen active" style="min-height:100vh;background:var(--navy);">
   <!-- Content page header with tabs inline -->
   <div style="display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:56px;background:var(--navy2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;" id="content-header">
     <a href="#" onclick="showAuthPage();return false;" style="font-family:var(--font-d);font-size:16px;font-weight:600;color:var(--white);text-decoration:none;letter-spacing:-0.4px;cursor:pointer;flex-shrink:0;">Bace<span style="font-weight:800;color:#60a5fa;">Tech</span></a>
@@ -1027,6 +1030,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       </div>
       <button onclick="showContentTab(2)" class="content-tab" id="ctab-2">Plans</button>
       <button onclick="showContentTab(3)" class="content-tab" id="ctab-3">Resources</button>
+      <button onclick="showAuthPage()" class="content-tab" id="ctab-login">Log in</button>
     </div>
     <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
       <a href="https://calendar.app.google/Kfu81DSrNPFjTe7w5" target="_blank" id="content-demo-btn" style="font-size:12px;color:#fff;text-decoration:none;padding:8px 20px;background:#60a5fa;border-radius:8px;font-weight:600;">Schedule a demo</a>
@@ -1876,12 +1880,17 @@ function showAuthPage(){
 // Restore page on load
 (function(){
   var page=localStorage.getItem('bacetech_current_page');
-  if(page==='content'){
+  if(page==='auth'){
     setTimeout(function(){
-      var tab=parseInt(localStorage.getItem('bacetech_current_tab'))||0;
       var sc=document.getElementById('s-content');
       var sl=document.getElementById('s-login');
-      if(sc&&sl){sl.classList.remove('active');sc.classList.add('active');showContentTab(tab);}
+      if(sc&&sl){sc.classList.remove('active');sl.classList.add('active');}
+    },100);
+  } else {
+    // Default: content page with saved or About Us tab
+    setTimeout(function(){
+      var tab=parseInt(localStorage.getItem('bacetech_current_tab'))||0;
+      showContentTab(tab);
     },100);
   }
 })();
@@ -2096,6 +2105,7 @@ function translateNav(){
   // Content page tabs
   var tabLabels=lang===0?['À propos','Solutions','Plans','Ressources']:lang===2?['Sobre nós','Soluções','Planos','Recursos']:['About us','Solutions','Plans','Resources'];
   for(var ti=0;ti<4;ti++){var tb=document.getElementById('ctab-'+ti);if(tb)tb.textContent=tabLabels[ti];}
+  var loginTab=document.getElementById('ctab-login');if(loginTab)loginTab.textContent=lang===0?'Connexion':lang===2?'Entrar':'Log in';
   var bs=document.getElementById('back-signin');if(bs)bs.textContent=lang===0?'← Retour à la connexion':lang===2?'← Voltar ao login':'← Back to sign in';
   // Content page header
   var cflags={'cflag-en':1,'cflag-pt':2,'cflag-fr':0};
