@@ -81,9 +81,12 @@ body.light-mode #landing-mobile-menu{background:#ffffff !important;}
 body.light-mode #landing-mobile-menu a{color:#2d2d3f !important;}
 body.light-mode #landing-mobile-cta button{color:#3b82f6 !important;border-color:rgba(0,0,0,0.15) !important;}
 body.light-mode #topbar-lang-select{background:#fff;border-color:rgba(0,0,0,0.12);color:#6b7280;}
-/* Login screen: hide nav links (Sobre nós, etc.) and demo button, keep flags + theme toggle */
-#s-login #nav-links-desktop,#s-login #nav-demo-btn,#s-login #landing-mobile-cta>a{display:none !important;}
+/* Login screen: minimal Claude-style header — just logo top-left, subtle theme toggle top-right */
+#s-login #landing-nav{padding:24px 40px !important;height:auto !important;background:transparent !important;border-bottom:none !important;position:absolute !important;top:0;left:0;right:0;z-index:200;}
+#s-login #landing-nav>a{font-size:22px !important;}
+#s-login #nav-links-desktop,#s-login #nav-demo-btn,#s-login #nav-flags,#s-login #landing-mobile-cta>a{display:none !important;}
 #s-login #landing-nav>a{cursor:pointer;}
+#s-login #s-auth{padding-top:20px;}
 /* Light mode: auth form inputs (override inline styles) */
 body.light-mode #s-login input.form-input,body.light-mode #s-login #l-email,body.light-mode #s-login #l-pass,body.light-mode #s-login input[type="email"],body.light-mode #s-login input[type="password"],body.light-mode #s-login input[type="text"]{background:#f5f5f7 !important;border:1px solid rgba(0,0,0,0.12) !important;color:#2d2d3f !important;}
 body.light-mode #s-login input::placeholder{color:#9ca3af !important;}
