@@ -1882,22 +1882,15 @@ function showAuthPage(){
   clearInterval(featTimer);
   featTimer=setInterval(autoNextFeat,4000);
 }
-// Restore page on load
+// Restore page on load — always land on content About Us page
 (function(){
-  var page=localStorage.getItem('bacetech_current_page');
-  if(page==='auth'){
-    setTimeout(function(){
-      var sc=document.getElementById('s-content');
-      var sl=document.getElementById('s-login');
-      if(sc&&sl){sc.classList.remove('active');sl.classList.add('active');}
-    },100);
-  } else {
-    // Default: content page with saved or About Us tab
-    setTimeout(function(){
-      var tab=parseInt(localStorage.getItem('bacetech_current_tab'))||0;
-      showContentTab(tab);
-    },100);
-  }
+  setTimeout(function(){
+    var tab=parseInt(localStorage.getItem('bacetech_current_tab'))||0;
+    var sc=document.getElementById('s-content');
+    var sl=document.getElementById('s-login');
+    if(sc&&sl){sl.classList.remove('active');sc.classList.add('active');}
+    showContentTab(tab);
+  },100);
 })();
 function showContentTab(idx){
   for(var i=0;i<4;i++){
