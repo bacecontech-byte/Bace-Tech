@@ -727,11 +727,17 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   .about-hero-grid>div:first-child>div:first-child{font-size:32px !important;}
   .about-hero-grid>div:last-child{padding:0 20px 32px !important;}
   .about-hero-grid>div:last-child svg{max-width:280px !important;}
-  .about-values{padding:32px 20px !important;}
-  /* Reduce value prop titles on mobile */
-  .about-values [id^="v"]:not([id$="-desc"]){font-size:20px !important;}
-  /* Compare features title smaller */
-  #cmp-title{font-size:22px !important;line-height:1.15 !important;}
+  .about-values{padding:32px 16px !important;}
+  /* Value titles smaller on mobile */
+  #v1-title,#v2-title,#v3-title{font-size:16px !important;line-height:1.2 !important;}
+  #v1-desc,#v2-desc,#v3-desc{font-size:13px !important;padding-left:30px !important;}
+  /* Metric numbers smaller on mobile */
+  #imp-1,#imp-2,#imp-3,#imp-4{font-size:11px !important;line-height:1.3 !important;}
+  .about-values [style*="font-size:40px"]{font-size:28px !important;}
+  /* Impact metric cards padding tighter */
+  .about-values [style*="border-radius:14px"]{padding:16px 10px !important;}
+  /* Compare features title much smaller */
+  #cmp-title{font-size:20px !important;line-height:1.2 !important;letter-spacing:-0.3px !important;}
   /* Login screen: add space between logo and headline on mobile */
   #s-login #s-auth{padding-top:60px !important;}
   #s-login .auth-headline{font-size:26px !important;}
@@ -1877,15 +1883,28 @@ function showAuthPage(){
   clearInterval(featTimer);
   featTimer=setInterval(autoNextFeat,4000);
 }
-// Restore page on load — always land on content About Us page
+// Restore page on load
 (function(){
-  setTimeout(function(){
-    var tab=parseInt(localStorage.getItem('bacetech_current_tab'))||0;
+  var wasLoggedIn=localStorage.getItem('bacetech_logged_in')==='1';
+  if(wasLoggedIn){
+    // Keep s-app active while Supabase confirms session
     var sc=document.getElementById('s-content');
-    var sl=document.getElementById('s-login');
-    if(sc&&sl){sl.classList.remove('active');sc.classList.add('active');}
-    showContentTab(tab);
-  },100);
+    var sa=document.getElementById('s-app');
+    if(sc&&sa){sc.classList.remove('active');sa.classList.add('active');}
+    // Hide Log in tab immediately
+    setTimeout(function(){
+      var lt=document.getElementById('ctab-login');if(lt)lt.style.display='none';
+      var mlt=document.getElementById('mob-tab-login');if(mlt)mlt.style.display='none';
+    },50);
+  } else {
+    setTimeout(function(){
+      var tab=parseInt(localStorage.getItem('bacetech_current_tab'))||0;
+      var sc=document.getElementById('s-content');
+      var sl=document.getElementById('s-login');
+      if(sc&&sl){sl.classList.remove('active');sc.classList.add('active');}
+      showContentTab(tab);
+    },100);
+  }
 })();
 function showContentTab(idx){
   for(var i=0;i<4;i++){
@@ -2466,6 +2485,7 @@ function enterApp(user){
   document.getElementById("s-content").classList.remove("active");
   document.getElementById("s-app").classList.add("active");
   document.body.classList.add("logged-in");
+  localStorage.setItem('bacetech_logged_in','1');
   // Hide Log in tab when logged in
   var loginTab=document.getElementById('ctab-login');if(loginTab)loginTab.style.display='none';
   var mobLogin=document.getElementById('mob-tab-login');if(mobLogin)mobLogin.style.display='none';
@@ -2496,9 +2516,14 @@ async function doLogout(){
   if(rtChannel)db.removeChannel(rtChannel);
   await db.auth.signOut();
   document.body.classList.remove("logged-in");
+  localStorage.removeItem('bacetech_logged_in');
   entries=[];dbCoId=null;dbOk=false;notifs=[];projects=[];chatHistory=[];
   document.getElementById("s-app").classList.remove("active");
-  document.getElementById("s-login").classList.add("active");
+  document.getElementById("s-content").classList.add("active");
+  showContentTab(0);
+  // Restore Log in tab
+  var loginTab=document.getElementById('ctab-login');if(loginTab)loginTab.style.display='';
+  var mobLogin=document.getElementById('mob-tab-login');if(mobLogin)mobLogin.style.display='';
 }
 
 
@@ -2881,7 +2906,16 @@ window.addEventListener("load",async function(){
   if(!db)return;
   var s=await db.auth.getSession();
   if(s.data&&s.data.session)enterApp(s.data.session.user);
-  else{db.auth.onAuthStateChange(function(event,session){if(event==="SIGNED_IN"&&session&&!document.getElementById("s-app").classList.contains("active"))enterApp(session.user);});}
+  else{
+    // Session missing — if we optimistically showed s-app, roll back to content
+    if(localStorage.getItem('bacetech_logged_in')==='1'){
+      localStorage.removeItem('bacetech_logged_in');
+      document.getElementById('s-app').classList.remove('active');
+      document.getElementById('s-content').classList.add('active');
+      showContentTab(0);
+    }
+    db.auth.onAuthStateChange(function(event,session){if(event==="SIGNED_IN"&&session&&!document.getElementById("s-app").classList.contains("active"))enterApp(session.user);});
+  }
 });
 
 async function connectDB(){
