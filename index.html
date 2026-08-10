@@ -81,9 +81,12 @@ body.light-mode #landing-mobile-menu{background:#ffffff !important;}
 body.light-mode #landing-mobile-menu a{color:#2d2d3f !important;}
 body.light-mode #landing-mobile-cta button{color:#3b82f6 !important;border-color:rgba(0,0,0,0.15) !important;}
 body.light-mode #topbar-lang-select{background:#fff;border-color:rgba(0,0,0,0.12);color:#6b7280;}
-/* Login screen: hide nav content, keep only logo */
-#s-login #nav-links-desktop,#s-login #nav-right-desktop,#s-login #landing-mobile-cta{display:none !important;}
+/* Login screen: hide nav links (Sobre nós, etc.) and demo button, keep flags + theme toggle */
+#s-login #nav-links-desktop,#s-login #nav-demo-btn,#s-login #landing-mobile-cta>a{display:none !important;}
 #s-login #landing-nav>a{cursor:pointer;}
+/* Light mode: auth form inputs */
+body.light-mode #s-login input,body.light-mode #s-login .form-input{background:#f5f5f7 !important;border:1px solid rgba(0,0,0,0.12) !important;color:#2d2d3f !important;}
+body.light-mode #s-login input::placeholder{color:#9ca3af !important;}
 body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-height:100vh;}
 .screen{display:none;}.screen.active{display:block;}
 /* ── Mobile bottom tab bar + FAB ── */
