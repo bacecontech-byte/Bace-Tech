@@ -723,7 +723,10 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   .sol-layout{grid-template-columns:1fr !important;}
   .sol-sidebar{border-right:none !important;border-bottom:1px solid var(--border) !important;padding:24px 20px !important;}
   .sol-content{padding:32px 20px !important;}
-  .plan-grid{grid-template-columns:1fr !important;}
+  .plan-grid{grid-template-columns:1fr !important;max-width:400px !important;}
+  .sol-content-grid{grid-template-columns:1fr !important;}
+  .cmp-grid{grid-template-columns:2fr 1fr 1fr 1fr 1fr !important;gap:6px !important;font-size:10px !important;}
+  .cmp-row{font-size:11px !important;}
   .res-grid{grid-template-columns:1fr !important;}
   #content-tabs{padding:0 16px !important;gap:0 !important;overflow-x:auto;}
   .content-tab{font-size:12px !important;padding:12px 14px !important;white-space:nowrap;}
@@ -1197,34 +1200,155 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 
     <!-- TAB 2: Plans -->
   <div id="content-panel-2" class="content-panel" style="display:none;padding:60px 40px;">
-    <div style="max-width:900px;margin:0 auto;">
+    <div style="max-width:1100px;margin:0 auto;">
+      <!-- Hero -->
       <div style="text-align:center;margin-bottom:40px;">
-        <div style="font-family:var(--font-d);font-size:32px;font-weight:800;color:var(--white);margin-bottom:8px;" id="plan-title">Planos</div>
-        <div style="font-size:14px;color:var(--text2);" id="plan-sub">Comece grátis. Escale quando precisar.</div>
+        <div style="font-family:var(--font-d);font-size:56px;font-weight:800;color:var(--white);line-height:1.05;letter-spacing:-1.5px;margin-bottom:16px;" id="plan-title">Plans</div>
+        <div style="font-size:17px;color:var(--text2);line-height:1.6;max-width:520px;margin:0 auto;" id="plan-sub">Start with a free trial. Scale as your team grows.</div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;" class="plan-grid">
-        <div style="background:var(--navy2);border:1px solid var(--border);border-radius:16px;padding:32px 24px;text-align:center;">
-          <div style="font-size:16px;font-weight:600;color:var(--text2);margin-bottom:12px;">Starter</div>
-          <div style="font-family:var(--font-d);font-size:40px;font-weight:800;color:var(--white);">R$ 299<span style="font-size:14px;font-weight:400;color:var(--text3);">/mês</span></div>
-          <div style="font-size:13px;color:#60a5fa;margin:10px 0 20px;">Até 5 usuários</div>
-          <div style="border-top:1px solid var(--border);padding-top:20px;text-align:left;font-size:13px;color:var(--text2);line-height:2.2;">1 projeto ativo<br>Captura IA (foto + voz)<br>Dashboard com KPIs<br>Bace IA Chat</div>
-          <a href="https://app.bace-tech.fr" style="display:block;margin-top:24px;padding:12px;border-radius:10px;background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.2);color:#60a5fa;font-size:14px;font-weight:500;text-decoration:none;">Teste grátis 30 dias</a>
+      <!-- Segmented toggle -->
+      <div style="display:flex;justify-content:center;margin-bottom:48px;">
+        <div style="display:inline-flex;background:var(--navy2);border:1px solid var(--border2);border-radius:100px;padding:5px;gap:4px;">
+          <button onclick="showPlanView('individual')" id="pv-individual" class="plan-toggle active" style="background:var(--white);color:var(--navy);border:none;padding:9px 22px;border-radius:100px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-b);transition:all 0.15s;">Individual</button>
+          <button onclick="showPlanView('team')" id="pv-team" class="plan-toggle" style="background:transparent;color:var(--text2);border:none;padding:9px 22px;border-radius:100px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-b);transition:all 0.15s;">Team &amp; Enterprise</button>
         </div>
-        <div style="background:var(--navy2);border:2px solid #60a5fa;border-radius:16px;padding:32px 24px;text-align:center;position:relative;">
-          <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:#60a5fa;color:#fff;font-size:11px;font-weight:700;padding:4px 16px;border-radius:20px;">POPULAR</div>
-          <div style="font-size:16px;font-weight:600;color:#60a5fa;margin-bottom:12px;">Profissional</div>
-          <div style="font-family:var(--font-d);font-size:40px;font-weight:800;color:var(--white);">R$ 499<span style="font-size:14px;font-weight:400;color:var(--text3);">/mês</span></div>
-          <div style="font-size:13px;color:#60a5fa;margin:10px 0 20px;">Até 15 usuários</div>
-          <div style="border-top:1px solid var(--border);padding-top:20px;text-align:left;font-size:13px;color:var(--text2);line-height:2.2;">Projetos ilimitados<br>Tudo do Starter +<br>Documentos e planos<br>Insights IA automáticos<br>Notificações tempo real</div>
-          <a href="https://app.bace-tech.fr" style="display:block;margin-top:24px;padding:12px;border-radius:10px;background:#60a5fa;color:#fff;font-size:14px;font-weight:600;text-decoration:none;">Teste grátis 30 dias</a>
+      </div>
+
+      <!-- INDIVIDUAL cards -->
+      <div id="plans-individual" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:780px;margin:0 auto 80px;" class="plan-grid">
+        <!-- Starter -->
+        <div style="background:var(--navy2);border:2px solid #60a5fa;border-radius:20px;padding:32px;position:relative;">
+          <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#60a5fa;color:#fff;font-size:10px;font-weight:700;padding:5px 14px;border-radius:100px;letter-spacing:0.8px;">POPULAR</div>
+          <div style="font-family:var(--font-d);font-size:26px;font-weight:800;color:var(--white);margin-bottom:4px;">Starter</div>
+          <div style="font-size:13px;color:var(--text2);margin-bottom:20px;" id="p-starter-tag">For solo professionals</div>
+          <div style="font-family:var(--font-d);font-size:36px;font-weight:800;color:var(--white);" id="p-starter-price">€ 59</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:4px;margin-bottom:20px;" id="p-starter-period">Per month, billed monthly</div>
+          <button onclick="showAuthPage()" style="width:100%;background:#60a5fa;color:#fff;border:none;padding:12px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-b);margin-bottom:24px;" id="p-starter-cta">Try BaceTech</button>
+          <div style="border-top:1px solid var(--border);padding-top:20px;">
+            <div style="font-size:13px;font-weight:600;color:var(--white);margin-bottom:12px;" id="p-starter-inc-label">Includes:</div>
+            <div style="display:flex;flex-direction:column;gap:9px;font-size:12.5px;color:var(--text);line-height:1.5;">
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-starter-f1">1 active project</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-starter-f2">Photo &amp; voice capture</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-starter-f3">Bace IA Chat</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-starter-f4">Dashboard with KPIs</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-starter-f5">Capture Agent + Norm Agent</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-starter-f6">Email support</span></div>
+            </div>
+          </div>
         </div>
-        <div style="background:var(--navy2);border:1px solid rgba(251,191,36,0.3);border-radius:16px;padding:32px 24px;text-align:center;">
-          <div style="font-size:16px;font-weight:600;color:#fbbf24;margin-bottom:12px;">Enterprise</div>
-          <div style="font-family:var(--font-d);font-size:36px;font-weight:800;color:var(--white);">Sob consulta</div>
-          <div style="font-size:13px;color:#fbbf24;margin:10px 0 20px;">Usuários ilimitados</div>
-          <div style="border-top:1px solid var(--border);padding-top:20px;text-align:left;font-size:13px;color:var(--text2);line-height:2.2;">Tudo do Profissional +<br>Integrações sob medida<br>Suporte dedicado<br>Treinamento presencial<br>SLA garantido</div>
-          <a href="https://calendar.app.google/Kfu81DSrNPFjTe7w5" target="_blank" style="display:block;margin-top:24px;padding:12px;border-radius:10px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.25);color:#fbbf24;font-size:14px;font-weight:500;text-decoration:none;">Agendar uma demo</a>
+        <!-- Pro -->
+        <div style="background:var(--navy2);border:1px solid var(--border);border-radius:20px;padding:32px;">
+          <div style="font-family:var(--font-d);font-size:26px;font-weight:800;color:var(--white);margin-bottom:4px;">Pro</div>
+          <div style="font-size:13px;color:var(--text2);margin-bottom:20px;" id="p-pro-tag">For growing practices</div>
+          <div style="font-family:var(--font-d);font-size:36px;font-weight:800;color:var(--white);" id="p-pro-price">€ 99</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:4px;margin-bottom:20px;" id="p-pro-period">Per month, billed monthly</div>
+          <button onclick="showAuthPage()" style="width:100%;background:transparent;color:var(--white);border:1px solid var(--border2);padding:12px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-b);margin-bottom:24px;" id="p-pro-cta">Try BaceTech</button>
+          <div style="border-top:1px solid var(--border);padding-top:20px;">
+            <div style="font-size:13px;font-weight:600;color:var(--white);margin-bottom:12px;" id="p-pro-inc-label">Everything in Starter, plus:</div>
+            <div style="display:flex;flex-direction:column;gap:9px;font-size:12.5px;color:var(--text);line-height:1.5;">
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-pro-f1">Unlimited projects</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-pro-f2">Docs Agent (PDF analysis)</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-pro-f3">Insight Agent (pattern detection)</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-pro-f4">Custom report exports</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-pro-f5">Advanced knowledge base search</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-pro-f6">Priority support</span></div>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <!-- TEAM & ENTERPRISE cards -->
+      <div id="plans-team" style="display:none;grid-template-columns:1fr 1fr;gap:20px;max-width:780px;margin:0 auto 80px;" class="plan-grid">
+        <!-- Team -->
+        <div style="background:var(--navy2);border:2px solid #60a5fa;border-radius:20px;padding:32px;position:relative;">
+          <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#60a5fa;color:#fff;font-size:10px;font-weight:700;padding:5px 14px;border-radius:100px;letter-spacing:0.8px;">POPULAR</div>
+          <div style="font-family:var(--font-d);font-size:26px;font-weight:800;color:var(--white);margin-bottom:4px;">Team</div>
+          <div style="font-size:13px;color:var(--text2);margin-bottom:20px;" id="p-team-tag">For small &amp; mid-size firms</div>
+          <div style="font-family:var(--font-d);font-size:36px;font-weight:800;color:var(--white);" id="p-team-price">€ 199</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:4px;margin-bottom:20px;" id="p-team-period">Per month, up to 15 users</div>
+          <button onclick="showAuthPage()" style="width:100%;background:#60a5fa;color:#fff;border:none;padding:12px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-b);margin-bottom:24px;" id="p-team-cta">Try BaceTech</button>
+          <div style="border-top:1px solid var(--border);padding-top:20px;">
+            <div style="font-size:13px;font-weight:600;color:var(--white);margin-bottom:12px;" id="p-team-inc-label">Everything in Pro, plus:</div>
+            <div style="display:flex;flex-direction:column;gap:9px;font-size:12.5px;color:var(--text);line-height:1.5;">
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-team-f1">Up to 15 team members</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-team-f2">Real-time collaboration</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-team-f3">Team notifications &amp; alerts</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-team-f4">Shared knowledge base</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-team-f5">Central billing</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-team-f6">Onboarding session included</span></div>
+            </div>
+          </div>
+        </div>
+        <!-- Enterprise -->
+        <div style="background:var(--navy2);border:1px solid var(--border);border-radius:20px;padding:32px;">
+          <div style="font-family:var(--font-d);font-size:26px;font-weight:800;color:var(--white);margin-bottom:4px;">Enterprise</div>
+          <div style="font-size:13px;color:var(--text2);margin-bottom:20px;" id="p-ent-tag">For large operations</div>
+          <div style="font-family:var(--font-d);font-size:28px;font-weight:800;color:var(--white);" id="p-ent-price">Contact us</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:4px;margin-bottom:20px;" id="p-ent-period">Custom pricing &amp; terms</div>
+          <a href="https://calendar.app.google/Kfu81DSrNPFjTe7w5" target="_blank" style="display:block;text-align:center;width:100%;background:transparent;color:var(--white);border:1px solid var(--border2);padding:12px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-b);margin-bottom:24px;text-decoration:none;box-sizing:border-box;" id="p-ent-cta">Contact sales</a>
+          <div style="border-top:1px solid var(--border);padding-top:20px;">
+            <div style="font-size:13px;font-weight:600;color:var(--white);margin-bottom:12px;" id="p-ent-inc-label">Everything in Team, plus:</div>
+            <div style="display:flex;flex-direction:column;gap:9px;font-size:12.5px;color:var(--text);line-height:1.5;">
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-ent-f1">Unlimited team members</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-ent-f2">SSO (Single Sign-On)</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-ent-f3">Role-based access control</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-ent-f4">Custom integrations (ERP, BIM)</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-ent-f5">Dedicated account manager</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#60a5fa;">✓</span> <span id="p-ent-f6">SLA guarantee &amp; audit logs</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Compare features table -->
+      <div style="border-top:1px solid var(--border);padding-top:60px;">
+        <div style="text-align:center;margin-bottom:40px;">
+          <div style="font-family:var(--font-d);font-size:36px;font-weight:800;color:var(--white);letter-spacing:-0.5px;" id="cmp-title">Compare features across plans</div>
+        </div>
+        <!-- Search + column headers -->
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:end;margin-bottom:8px;padding-bottom:20px;border-bottom:1px solid var(--border);" class="cmp-grid">
+          <div>
+            <div style="position:relative;">
+              <input type="text" oninput="filterFeatures(this.value)" placeholder="Search features..." id="cmp-search" style="width:100%;background:var(--navy2);border:1px solid var(--border2);border-radius:10px;padding:10px 12px 10px 34px;font-size:13px;color:var(--text);outline:none;font-family:var(--font-b);box-sizing:border-box;">
+              <i class="ti ti-search" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text3);"></i>
+            </div>
+          </div>
+          <div style="text-align:center;"><div style="font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--white);margin-bottom:8px;">Starter</div><button onclick="showAuthPage()" style="background:var(--navy2);color:var(--white);border:1px solid var(--border2);padding:5px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--font-b);" id="cmp-cta-starter">Try BaceTech</button></div>
+          <div style="text-align:center;"><div style="font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--white);margin-bottom:8px;">Pro</div><button onclick="showAuthPage()" style="background:var(--navy2);color:var(--white);border:1px solid var(--border2);padding:5px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--font-b);" id="cmp-cta-pro">Try BaceTech</button></div>
+          <div style="text-align:center;"><div style="font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--white);margin-bottom:8px;">Team</div><button onclick="showAuthPage()" style="background:var(--navy2);color:var(--white);border:1px solid var(--border2);padding:5px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--font-b);" id="cmp-cta-team">Try BaceTech</button></div>
+          <div style="text-align:center;"><div style="font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--white);margin-bottom:8px;">Enterprise</div><a href="https://calendar.app.google/Kfu81DSrNPFjTe7w5" target="_blank" style="display:inline-block;background:var(--navy2);color:var(--white);border:1px solid var(--border2);padding:5px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--font-b);text-decoration:none;" id="cmp-cta-ent">Contact</a></div>
+        </div>
+        <!-- Category: Features -->
+        <div id="cmp-features" style="margin-top:0;">
+          <div onclick="toggleCmpSection('cmp-features-body')" style="display:flex;justify-content:space-between;align-items:center;padding:20px 0;cursor:pointer;border-bottom:1px solid var(--border);">
+            <div style="font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--white);" id="cmp-h-features">Features and capabilities</div>
+            <div id="cmp-features-body-icon" style="font-size:18px;color:var(--text2);">−</div>
+          </div>
+          <div id="cmp-features-body"><div class="cmp-row" data-feat="feat-photo" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);" id="cmp-row-feat-photo">Photo &amp; voice capture</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div></div><div class="cmp-row" data-feat="feat-chat" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);" id="cmp-row-feat-chat">Bace IA Chat</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div></div><div class="cmp-row" data-feat="feat-dash" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);" id="cmp-row-feat-dash">Dashboard &amp; KPIs</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div></div><div class="cmp-row" data-feat="feat-projects" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);" id="cmp-row-feat-projects">Multi-project support</div><div style="text-align:center;font-size:11px;color:var(--text2);">1 project</div><div style="text-align:center;font-size:11px;color:var(--text2);">Unlimited</div><div style="text-align:center;font-size:11px;color:var(--text2);">Unlimited</div><div style="text-align:center;font-size:11px;color:var(--text2);">Unlimited</div></div><div class="cmp-row" data-feat="feat-kb" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);" id="cmp-row-feat-kb">Knowledge Base</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div></div><div class="cmp-row" data-feat="feat-search" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);" id="cmp-row-feat-search">Advanced search</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div></div><div class="cmp-row" data-feat="feat-reports" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);" id="cmp-row-feat-reports">Custom report exports</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div></div><div class="cmp-row" data-feat="feat-collab" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);" id="cmp-row-feat-collab">Real-time collaboration</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div></div><div class="cmp-row" data-feat="feat-notif" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);" id="cmp-row-feat-notif">Team notifications</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div></div><div class="cmp-row" data-feat="feat-users" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);" id="cmp-row-feat-users">Team members</div><div style="text-align:center;font-size:11px;color:var(--text2);">1</div><div style="text-align:center;font-size:11px;color:var(--text2);">1</div><div style="text-align:center;font-size:11px;color:var(--text2);">Up to 15</div><div style="text-align:center;font-size:11px;color:var(--text2);">Unlimited</div></div><div class="cmp-row" data-feat="feat-integrations" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);" id="cmp-row-feat-integrations">Custom integrations (ERP, BIM)</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div></div></div>
+        </div>
+        <!-- Category: AI Agents -->
+        <div>
+          <div onclick="toggleCmpSection('cmp-agents-body')" style="display:flex;justify-content:space-between;align-items:center;padding:20px 0;cursor:pointer;border-bottom:1px solid var(--border);">
+            <div style="font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--white);" id="cmp-h-agents">AI Agents</div>
+            <div id="cmp-agents-body-icon" style="font-size:18px;color:var(--text2);">−</div>
+          </div>
+          <div id="cmp-agents-body"><div class="cmp-row" data-feat="agent-capture" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);" id="cmp-row-agent-capture">Capture Agent</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div></div><div class="cmp-row" data-feat="agent-norm" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);" id="cmp-row-agent-norm">Norm Agent (ABNT, DTU, Eurocode)</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div></div><div class="cmp-row" data-feat="agent-docs" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);" id="cmp-row-agent-docs">Docs Agent (PDF analysis)</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div></div><div class="cmp-row" data-feat="agent-insight" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);" id="cmp-row-agent-insight">Insight Agent (pattern detection)</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div></div></div>
+        </div>
+        <!-- Category: Security -->
+        <div>
+          <div onclick="toggleCmpSection('cmp-security-body')" style="display:flex;justify-content:space-between;align-items:center;padding:20px 0;cursor:pointer;border-bottom:1px solid var(--border);">
+            <div style="font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--white);" id="cmp-h-security">Security and administration</div>
+            <div id="cmp-security-body-icon" style="font-size:18px;color:var(--text2);">−</div>
+          </div>
+          <div id="cmp-security-body"><div class="cmp-row" data-feat="sec-sso" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);" id="cmp-row-sec-sso">Single Sign-On (SSO)</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div></div><div class="cmp-row" data-feat="sec-billing" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);" id="cmp-row-sec-billing">Central billing</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div></div><div class="cmp-row" data-feat="sec-roles" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);" id="cmp-row-sec-roles">Role-based access control</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div></div><div class="cmp-row" data-feat="sec-audit" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);" id="cmp-row-sec-audit">Audit logs</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div></div><div class="cmp-row" data-feat="sec-sla" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);" id="cmp-row-sec-sla">SLA guarantee</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:var(--text3);">✕</div><div style="text-align:center;font-size:16px;color:#60a5fa;">✓</div></div><div class="cmp-row" data-feat="sec-support" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);" id="cmp-row-sec-support">Support level</div><div style="text-align:center;font-size:11px;color:var(--text2);">Email</div><div style="text-align:center;font-size:11px;color:var(--text2);">Priority</div><div style="text-align:center;font-size:11px;color:var(--text2);">Priority</div><div style="text-align:center;font-size:11px;color:var(--text2);">Dedicated</div></div></div>
+        </div>
+      </div>
+
+      <!-- Bottom CTA banner -->
+      <div style="margin-top:80px;padding:40px;background:var(--navy2);border:1px solid var(--border);border-radius:20px;text-align:center;">
+        <div style="font-family:var(--font-d);font-size:24px;font-weight:700;color:var(--white);margin-bottom:8px;" id="cta-banner-t">Not sure which plan is right?</div>
+        <div style="font-size:14px;color:var(--text2);margin-bottom:20px;" id="cta-banner-sub">Talk to us — we will help you choose the right fit for your team.</div>
+        <a href="https://calendar.app.google/Kfu81DSrNPFjTe7w5" target="_blank" style="display:inline-block;background:#60a5fa;color:#fff;padding:12px 28px;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;font-family:var(--font-d);" id="cta-banner-btn">Schedule a demo</a>
       </div>
     </div>
   </div>
@@ -1800,6 +1924,39 @@ function scrollToSol(id){
   if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
+// PLANS TAB
+function showPlanView(view){
+  var ind=document.getElementById('plans-individual');
+  var tm=document.getElementById('plans-team');
+  var bI=document.getElementById('pv-individual');
+  var bT=document.getElementById('pv-team');
+  if(view==='individual'){
+    ind.style.display='grid';tm.style.display='none';
+    bI.style.background='var(--white)';bI.style.color='var(--navy)';bI.style.fontWeight='600';bI.classList.add('active');
+    bT.style.background='transparent';bT.style.color='var(--text2)';bT.style.fontWeight='500';bT.classList.remove('active');
+  } else {
+    ind.style.display='none';tm.style.display='grid';
+    bT.style.background='var(--white)';bT.style.color='var(--navy)';bT.style.fontWeight='600';bT.classList.add('active');
+    bI.style.background='transparent';bI.style.color='var(--text2)';bI.style.fontWeight='500';bI.classList.remove('active');
+  }
+}
+
+function toggleCmpSection(bodyId){
+  var body=document.getElementById(bodyId);
+  var icon=document.getElementById(bodyId+'-icon');
+  if(body.style.display==='none'){body.style.display='block';if(icon)icon.textContent='−';}
+  else{body.style.display='none';if(icon)icon.textContent='+';}
+}
+
+function filterFeatures(q){
+  q=(q||'').trim().toLowerCase();
+  document.querySelectorAll('.cmp-row').forEach(function(row){
+    var labelEl=row.querySelector('div:first-child');
+    var text=(labelEl?labelEl.textContent:'').toLowerCase();
+    row.style.display=(!q||text.indexOf(q)>-1)?'grid':'none';
+  });
+}
+
 var SOL_CONTENT={
   en:{
     a1:{cat:'AI Agent',title:'Capture Agent',lead:'Turn any field observation into a structured incident record — in under 60 seconds.',body:['Photo capture: point your phone at what needs attention. The Capture Agent identifies the type of issue, generates a description in plain language, suggests probable causes, and recommends solutions.','Voice logging: describe what you see in your own words. The AI transcribes, structures, and enriches the record with technical vocabulary.','Every capture is timestamped, geotagged, and instantly available across the team. No forms to fill, no paperwork to file — the field crew stays focused on the work, and the record still gets built.'],cta:'Try Capture Agent'},
@@ -1966,6 +2123,43 @@ function translateNav(){
   // Dropdown labels
   var ddMap={'soldd-h1':'h1','soldd-h2':'h2','soldd-h3':'h3','soldd-h4':'h4','soldd-a1':'a1t','soldd-a2':'a2t','soldd-a3':'a3t','soldd-a4':'a4t','soldd-c1':'c1t','soldd-c2':'c2t','soldd-c3':'c3t','soldd-c4':'c4t','soldd-i1':'i1t','soldd-i2':'i2t','soldd-i3':'i3t','soldd-i4':'i4t','soldd-i5':'i5t','soldd-i6':'i6t','soldd-s1':'s1','soldd-s2':'s2','soldd-s3':'s3','soldd-s4':'s4'};
   Object.keys(ddMap).forEach(function(id){var el=document.getElementById(id);if(el&&solT[ddMap[id]])el.textContent=solT[ddMap[id]];});
+  // Plans tab
+  var isPT=lang===2;
+  var curSym=isPT?'R$ ':'€ ';
+  var pricing={starter:isPT?'R$ 299':'€ 59',pro:isPT?'R$ 499':'€ 99',team:isPT?'R$ 999':'€ 199'};
+  var plT=lang===0?{title:'Plans',sub:'Commencez avec un essai gratuit. Évoluez avec votre équipe.',individual:'Individuel',team:'Équipe & Enterprise',starterTag:'Pour indépendants',proTag:'Pour cabinets en croissance',teamTag:'Pour petites et moyennes entreprises',entTag:'Pour grandes opérations',period:'Par mois, facturation mensuelle',teamPeriod:'Par mois, jusqu\'à 15 utilisateurs',entPrice:'Nous contacter',entPeriod:'Tarifs et conditions sur mesure',tryBt:'Essayer BaceTech',contactSales:'Contact commercial',contact:'Contact',starterInc:'Inclus :',proInc:'Tout Starter, plus :',teamInc:'Tout Pro, plus :',entInc:'Tout Team, plus :',
+    sf1:'1 projet actif',sf2:'Capture photo & voix',sf3:'Bace IA Chat',sf4:'Tableau de bord avec KPI',sf5:'Agent Capture + Agent Norme',sf6:'Support par email',
+    pf1:'Projets illimités',pf2:'Agent Docs (analyse PDF)',pf3:'Agent Insight (détection de schémas)',pf4:'Exports de rapports personnalisés',pf5:'Recherche avancée dans la base',pf6:'Support prioritaire',
+    tf1:'Jusqu\'à 15 membres',tf2:'Collaboration temps réel',tf3:'Notifications & alertes équipe',tf4:'Base de connaissances partagée',tf5:'Facturation centralisée',tf6:'Session d\'onboarding incluse',
+    ef1:'Membres illimités',ef2:'SSO (Single Sign-On)',ef3:'Contrôle d\'accès par rôle',ef4:'Intégrations sur mesure (ERP, BIM)',ef5:'Chargé de compte dédié',ef6:'Garantie SLA & logs d\'audit',
+    cmpTitle:'Comparer les fonctionnalités',cmpSearch:'Rechercher une fonctionnalité...',hFeatures:'Fonctionnalités et capacités',hAgents:'Agents IA',hSecurity:'Sécurité et administration',
+    ctaT:'Vous ne savez pas quel plan choisir ?',ctaSub:'Parlons-en — nous vous aiderons à choisir la meilleure option pour votre équipe.',ctaBtn:'Réserver une démo'}:lang===2?{title:'Planos',sub:'Comece com um teste gratuito. Escale conforme sua equipe cresce.',individual:'Individual',team:'Equipe & Enterprise',starterTag:'Para profissionais autônomos',proTag:'Para escritórios em crescimento',teamTag:'Para pequenas e médias empresas',entTag:'Para grandes operações',period:'Por mês, cobrado mensalmente',teamPeriod:'Por mês, até 15 usuários',entPrice:'Fale conosco',entPeriod:'Preços e termos personalizados',tryBt:'Testar BaceTech',contactSales:'Contato comercial',contact:'Contato',starterInc:'Inclui:',proInc:'Tudo do Starter, mais:',teamInc:'Tudo do Pro, mais:',entInc:'Tudo do Team, mais:',
+    sf1:'1 projeto ativo',sf2:'Captura por foto e voz',sf3:'Bace IA Chat',sf4:'Dashboard com KPIs',sf5:'Agente Captura + Agente Norma',sf6:'Suporte por e-mail',
+    pf1:'Projetos ilimitados',pf2:'Agente Docs (análise de PDF)',pf3:'Agente Insight (detecção de padrões)',pf4:'Exportação de relatórios personalizados',pf5:'Busca avançada na base',pf6:'Suporte prioritário',
+    tf1:'Até 15 membros da equipe',tf2:'Colaboração em tempo real',tf3:'Notificações e alertas de equipe',tf4:'Base de conhecimento compartilhada',tf5:'Cobrança centralizada',tf6:'Sessão de onboarding incluída',
+    ef1:'Membros ilimitados',ef2:'SSO (Single Sign-On)',ef3:'Controle de acesso por perfil',ef4:'Integrações personalizadas (ERP, BIM)',ef5:'Gerente de conta dedicado',ef6:'Garantia de SLA e logs de auditoria',
+    cmpTitle:'Compare recursos entre planos',cmpSearch:'Buscar recurso...',hFeatures:'Recursos e capacidades',hAgents:'Agentes IA',hSecurity:'Segurança e administração',
+    ctaT:'Não sabe qual plano escolher?',ctaSub:'Fale com a gente — vamos ajudar a escolher o melhor para sua equipe.',ctaBtn:'Agendar uma demo'}:{title:'Plans',sub:'Start with a free trial. Scale as your team grows.',individual:'Individual',team:'Team & Enterprise',starterTag:'For solo professionals',proTag:'For growing practices',teamTag:'For small & mid-size firms',entTag:'For large operations',period:'Per month, billed monthly',teamPeriod:'Per month, up to 15 users',entPrice:'Contact us',entPeriod:'Custom pricing & terms',tryBt:'Try BaceTech',contactSales:'Contact sales',contact:'Contact',starterInc:'Includes:',proInc:'Everything in Starter, plus:',teamInc:'Everything in Pro, plus:',entInc:'Everything in Team, plus:',
+    sf1:'1 active project',sf2:'Photo & voice capture',sf3:'Bace IA Chat',sf4:'Dashboard with KPIs',sf5:'Capture Agent + Norm Agent',sf6:'Email support',
+    pf1:'Unlimited projects',pf2:'Docs Agent (PDF analysis)',pf3:'Insight Agent (pattern detection)',pf4:'Custom report exports',pf5:'Advanced knowledge base search',pf6:'Priority support',
+    tf1:'Up to 15 team members',tf2:'Real-time collaboration',tf3:'Team notifications & alerts',tf4:'Shared knowledge base',tf5:'Central billing',tf6:'Onboarding session included',
+    ef1:'Unlimited team members',ef2:'SSO (Single Sign-On)',ef3:'Role-based access control',ef4:'Custom integrations (ERP, BIM)',ef5:'Dedicated account manager',ef6:'SLA guarantee & audit logs',
+    cmpTitle:'Compare features across plans',cmpSearch:'Search features...',hFeatures:'Features and capabilities',hAgents:'AI Agents',hSecurity:'Security and administration',
+    ctaT:'Not sure which plan is right?',ctaSub:'Talk to us — we will help you choose the right fit for your team.',ctaBtn:'Schedule a demo'};
+  var setT=function(id,val){var el=document.getElementById(id);if(el)el.textContent=val;};
+  setT('plan-title',plT.title);setT('plan-sub',plT.sub);setT('pv-individual',plT.individual);setT('pv-team',plT.team);
+  setT('p-starter-tag',plT.starterTag);setT('p-starter-price',pricing.starter);setT('p-starter-period',plT.period);setT('p-starter-cta',plT.tryBt);setT('p-starter-inc-label',plT.starterInc);
+  ['sf1','sf2','sf3','sf4','sf5','sf6'].forEach(function(k,i){setT('p-starter-f'+(i+1),plT[k]);});
+  setT('p-pro-tag',plT.proTag);setT('p-pro-price',pricing.pro);setT('p-pro-period',plT.period);setT('p-pro-cta',plT.tryBt);setT('p-pro-inc-label',plT.proInc);
+  ['pf1','pf2','pf3','pf4','pf5','pf6'].forEach(function(k,i){setT('p-pro-f'+(i+1),plT[k]);});
+  setT('p-team-tag',plT.teamTag);setT('p-team-price',pricing.team);setT('p-team-period',plT.teamPeriod);setT('p-team-cta',plT.tryBt);setT('p-team-inc-label',plT.teamInc);
+  ['tf1','tf2','tf3','tf4','tf5','tf6'].forEach(function(k,i){setT('p-team-f'+(i+1),plT[k]);});
+  setT('p-ent-tag',plT.entTag);setT('p-ent-price',plT.entPrice);setT('p-ent-period',plT.entPeriod);setT('p-ent-cta',plT.contactSales);setT('p-ent-inc-label',plT.entInc);
+  ['ef1','ef2','ef3','ef4','ef5','ef6'].forEach(function(k,i){setT('p-ent-f'+(i+1),plT[k]);});
+  setT('cmp-title',plT.cmpTitle);setT('cmp-h-features',plT.hFeatures);setT('cmp-h-agents',plT.hAgents);setT('cmp-h-security',plT.hSecurity);
+  var srch=document.getElementById('cmp-search');if(srch)srch.placeholder=plT.cmpSearch;
+  setT('cmp-cta-starter',plT.tryBt);setT('cmp-cta-pro',plT.tryBt);setT('cmp-cta-team',plT.tryBt);setT('cmp-cta-ent',plT.contact);
+  setT('cta-banner-t',plT.ctaT);setT('cta-banner-sub',plT.ctaSub);setT('cta-banner-btn',plT.ctaBtn);
   var hyub=document.getElementById('use-bace-title');
   if(hyub)hyub.textContent=lang===0?'Comment utiliser Bace':lang===2?'Como você pode usar a Bace':'How you can use Bace';
 }
