@@ -728,6 +728,13 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   .about-hero-grid>div:last-child{padding:0 20px 32px !important;}
   .about-hero-grid>div:last-child svg{max-width:280px !important;}
   .about-values{padding:32px 20px !important;}
+  /* Reduce value prop titles on mobile */
+  .about-values [id^="v"]:not([id$="-desc"]){font-size:20px !important;}
+  /* Compare features title smaller */
+  #cmp-title{font-size:22px !important;line-height:1.15 !important;}
+  /* Login screen: add space between logo and headline on mobile */
+  #s-login #s-auth{padding-top:60px !important;}
+  #s-login .auth-headline{font-size:26px !important;}
   /* Footer mobile */
   footer .footer-grid{gap:24px !important;}
   footer{padding:40px 24px 24px !important;}
@@ -1478,7 +1485,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <i class="ti ti-bell"></i>
             <div class="bell-dot" id="bell-dot" style="display:none;"></div>
           </div>
-          <select id="topbar-lang-select" onchange="changeLang(parseInt(this.value))" style="background:var(--navy2);border:1px solid var(--border2);border-radius:6px;color:var(--text2);font-size:10px;padding:4px 6px;cursor:pointer;outline:none;font-family:var(--font-b);"><option value="0">FR</option><option value="1">EN</option><option value="2">PT</option></select>
+          <select id="topbar-lang-select" onchange="changeLang(parseInt(this.value))" style="display:none;background:var(--navy2);border:1px solid var(--border2);border-radius:6px;color:var(--text2);font-size:10px;padding:4px 6px;cursor:pointer;outline:none;font-family:var(--font-b);"><option value="0">FR</option><option value="1">EN</option><option value="2">PT</option></select>
           <button onclick="setTheme(document.body.classList.contains('light-mode')?'dark':'light')" class="bell-btn" style="color:var(--text2);font-size:16px;cursor:pointer;background:none;border:none;padding:4px;" title="Theme"><i class="ti ti-sun-moon"></i></button>
           
         <button class="mobile-avatar" id="mobile-avatar-btn" onclick="toggleMobileProfile()" style="display:none;background:none;border:none;cursor:pointer;margin-left:4px;"><div style="width:28px;height:28px;border-radius:50%;background:rgba(96,165,250,0.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#60a5fa;" id="mob-av-initials">DM</div></button>
@@ -1852,6 +1859,7 @@ function toggleLandingMenu(){var m=document.getElementById('landing-mobile-menu'
 
 function showContentPage(tabIdx){
   document.getElementById('s-login').classList.remove('active');
+  document.getElementById('s-app').classList.remove('active');
   document.getElementById('s-content').classList.add('active');
   showContentTab(tabIdx||0);
   localStorage.setItem('bacetech_current_page','content');
@@ -1860,6 +1868,7 @@ function showContentPage(tabIdx){
 }
 function showAuthPage(){
   document.getElementById('s-content').classList.remove('active');
+  document.getElementById('s-app').classList.remove('active');
   document.getElementById('s-login').classList.add('active');
   localStorage.setItem('bacetech_current_page','auth');
   window.scrollTo(0,0);
@@ -2454,8 +2463,12 @@ function enterApp(user){
   document.getElementById("u-name").textContent=me.name;
   document.getElementById("u-co").textContent=me.co;
   document.getElementById("s-login").classList.remove("active");
+  document.getElementById("s-content").classList.remove("active");
   document.getElementById("s-app").classList.add("active");
   document.body.classList.add("logged-in");
+  // Hide Log in tab when logged in
+  var loginTab=document.getElementById('ctab-login');if(loginTab)loginTab.style.display='none';
+  var mobLogin=document.getElementById('mob-tab-login');if(mobLogin)mobLogin.style.display='none';
   var mobAv=document.getElementById("mob-av-initials");if(mobAv)mobAv.textContent=(me.name||"??").split(" ").map(function(w){return w[0];}).join("").toUpperCase().slice(0,2);
   applyLang();
   // Restore last tab
