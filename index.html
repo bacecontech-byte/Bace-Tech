@@ -725,7 +725,12 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   .about-hero-grid{grid-template-columns:1fr !important;}
   .about-hero-grid>div:first-child{padding:32px 20px !important;}
   .about-hero-grid>div:first-child>div:first-child{font-size:32px !important;}
+  .about-hero-grid>div:last-child{padding:0 20px 32px !important;}
+  .about-hero-grid>div:last-child svg{max-width:280px !important;}
   .about-values{padding:32px 20px !important;}
+  /* Footer mobile */
+  footer .footer-grid{gap:24px !important;}
+  footer{padding:40px 24px 24px !important;}
   .footer-grid{grid-template-columns:1fr 1fr !important;gap:32px !important;}
   footer{padding:40px 24px 24px !important;}
   .impact-grid-content{grid-template-columns:1fr 1fr !important;}
@@ -738,6 +743,17 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   .sol-content-grid{grid-template-columns:1fr !important;}
   .cmp-grid{grid-template-columns:2fr 1fr 1fr 1fr 1fr !important;gap:6px !important;font-size:10px !important;}
   .cmp-row{font-size:11px !important;}
+  /* Content page mobile: hide tabs (moved to hamburger), keep logo+demo+hamburger */
+  #content-tabs{display:none !important;}
+  #content-header{padding:0 16px !important;}
+  #content-header>div:last-child{gap:6px !important;}
+  #content-header>div:last-child>a{font-size:10px !important;padding:5px 10px !important;}
+  #content-header>div:last-child>div,#content-header>div:last-child>button:not(#content-mob-menu){display:none !important;}
+  #content-mob-menu{display:flex !important;align-items:center;}
+  .content-panel{padding:32px 16px !important;}
+  /* Solutions tab hover dropdown - convert to click on mobile */
+  #sol-tab-dropdown{position:fixed !important;top:56px !important;left:0 !important;right:0 !important;transform:none !important;width:100vw !important;min-width:0 !important;border-radius:0 !important;max-height:calc(100vh - 56px);overflow-y:auto;}
+  #sol-tab-dropdown>div{grid-template-columns:1fr !important;}
   .res-grid{grid-template-columns:1fr !important;}
   #content-tabs{padding:0 16px !important;gap:0 !important;overflow-x:auto;}
   .content-tab{font-size:12px !important;padding:12px 14px !important;white-space:nowrap;}
@@ -865,62 +881,28 @@ tr:hover td{background:rgba(255,255,255,0.02);}
     </div>
   </nav>
   <div id="landing-mobile-menu" style="display:none;grid-column:1/-1;background:#18181c;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.06);max-height:calc(100vh - 48px);overflow-y:auto;">
-    <a href="#" onclick="event.preventDefault();toggleMobSection('mob-home-content')" id="mob-menu-home" style="display:block;padding:12px 0;font-size:14px;font-weight:500;color:#f0f0f5;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.04);">Home &#9662;</a>
-    <div id="mob-home-content" style="display:none;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div style="text-align:center;padding:14px 8px;border-radius:10px;background:#142536;"><div style="font-family:var(--font-d);font-size:22px;font-weight:800;color:#60a5fa;">70%</div><div style="font-size:9px;color:#8a8a95;margin-top:3px;">menos tempo em documentação</div></div>
-        <div style="text-align:center;padding:14px 8px;border-radius:10px;background:#142536;"><div style="font-family:var(--font-d);font-size:22px;font-weight:800;color:#4ade80;">3x</div><div style="font-size:9px;color:#8a8a95;margin-top:3px;">mais rápido para identificar padrões</div></div>
-        <div style="text-align:center;padding:14px 8px;border-radius:10px;background:#142536;"><div style="font-family:var(--font-d);font-size:22px;font-weight:800;color:#38bdf8;">100%</div><div style="font-size:9px;color:#8a8a95;margin-top:3px;">dos incidentes rastreáveis</div></div>
-        <div style="text-align:center;padding:14px 8px;border-radius:10px;background:#142536;"><div style="font-family:var(--font-d);font-size:22px;font-weight:800;color:#fbbf24;">0</div><div style="font-size:9px;color:#8a8a95;margin-top:3px;">papel — 100% digital</div></div>
-      </div>
-    </div>
-    <a href="#" onclick="event.preventDefault();toggleMobSection('mob-solutions-content')" id="mob-menu-solutions" style="display:block;padding:12px 0;font-size:14px;font-weight:500;color:#f0f0f5;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.04);">Soluções &#9662;</a>
-    <div id="mob-solutions-content" style="display:none;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
-      <div style="display:flex;flex-direction:column;gap:6px;">
-        <div style="display:flex;gap:10px;padding:10px;border-radius:8px;background:#142536;"><div style="width:28px;height:28px;border-radius:7px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-camera" style="font-size:14px;color:#60a5fa;"></i></div><div><div style="font-size:12px;font-weight:600;color:#f0f0f5;">Captura IA</div><div style="font-size:10px;color:#6a6a75;margin-top:1px;">Foto ou voz — a IA analisa automaticamente</div></div></div>
-        <div style="display:flex;gap:10px;padding:10px;border-radius:8px;background:#142536;"><div style="width:28px;height:28px;border-radius:7px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-layout-dashboard" style="font-size:14px;color:#60a5fa;"></i></div><div><div style="font-size:12px;font-weight:600;color:#f0f0f5;">Dashboard</div><div style="font-size:10px;color:#6a6a75;margin-top:1px;">KPIs, insights IA e status em tempo real</div></div></div>
-        <div style="display:flex;gap:10px;padding:10px;border-radius:8px;background:#142536;"><div style="width:28px;height:28px;border-radius:7px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-robot" style="font-size:14px;color:#60a5fa;"></i></div><div><div style="font-size:12px;font-weight:600;color:#f0f0f5;">Bace IA Chat</div><div style="font-size:10px;color:#6a6a75;margin-top:1px;">Chatbot especializado em construção</div></div></div>
-        <div style="display:flex;gap:10px;padding:10px;border-radius:8px;background:#142536;"><div style="width:28px;height:28px;border-radius:7px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-building-skyscraper" style="font-size:14px;color:#60a5fa;"></i></div><div><div style="font-size:12px;font-weight:600;color:#f0f0f5;">Gestão de Projetos</div><div style="font-size:10px;color:#6a6a75;margin-top:1px;">Canteiros organizados com equipe e documentos</div></div></div>
-        <div style="display:flex;gap:10px;padding:10px;border-radius:8px;background:#142536;"><div style="width:28px;height:28px;border-radius:7px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-files" style="font-size:14px;color:#60a5fa;"></i></div><div><div style="font-size:12px;font-weight:600;color:#f0f0f5;">Documentos</div><div style="font-size:10px;color:#6a6a75;margin-top:1px;">Planos PDF indexados e analisados pela IA</div></div></div>
-        <div style="display:flex;gap:10px;padding:10px;border-radius:8px;background:#142536;"><div style="width:28px;height:28px;border-radius:7px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-users" style="font-size:14px;color:#60a5fa;"></i></div><div><div style="font-size:12px;font-weight:600;color:#f0f0f5;">Colaboração</div><div style="font-size:10px;color:#6a6a75;margin-top:1px;">Notificações em tempo real entre a equipe</div></div></div>
-      </div>
-    </div>
-    <a href="#" onclick="event.preventDefault();toggleMobSection('mob-pricing-content')" id="mob-menu-pricing" style="display:block;padding:12px 0;font-size:14px;font-weight:500;color:#f0f0f5;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.04);">Planos &#9662;</a>
-    <div id="mob-pricing-content" style="display:none;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <div style="padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:#142536;"><div style="font-size:13px;font-weight:600;color:#8a8a95;">Starter</div><div style="font-family:var(--font-d);font-size:20px;font-weight:800;color:#f0f0f5;margin-top:4px;">R$ 299<span style="font-size:11px;font-weight:400;color:#6a6a75;">/mês</span></div><div style="font-size:10px;color:#60a5fa;margin-top:2px;">Até 5 usuários · 1 projeto · Captura IA</div></div>
-        <div style="padding:14px;border-radius:10px;border:2px solid #60a5fa;background:#142536;"><div style="font-size:13px;font-weight:600;color:#60a5fa;">Profissional <span style="font-size:9px;background:#60a5fa;color:#fff;padding:1px 6px;border-radius:8px;margin-left:4px;">POPULAR</span></div><div style="font-family:var(--font-d);font-size:20px;font-weight:800;color:#f0f0f5;margin-top:4px;">R$ 499<span style="font-size:11px;font-weight:400;color:#6a6a75;">/mês</span></div><div style="font-size:10px;color:#60a5fa;margin-top:2px;">Até 15 usuários · Ilimitado · Insights IA</div></div>
-        <div style="padding:14px;border-radius:10px;border:1px solid rgba(251,191,36,0.3);background:#142536;"><div style="font-size:13px;font-weight:600;color:#fbbf24;">Enterprise</div><div style="font-family:var(--font-d);font-size:20px;font-weight:800;color:#f0f0f5;margin-top:4px;">Sob consulta</div><div style="font-size:10px;color:#fbbf24;margin-top:2px;">Ilimitado · Suporte dedicado · SLA</div></div>
-      </div>
-    </div>
-    <a href="#" onclick="event.preventDefault();toggleMobSection('mob-resources-content')" id="mob-menu-resources" style="display:block;padding:12px 0;font-size:14px;font-weight:500;color:#f0f0f5;text-decoration:none;">Recursos &#9662;</a>
-    <div id="mob-resources-content" style="display:none;padding:12px 0;">
-      <div style="font-size:9px;font-weight:600;color:#8a8a95;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;" id="mob-res-header">BACETECH RESEARCH</div>
-      <!-- Report 1 -->
-      <div onclick="toggleMobSection('mob-lead-form')" style="padding:12px;border-radius:10px;background:#142536;border:1px solid rgba(255,255,255,0.04);margin-bottom:8px;cursor:pointer;">
-        <div style="font-size:8px;color:#60a5fa;font-weight:600;margin-bottom:3px;" id="mob-res-cat1">FIELD RISK ANALYSIS</div>
-        <div style="font-size:12px;font-weight:600;color:#f0f0f5;line-height:1.4;" id="mob-res-title1">The State of On-Site Construction Risk: Why 50% of Field Incidents Go Unmitigated</div>
-        <div style="font-size:10px;color:#6a6a75;margin-top:4px;" id="mob-res-dl1">PDF · 2 pages · Free download</div>
-      </div>
-      <!-- Report 2 -->
-      <div onclick="toggleMobSection('mob-lead-form')" style="padding:12px;border-radius:10px;background:#142536;border:1px solid rgba(255,255,255,0.04);margin-bottom:10px;cursor:pointer;">
-        <div style="font-size:8px;color:#60a5fa;font-weight:600;margin-bottom:3px;" id="mob-res-cat2">MATURITY MODEL</div>
-        <div style="font-size:12px;font-weight:600;color:#f0f0f5;line-height:1.4;" id="mob-res-title2">From Paper to Predictive AI: The ROI of Automated Site Logging</div>
-        <div style="font-size:10px;color:#6a6a75;margin-top:4px;" id="mob-res-soon2">PDF · 6 pages · Free download</div>
-      </div>
-      <!-- Mobile lead form -->
-      <div id="mob-lead-form" style="display:none;padding:14px;border-radius:10px;background:#111114;border:1px solid rgba(96,165,250,0.15);">
-        <div style="font-size:11px;font-weight:600;color:#f0f0f5;margin-bottom:10px;" id="mob-lead-title">Download the full report</div>
-        <input id="mob-lead-name" placeholder="Name" style="width:100%;background:#18181c;border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:10px;font-size:13px;color:#f0f0f5;margin-bottom:6px;outline:none;font-family:var(--font-b);box-sizing:border-box;">
-        <input id="mob-lead-email" placeholder="Email" type="email" style="width:100%;background:#18181c;border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:10px;font-size:13px;color:#f0f0f5;margin-bottom:6px;outline:none;font-family:var(--font-b);box-sizing:border-box;">
-        <input id="mob-lead-company" placeholder="Company" style="width:100%;background:#18181c;border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:10px;font-size:13px;color:#f0f0f5;margin-bottom:8px;outline:none;font-family:var(--font-b);box-sizing:border-box;">
-        <div style="display:flex;gap:6px;margin-bottom:10px;">
-          <button onclick="setMobLeadLang('en')" id="mob-lead-lang-en" style="flex:1;padding:8px;border-radius:6px;border:1px solid rgba(96,165,250,0.3);background:rgba(96,165,250,0.1);color:#60a5fa;font-size:12px;font-weight:600;cursor:pointer;">English</button>
-          <button onclick="setMobLeadLang('pt')" id="mob-lead-lang-pt" style="flex:1;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);background:none;color:#8a8a95;font-size:12px;font-weight:500;cursor:pointer;">Português</button>
+    <a href="#" onclick="event.preventDefault();toggleLandingMenu();showContentTab(0);document.getElementById('s-login').classList.remove('active');document.getElementById('s-content').classList.add('active');" id="mob-tab-about" style="display:block;padding:14px 4px;font-size:15px;font-weight:500;color:#f0f0f5;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.06);">About us</a>
+    <a href="#" onclick="event.preventDefault();toggleLandingMenu();showContentTab(1);document.getElementById('s-login').classList.remove('active');document.getElementById('s-content').classList.add('active');" id="mob-tab-solutions" style="display:block;padding:14px 4px;font-size:15px;font-weight:500;color:#f0f0f5;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.06);">Solutions</a>
+    <a href="#" onclick="event.preventDefault();toggleLandingMenu();showContentTab(2);document.getElementById('s-login').classList.remove('active');document.getElementById('s-content').classList.add('active');" id="mob-tab-plans" style="display:block;padding:14px 4px;font-size:15px;font-weight:500;color:#f0f0f5;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.06);">Plans</a>
+    <a href="#" onclick="event.preventDefault();toggleLandingMenu();showContentTab(3);document.getElementById('s-login').classList.remove('active');document.getElementById('s-content').classList.add('active');" id="mob-tab-resources" style="display:block;padding:14px 4px;font-size:15px;font-weight:500;color:#f0f0f5;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.06);">Resources</a>
+    <a href="#" onclick="event.preventDefault();toggleLandingMenu();showAuthPage();" id="mob-tab-login" style="display:block;padding:14px 4px;font-size:15px;font-weight:600;color:#60a5fa;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.06);">Log in</a>
+    <!-- Language + theme -->
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <div style="flex:1;">
+        <div style="font-size:10px;color:#6a6a75;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Language</div>
+        <div style="display:flex;gap:8px;">
+          <span onclick="changeLang(1)" style="cursor:pointer;font-size:22px;opacity:0.5;" id="mob-flag-en">🇬🇧</span>
+          <span onclick="changeLang(2)" style="cursor:pointer;font-size:22px;opacity:0.5;" id="mob-flag-pt">🇧🇷</span>
+          <span onclick="changeLang(0)" style="cursor:pointer;font-size:22px;opacity:0.5;" id="mob-flag-fr">🇫🇷</span>
         </div>
-        <button onclick="downloadMobReport()" id="mob-lead-btn" style="width:100%;padding:12px;border-radius:8px;background:#60a5fa;color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-d);">Download Report</button>
+      </div>
+      <div>
+        <div style="font-size:10px;color:#6a6a75;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Theme</div>
+        <button onclick="setTheme(document.body.classList.contains('light-mode')?'dark':'light')" style="background:none;border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#f0f0f5;font-size:16px;padding:6px 12px;cursor:pointer;"><i class="ti ti-sun-moon"></i></button>
       </div>
     </div>
+    <!-- Demo CTA -->
+    <a href="https://calendar.app.google/Kfu81DSrNPFjTe7w5" target="_blank" id="mob-menu-demo" style="display:block;text-align:center;margin-top:20px;padding:14px;background:#60a5fa;color:#fff;border-radius:10px;text-decoration:none;font-size:14px;font-weight:600;">Schedule a demo</a>
   </div>
 
 
@@ -1048,6 +1030,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span onclick="changeLang(0)" style="cursor:pointer;font-size:16px;opacity:0.5;" id="cflag-fr">🇫🇷</span>
       </div>
       <button onclick="setTheme(document.body.classList.contains('light-mode')?'dark':'light')" style="background:none;border:none;color:var(--text2);font-size:16px;padding:4px;cursor:pointer;"><i class="ti ti-sun-moon"></i></button>
+      <button onclick="toggleLandingMenu()" id="content-mob-menu" style="display:none;background:none;border:none;color:var(--white);font-size:22px;padding:2px;cursor:pointer;"><i class="ti ti-menu-2"></i></button>
     </div>
   </div>
 
@@ -2107,6 +2090,13 @@ function translateNav(){
   var tabLabels=lang===0?['À propos','Solutions','Plans','Ressources']:lang===2?['Sobre nós','Soluções','Planos','Recursos']:['About us','Solutions','Plans','Resources'];
   for(var ti=0;ti<4;ti++){var tb=document.getElementById('ctab-'+ti);if(tb)tb.textContent=tabLabels[ti];}
   var loginTab=document.getElementById('ctab-login');if(loginTab)loginTab.textContent=lang===0?'Connexion':lang===2?'Entrar':'Log in';
+  // Mobile menu tab labels
+  ['mob-tab-about','mob-tab-solutions','mob-tab-plans','mob-tab-resources'].forEach(function(id,i){var el=document.getElementById(id);if(el)el.textContent=tabLabels[i];});
+  var mobLogin=document.getElementById('mob-tab-login');if(mobLogin)mobLogin.textContent=lang===0?'Connexion':lang===2?'Entrar':'Log in';
+  var mobDemo=document.getElementById('mob-menu-demo');if(mobDemo)mobDemo.textContent=lang===0?'Réserver une démo':lang===2?'Agendar uma demo':'Schedule a demo';
+  // Sync mobile flag opacity
+  var mobFlags={'mob-flag-en':1,'mob-flag-pt':2,'mob-flag-fr':0};
+  Object.keys(mobFlags).forEach(function(id){var el=document.getElementById(id);if(el)el.style.opacity=mobFlags[id]===lang?'1':'0.5';});
   var bs=document.getElementById('back-signin');if(bs)bs.textContent=lang===0?'← Retour à la connexion':lang===2?'← Voltar ao login':'← Back to sign in';
   // Content page header
   var cflags={'cflag-en':1,'cflag-pt':2,'cflag-fr':0};
