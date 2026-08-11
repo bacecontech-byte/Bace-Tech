@@ -92,9 +92,6 @@ body.light-mode #s-login input.form-input,body.light-mode #s-login #l-email,body
 body.light-mode #s-login input::placeholder{color:#9ca3af !important;}
 body.light-mode #s-login .form-label{color:#6b7280 !important;}
 body.light-mode #s-login .auth-headline{color:#1a1a2e !important;}
-/* Light mode: sign-up SVG art — invert lines to dark */
-body.light-mode #landing-solutions{background:#f5f5f7 !important;}
-body.light-mode #landing-solutions svg line[stroke*="255,255,255"],body.light-mode #landing-solutions svg path[stroke*="255,255,255"],body.light-mode #landing-solutions svg rect[stroke*="255,255,255"],body.light-mode #landing-solutions svg circle[stroke*="255,255,255"]{stroke:rgba(30,30,50,0.5) !important;}
 body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-height:100vh;}
 .screen{display:none;}.screen.active{display:block;}
 /* ── Mobile bottom tab bar + FAB ── */
@@ -960,202 +957,260 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   </div>
   <div id="landing-solutions" class="auth-right-panel" style="background:#111114;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:40px;border-left:0.5px solid rgba(96,165,250,0.1);overflow:hidden;">
 
-    <!-- Artistic SVG animation: "The Site" — engineers on site, documenting silently -->
-    <svg viewBox="0 0 500 500" style="width:100%;max-width:520px;height:auto;display:block;" role="img" aria-label="A construction site with documentation flowing to Bace">
+    <!-- Realistic construction site illustration -->
+    <svg viewBox="0 0 500 500" style="width:100%;max-width:520px;height:auto;display:block;border-radius:16px;" role="img" aria-label="A construction site with Bace capturing daily documentation">
+      <defs>
+        <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#f4c88a"/>
+          <stop offset="45%" stop-color="#f5b478"/>
+          <stop offset="100%" stop-color="#d9a586"/>
+        </linearGradient>
+        <linearGradient id="groundGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#8a7361"/>
+          <stop offset="100%" stop-color="#4a3e35"/>
+        </linearGradient>
+        <linearGradient id="buildingGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#c6bfb2"/>
+          <stop offset="100%" stop-color="#8f8577"/>
+        </linearGradient>
+        <linearGradient id="cardGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="100%" stop-color="#f0f4f9"/>
+        </linearGradient>
+        <radialGradient id="sunGlow" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0%" stop-color="#ffe8a8" stop-opacity="0.8"/>
+          <stop offset="100%" stop-color="#ffe8a8" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
 
-      <!-- Horizon line -->
-      <line x1="20" y1="425" x2="480" y2="425" stroke="rgba(255,255,255,0.35)" stroke-width="1.2" stroke-linecap="round"/>
+      <!-- Sky background -->
+      <rect x="0" y="0" width="500" height="425" fill="url(#skyGrad)"/>
+      <!-- Sun glow -->
+      <circle cx="380" cy="120" r="130" fill="url(#sunGlow)"/>
+      <!-- Sun -->
+      <circle cx="380" cy="120" r="28" fill="#fff2c4" opacity="0.9"/>
+      <!-- Distant clouds -->
+      <ellipse cx="80" cy="90" rx="35" ry="8" fill="#ffffff" opacity="0.55"/>
+      <ellipse cx="120" cy="100" rx="28" ry="6" fill="#ffffff" opacity="0.4"/>
+      <ellipse cx="450" cy="180" rx="30" ry="6" fill="#ffffff" opacity="0.35"/>
 
-      <!-- Scattered ground details -->
-      <g stroke="rgba(255,255,255,0.25)" stroke-width="0.9" fill="none" stroke-linecap="round">
-        <rect x="30" y="414" width="10" height="6" rx="0.5"/>
-        <rect x="42" y="414" width="10" height="6" rx="0.5"/>
-        <rect x="345" y="416" width="8" height="5" rx="0.5"/>
-        <rect x="460" y="415" width="10" height="6" rx="0.5"/>
-        <circle cx="60" cy="420" r="1"/>
-        <circle cx="140" cy="420" r="1"/>
-        <circle cx="370" cy="421" r="1"/>
+      <!-- Distant buildings silhouettes -->
+      <g fill="#b58a7a" opacity="0.55">
+        <rect x="0" y="330" width="60" height="95"/>
+        <rect x="55" y="310" width="45" height="115"/>
+        <rect x="440" y="345" width="60" height="80"/>
       </g>
 
-      <!-- Building — unfinished, in progress -->
-      <g stroke="rgba(255,255,255,0.5)" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <!-- Main outline: stepped, unfinished top -->
-        <path d="M 180 425 L 180 250 L 265 250 L 265 205 L 325 205 L 325 425"/>
-        <!-- Floor lines -->
-        <line x1="180" y1="365" x2="325" y2="365"/>
-        <line x1="180" y1="305" x2="325" y2="305"/>
-        <line x1="180" y1="250" x2="265" y2="250"/>
-        <!-- Windows (bottom floor) -->
-        <rect x="195" y="378" width="20" height="30" rx="1"/>
-        <rect x="230" y="378" width="20" height="30" rx="1"/>
-        <rect x="270" y="378" width="20" height="30" rx="1"/>
-        <rect x="298" y="378" width="18" height="30" rx="1"/>
-        <!-- Middle floor -->
-        <rect x="195" y="318" width="20" height="30" rx="1"/>
-        <rect x="230" y="318" width="20" height="30" rx="1"/>
-        <rect x="270" y="318" width="20" height="30" rx="1"/>
-        <rect x="298" y="318" width="18" height="30" rx="1"/>
-        <!-- Top (partial) -->
-        <rect x="195" y="262" width="20" height="30" rx="1"/>
-        <rect x="230" y="262" width="20" height="30" rx="1"/>
-        <rect x="275" y="218" width="20" height="27" rx="1"/>
-        <rect x="300" y="218" width="16" height="27" rx="1"/>
-        <!-- Rebar sticking up (in progress) -->
-        <line x1="188" y1="250" x2="188" y2="234"/>
-        <line x1="200" y1="250" x2="200" y2="228"/>
-        <line x1="215" y1="250" x2="215" y2="238"/>
-        <line x1="230" y1="250" x2="230" y2="232"/>
-        <line x1="252" y1="250" x2="252" y2="240"/>
-        <line x1="272" y1="205" x2="272" y2="192"/>
-        <line x1="290" y1="205" x2="290" y2="188"/>
-        <line x1="308" y1="205" x2="308" y2="194"/>
+      <!-- Ground -->
+      <rect x="0" y="425" width="500" height="75" fill="url(#groundGrad)"/>
+      <!-- Ground texture — small stones/debris -->
+      <g fill="#3a3229">
+        <circle cx="30" cy="450" r="1.5"/>
+        <circle cx="65" cy="465" r="1"/>
+        <circle cx="100" cy="445" r="1.2"/>
+        <circle cx="150" cy="470" r="1.5"/>
+        <circle cx="200" cy="455" r="1"/>
+        <circle cx="350" cy="465" r="1.3"/>
+        <circle cx="400" cy="450" r="1"/>
+        <circle cx="450" cy="470" r="1.5"/>
+      </g>
+      <!-- Scattered bricks/debris -->
+      <g fill="#a35a3a">
+        <rect x="45" y="418" width="14" height="7" rx="1"/>
+        <rect x="61" y="418" width="14" height="7" rx="1"/>
+        <rect x="53" y="411" width="14" height="7" rx="1"/>
+        <rect x="330" y="418" width="14" height="7" rx="1"/>
+        <rect x="450" y="418" width="14" height="7" rx="1"/>
       </g>
 
-      <!-- Tower crane -->
-      <g stroke="rgba(255,255,255,0.5)" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <!-- Building under construction (concrete) -->
+      <g>
+        <!-- Main structure -->
+        <path d="M 175 425 L 175 240 L 260 240 L 260 195 L 325 195 L 325 425 Z" fill="url(#buildingGrad)" stroke="#6b6255" stroke-width="1"/>
+        <!-- Floor slabs (horizontal lines) -->
+        <line x1="175" y1="365" x2="325" y2="365" stroke="#6b6255" stroke-width="1.2"/>
+        <line x1="175" y1="305" x2="325" y2="305" stroke="#6b6255" stroke-width="1.2"/>
+        <line x1="175" y1="240" x2="325" y2="240" stroke="#6b6255" stroke-width="1.2"/>
+        <line x1="260" y1="195" x2="325" y2="195" stroke="#6b6255" stroke-width="1.2"/>
+
+        <!-- Windows (dark openings — no glass yet) -->
+        <rect x="188" y="378" width="22" height="30" fill="#2a2521" opacity="0.85"/>
+        <rect x="222" y="378" width="22" height="30" fill="#2a2521" opacity="0.85"/>
+        <rect x="256" y="378" width="22" height="30" fill="#2a2521" opacity="0.85"/>
+        <rect x="290" y="378" width="22" height="30" fill="#2a2521" opacity="0.85"/>
+
+        <rect x="188" y="318" width="22" height="30" fill="#2a2521" opacity="0.85"/>
+        <rect x="222" y="318" width="22" height="30" fill="#2a2521" opacity="0.85"/>
+        <rect x="256" y="318" width="22" height="30" fill="#2a2521" opacity="0.85"/>
+        <rect x="290" y="318" width="22" height="30" fill="#2a2521" opacity="0.85"/>
+
+        <rect x="188" y="258" width="22" height="30" fill="#2a2521" opacity="0.85"/>
+        <rect x="222" y="258" width="22" height="30" fill="#2a2521" opacity="0.85"/>
+        <rect x="273" y="215" width="20" height="22" fill="#2a2521" opacity="0.85"/>
+        <rect x="298" y="215" width="20" height="22" fill="#2a2521" opacity="0.85"/>
+
+        <!-- Rebar sticking out (yellow-orange steel color) -->
+        <g stroke="#7d6b52" stroke-width="1.5" stroke-linecap="round">
+          <line x1="185" y1="240" x2="185" y2="225"/>
+          <line x1="200" y1="240" x2="200" y2="220"/>
+          <line x1="215" y1="240" x2="215" y2="230"/>
+          <line x1="230" y1="240" x2="230" y2="222"/>
+          <line x1="245" y1="240" x2="245" y2="228"/>
+          <line x1="270" y1="195" x2="270" y2="182"/>
+          <line x1="285" y1="195" x2="285" y2="178"/>
+          <line x1="305" y1="195" x2="305" y2="183"/>
+          <line x1="320" y1="195" x2="320" y2="180"/>
+        </g>
+
+        <!-- Scaffolding on the right side -->
+        <g stroke="#6b6255" stroke-width="1.2" fill="none">
+          <line x1="325" y1="425" x2="325" y2="200"/>
+          <line x1="337" y1="425" x2="337" y2="200"/>
+          <line x1="325" y1="365" x2="337" y2="365"/>
+          <line x1="325" y1="305" x2="337" y2="305"/>
+          <line x1="325" y1="240" x2="337" y2="240"/>
+          <!-- Diagonal braces -->
+          <line x1="325" y1="365" x2="337" y2="305"/>
+          <line x1="325" y1="305" x2="337" y2="240"/>
+        </g>
+      </g>
+
+      <!-- Yellow tower crane -->
+      <g>
         <!-- Base -->
-        <line x1="78" y1="425" x2="102" y2="425"/>
-        <!-- Vertical mast -->
-        <line x1="90" y1="425" x2="90" y2="145"/>
-        <line x1="82" y1="425" x2="82" y2="145"/>
-        <line x1="98" y1="425" x2="98" y2="145"/>
-        <!-- Diagonal supports (zigzag along mast) -->
-        <line x1="82" y1="405" x2="98" y2="380"/>
-        <line x1="98" y1="405" x2="82" y2="380"/>
-        <line x1="82" y1="355" x2="98" y2="330"/>
-        <line x1="98" y1="355" x2="82" y2="330"/>
-        <line x1="82" y1="305" x2="98" y2="280"/>
-        <line x1="98" y1="305" x2="82" y2="280"/>
-        <line x1="82" y1="255" x2="98" y2="230"/>
-        <line x1="98" y1="255" x2="82" y2="230"/>
-        <line x1="82" y1="205" x2="98" y2="180"/>
-        <line x1="98" y1="205" x2="82" y2="180"/>
+        <rect x="75" y="420" width="30" height="8" fill="#f0c14a" stroke="#8a6f1f" stroke-width="0.8"/>
+        <!-- Vertical mast (yellow lattice) -->
+        <g stroke="#8a6f1f" stroke-width="0.9" fill="#f0c14a">
+          <rect x="82" y="145" width="16" height="278"/>
+          <!-- Cross bracing -->
+          <line x1="82" y1="410" x2="98" y2="380"/>
+          <line x1="98" y1="410" x2="82" y2="380"/>
+          <line x1="82" y1="360" x2="98" y2="330"/>
+          <line x1="98" y1="360" x2="82" y2="330"/>
+          <line x1="82" y1="310" x2="98" y2="280"/>
+          <line x1="98" y1="310" x2="82" y2="280"/>
+          <line x1="82" y1="260" x2="98" y2="230"/>
+          <line x1="98" y1="260" x2="82" y2="230"/>
+          <line x1="82" y1="210" x2="98" y2="180"/>
+          <line x1="98" y1="210" x2="82" y2="180"/>
+          <line x1="82" y1="160" x2="98" y2="145"/>
+        </g>
         <!-- Operator cabin -->
-        <rect x="74" y="145" width="32" height="16" rx="1"/>
-        <!-- Jib arm (horizontal) -->
-        <line x1="82" y1="145" x2="270" y2="145"/>
-        <line x1="82" y1="130" x2="270" y2="145"/>
-        <line x1="82" y1="130" x2="82" y2="145"/>
-        <!-- Diagonals under jib -->
-        <line x1="130" y1="145" x2="135" y2="132"/>
-        <line x1="170" y1="145" x2="175" y2="130"/>
-        <line x1="215" y1="145" x2="220" y2="128"/>
-        <!-- Counterjib -->
-        <line x1="82" y1="145" x2="45" y2="145"/>
-        <line x1="45" y1="140" x2="45" y2="152"/>
-        <line x1="82" y1="130" x2="55" y2="140"/>
-        <!-- Hook cable -->
-        <line x1="255" y1="145" x2="255" y2="215"/>
+        <rect x="70" y="140" width="35" height="18" fill="#f0c14a" stroke="#8a6f1f" stroke-width="0.9" rx="1"/>
+        <rect x="85" y="144" width="12" height="8" fill="#3a4552" rx="0.5"/>
+        <!-- Jib (horizontal arm) -->
+        <polygon points="90,140 90,132 270,143 270,150" fill="#f0c14a" stroke="#8a6f1f" stroke-width="0.9"/>
+        <!-- Jib truss lines -->
+        <g stroke="#8a6f1f" stroke-width="0.7">
+          <line x1="120" y1="143" x2="130" y2="135"/>
+          <line x1="150" y1="144" x2="160" y2="136"/>
+          <line x1="180" y1="145" x2="190" y2="138"/>
+          <line x1="210" y1="146" x2="220" y2="139"/>
+          <line x1="240" y1="147" x2="250" y2="141"/>
+        </g>
+        <!-- Counter-jib -->
+        <polygon points="90,140 90,150 45,152 45,142" fill="#f0c14a" stroke="#8a6f1f" stroke-width="0.9"/>
+        <rect x="42" y="148" width="10" height="14" fill="#4a3f2c" stroke="#2c2618" stroke-width="0.6"/>
+        <!-- Cable -->
+        <line x1="255" y1="146" x2="255" y2="220" stroke="#333333" stroke-width="0.9"/>
         <!-- Hook block -->
-        <rect x="248" y="215" width="14" height="9" rx="1"/>
-        <line x1="252" y1="224" x2="252" y2="230"/>
-        <line x1="258" y1="224" x2="258" y2="230"/>
-
-        <!-- Cable subtle sway -->
-        <animateTransform attributeName="transform" type="rotate" values="0 90 145; 0.3 90 145; 0 90 145; -0.3 90 145; 0 90 145" keyTimes="0; 0.25; 0.5; 0.75; 1" dur="8s" repeatCount="indefinite"/>
+        <rect x="248" y="220" width="14" height="9" fill="#333333" rx="1"/>
       </g>
 
-      <!-- Worker figure — hard hat, phone in hand -->
-      <g stroke="rgba(255,255,255,0.7)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <!-- Head -->
-        <circle cx="405" cy="362" r="9"/>
-        <!-- Hard hat top -->
-        <path d="M 394 360 Q 405 348 416 360 Z" fill="rgba(96,165,250,0.18)"/>
-        <!-- Hard hat brim -->
-        <line x1="390" y1="360" x2="420" y2="360" stroke-width="1.6"/>
-        <!-- Body -->
-        <line x1="405" y1="371" x2="405" y2="405"/>
-        <!-- Right arm holding phone up -->
-        <path d="M 405 380 L 423 385"/>
-        <!-- Phone -->
-        <rect x="421" y="381" width="6" height="9" rx="1" fill="rgba(96,165,250,0.22)" stroke="rgba(96,165,250,0.75)"/>
-        <!-- Left arm at side -->
-        <path d="M 405 380 L 393 396"/>
-        <!-- Legs -->
-        <line x1="405" y1="405" x2="397" y2="423"/>
-        <line x1="405" y1="405" x2="413" y2="423"/>
+      <!-- Worker figure -->
+      <g>
+        <!-- Legs (dark work pants) -->
+        <path d="M 400 402 L 396 425 L 402 425 L 405 405 Z" fill="#2c3644"/>
+        <path d="M 410 402 L 408 405 L 411 425 L 416 425 Z" fill="#2c3644"/>
+        <!-- Boots -->
+        <ellipse cx="399" cy="425" rx="5" ry="2" fill="#1a1512"/>
+        <ellipse cx="413" cy="425" rx="5" ry="2" fill="#1a1512"/>
+        <!-- Torso (safety vest — orange) -->
+        <path d="M 393 373 L 418 373 L 420 403 L 391 403 Z" fill="#ea6a2c"/>
+        <!-- Reflective stripes on vest -->
+        <line x1="393" y1="383" x2="418" y2="383" stroke="#f5d78b" stroke-width="1.5"/>
+        <line x1="393" y1="393" x2="418" y2="393" stroke="#f5d78b" stroke-width="1.5"/>
+        <!-- Arms -->
+        <path d="M 393 375 L 388 395 L 391 397 L 396 378 Z" fill="#ea6a2c"/>
+        <path d="M 418 375 L 428 388 L 425 391 L 415 378 Z" fill="#ea6a2c"/>
+        <!-- Hand raised with phone -->
+        <circle cx="428" cy="388" r="3" fill="#c48b5f"/>
+        <!-- Phone in hand -->
+        <rect x="425" y="380" width="7" height="10" rx="1" fill="#1a1a20" stroke="#000" stroke-width="0.4"/>
+        <rect x="426" y="381" width="5" height="7" fill="#60a5fa" opacity="0.9"/>
+        <!-- Head (skin tone) -->
+        <circle cx="405" cy="362" r="8" fill="#c48b5f"/>
+        <!-- Hard hat (orange, safety colored) -->
+        <path d="M 394 358 Q 395 348 405 347 Q 415 348 416 358 Z" fill="#ea6a2c" stroke="#8f3d13" stroke-width="0.7"/>
+        <path d="M 391 358 L 419 358" stroke="#8f3d13" stroke-width="1.4" stroke-linecap="round"/>
+        <!-- Hard hat highlight -->
+        <path d="M 397 352 Q 400 350 404 350" stroke="#ffb37a" stroke-width="0.8" fill="none" stroke-linecap="round"/>
       </g>
 
-      <!-- Phone capture pulse — rings emanating from the phone -->
-      <circle cx="424" cy="385" r="3" fill="none" stroke="#60a5fa" stroke-width="0.9">
-        <animate attributeName="r" values="3;28" keyTimes="0;1" dur="2.6s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="0.75;0" keyTimes="0;1" dur="2.6s" repeatCount="indefinite"/>
+      <!-- Phone capture pulse — the moment of documenting -->
+      <circle cx="429" cy="385" r="3" fill="none" stroke="#60a5fa" stroke-width="1.4">
+        <animate attributeName="r" values="3;32" keyTimes="0;1" dur="2.6s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.9;0" keyTimes="0;1" dur="2.6s" repeatCount="indefinite"/>
       </circle>
-      <circle cx="424" cy="385" r="3" fill="none" stroke="#60a5fa" stroke-width="0.9">
-        <animate attributeName="r" values="3;28" keyTimes="0;1" dur="2.6s" repeatCount="indefinite" begin="1.3s"/>
-        <animate attributeName="opacity" values="0.75;0" keyTimes="0;1" dur="2.6s" repeatCount="indefinite" begin="1.3s"/>
+      <circle cx="429" cy="385" r="3" fill="none" stroke="#60a5fa" stroke-width="1.4">
+        <animate attributeName="r" values="3;32" keyTimes="0;1" dur="2.6s" repeatCount="indefinite" begin="1.3s"/>
+        <animate attributeName="opacity" values="0.9;0" keyTimes="0;1" dur="2.6s" repeatCount="indefinite" begin="1.3s"/>
       </circle>
 
-      <!-- Rising capture cards — documentation flowing up to Bace -->
-      <!-- Tag 1: from left of building -->
+      <!-- Rising documentation cards — Bace captures flowing upward -->
+      <!-- Card 1 -->
       <g opacity="0">
-        <rect x="-19" y="-11" width="38" height="22" rx="3" fill="rgba(17,17,20,0.6)" stroke="rgba(96,165,250,0.75)" stroke-width="0.9"/>
-        <circle cx="-12" cy="-3" r="1.6" fill="rgba(96,165,250,0.9)"/>
-        <line x1="-6" y1="-5" x2="14" y2="-5" stroke="rgba(255,255,255,0.55)" stroke-width="0.85" stroke-linecap="round"/>
-        <line x1="-6" y1="-1" x2="11" y2="-1" stroke="rgba(255,255,255,0.4)" stroke-width="0.85" stroke-linecap="round"/>
-        <line x1="-6" y1="3" x2="8" y2="3" stroke="rgba(255,255,255,0.3)" stroke-width="0.85" stroke-linecap="round"/>
-        <animateTransform attributeName="transform" type="translate" values="155,395; 155,265; 155,175" keyTimes="0;0.75;1" dur="5.6s" repeatCount="indefinite" begin="0s"/>
-        <animate attributeName="opacity" values="0;0;0.9;0.9;0" keyTimes="0;0.05;0.15;0.75;1" dur="5.6s" repeatCount="indefinite" begin="0s"/>
+        <rect x="-24" y="-14" width="48" height="28" rx="4" fill="url(#cardGrad)" stroke="#3b82f6" stroke-width="1.2"/>
+        <!-- Photo icon area -->
+        <rect x="-20" y="-10" width="12" height="12" rx="1.5" fill="#dbeafe"/>
+        <circle cx="-14" cy="-4" r="2" fill="#3b82f6"/>
+        <!-- Text lines -->
+        <line x1="-4" y1="-8" x2="20" y2="-8" stroke="#334155" stroke-width="1.2" stroke-linecap="round"/>
+        <line x1="-4" y1="-3" x2="16" y2="-3" stroke="#64748b" stroke-width="1" stroke-linecap="round"/>
+        <!-- Norm badge -->
+        <rect x="-20" y="5" width="18" height="7" rx="2" fill="#dbeafe"/>
+        <line x1="-17" y1="8.5" x2="-5" y2="8.5" stroke="#3b82f6" stroke-width="1" stroke-linecap="round"/>
+        <animateTransform attributeName="transform" type="translate" values="200,395; 200,240; 200,140" keyTimes="0;0.75;1" dur="6s" repeatCount="indefinite" begin="0s"/>
+        <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.05;0.15;0.75;1" dur="6s" repeatCount="indefinite" begin="0s"/>
       </g>
 
-      <!-- Tag 2: from center of building -->
+      <!-- Card 2 -->
       <g opacity="0">
-        <rect x="-19" y="-11" width="38" height="22" rx="3" fill="rgba(17,17,20,0.6)" stroke="rgba(96,165,250,0.75)" stroke-width="0.9"/>
-        <circle cx="-12" cy="-3" r="1.6" fill="rgba(96,165,250,0.9)"/>
-        <line x1="-6" y1="-5" x2="12" y2="-5" stroke="rgba(255,255,255,0.55)" stroke-width="0.85" stroke-linecap="round"/>
-        <line x1="-6" y1="-1" x2="13" y2="-1" stroke="rgba(255,255,255,0.4)" stroke-width="0.85" stroke-linecap="round"/>
-        <line x1="-6" y1="3" x2="9" y2="3" stroke="rgba(255,255,255,0.3)" stroke-width="0.85" stroke-linecap="round"/>
-        <animateTransform attributeName="transform" type="translate" values="230,395; 230,240; 230,145" keyTimes="0;0.75;1" dur="5.6s" repeatCount="indefinite" begin="1.1s"/>
-        <animate attributeName="opacity" values="0;0;0.9;0.9;0" keyTimes="0;0.05;0.15;0.75;1" dur="5.6s" repeatCount="indefinite" begin="1.1s"/>
+        <rect x="-24" y="-14" width="48" height="28" rx="4" fill="url(#cardGrad)" stroke="#3b82f6" stroke-width="1.2"/>
+        <rect x="-20" y="-10" width="12" height="12" rx="1.5" fill="#dbeafe"/>
+        <circle cx="-14" cy="-4" r="2" fill="#3b82f6"/>
+        <line x1="-4" y1="-8" x2="18" y2="-8" stroke="#334155" stroke-width="1.2" stroke-linecap="round"/>
+        <line x1="-4" y1="-3" x2="20" y2="-3" stroke="#64748b" stroke-width="1" stroke-linecap="round"/>
+        <rect x="-20" y="5" width="18" height="7" rx="2" fill="#fef3c7"/>
+        <line x1="-17" y1="8.5" x2="-5" y2="8.5" stroke="#d97706" stroke-width="1" stroke-linecap="round"/>
+        <animateTransform attributeName="transform" type="translate" values="270,395; 270,235; 270,135" keyTimes="0;0.75;1" dur="6s" repeatCount="indefinite" begin="1.5s"/>
+        <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.05;0.15;0.75;1" dur="6s" repeatCount="indefinite" begin="1.5s"/>
       </g>
 
-      <!-- Tag 3: from right of building -->
+      <!-- Card 3 -->
       <g opacity="0">
-        <rect x="-19" y="-11" width="38" height="22" rx="3" fill="rgba(17,17,20,0.6)" stroke="rgba(96,165,250,0.75)" stroke-width="0.9"/>
-        <circle cx="-12" cy="-3" r="1.6" fill="rgba(96,165,250,0.9)"/>
-        <line x1="-6" y1="-5" x2="13" y2="-5" stroke="rgba(255,255,255,0.55)" stroke-width="0.85" stroke-linecap="round"/>
-        <line x1="-6" y1="-1" x2="10" y2="-1" stroke="rgba(255,255,255,0.4)" stroke-width="0.85" stroke-linecap="round"/>
-        <line x1="-6" y1="3" x2="11" y2="3" stroke="rgba(255,255,255,0.3)" stroke-width="0.85" stroke-linecap="round"/>
-        <animateTransform attributeName="transform" type="translate" values="298,395; 298,270; 298,180" keyTimes="0;0.75;1" dur="5.6s" repeatCount="indefinite" begin="2.2s"/>
-        <animate attributeName="opacity" values="0;0;0.9;0.9;0" keyTimes="0;0.05;0.15;0.75;1" dur="5.6s" repeatCount="indefinite" begin="2.2s"/>
+        <rect x="-24" y="-14" width="48" height="28" rx="4" fill="url(#cardGrad)" stroke="#3b82f6" stroke-width="1.2"/>
+        <rect x="-20" y="-10" width="12" height="12" rx="1.5" fill="#dbeafe"/>
+        <circle cx="-14" cy="-4" r="2" fill="#3b82f6"/>
+        <line x1="-4" y1="-8" x2="20" y2="-8" stroke="#334155" stroke-width="1.2" stroke-linecap="round"/>
+        <line x1="-4" y1="-3" x2="15" y2="-3" stroke="#64748b" stroke-width="1" stroke-linecap="round"/>
+        <rect x="-20" y="5" width="18" height="7" rx="2" fill="#fee2e2"/>
+        <line x1="-17" y1="8.5" x2="-5" y2="8.5" stroke="#dc2626" stroke-width="1" stroke-linecap="round"/>
+        <animateTransform attributeName="transform" type="translate" values="150,400; 150,250; 150,150" keyTimes="0;0.75;1" dur="6s" repeatCount="indefinite" begin="3s"/>
+        <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.05;0.15;0.75;1" dur="6s" repeatCount="indefinite" begin="3s"/>
       </g>
 
-      <!-- Tag 4: from near the worker -->
+      <!-- Card 4 -->
       <g opacity="0">
-        <rect x="-19" y="-11" width="38" height="22" rx="3" fill="rgba(17,17,20,0.6)" stroke="rgba(96,165,250,0.75)" stroke-width="0.9"/>
-        <circle cx="-12" cy="-3" r="1.6" fill="rgba(96,165,250,0.9)"/>
-        <line x1="-6" y1="-5" x2="12" y2="-5" stroke="rgba(255,255,255,0.55)" stroke-width="0.85" stroke-linecap="round"/>
-        <line x1="-6" y1="-1" x2="14" y2="-1" stroke="rgba(255,255,255,0.4)" stroke-width="0.85" stroke-linecap="round"/>
-        <line x1="-6" y1="3" x2="9" y2="3" stroke="rgba(255,255,255,0.3)" stroke-width="0.85" stroke-linecap="round"/>
-        <animateTransform attributeName="transform" type="translate" values="405,340; 405,235; 405,155" keyTimes="0;0.75;1" dur="5.6s" repeatCount="indefinite" begin="3.3s"/>
-        <animate attributeName="opacity" values="0;0;0.9;0.9;0" keyTimes="0;0.05;0.15;0.75;1" dur="5.6s" repeatCount="indefinite" begin="3.3s"/>
-      </g>
-
-      <!-- Tag 5: from crane side -->
-      <g opacity="0">
-        <rect x="-19" y="-11" width="38" height="22" rx="3" fill="rgba(17,17,20,0.6)" stroke="rgba(96,165,250,0.75)" stroke-width="0.9"/>
-        <circle cx="-12" cy="-3" r="1.6" fill="rgba(96,165,250,0.9)"/>
-        <line x1="-6" y1="-5" x2="14" y2="-5" stroke="rgba(255,255,255,0.55)" stroke-width="0.85" stroke-linecap="round"/>
-        <line x1="-6" y1="-1" x2="9" y2="-1" stroke="rgba(255,255,255,0.4)" stroke-width="0.85" stroke-linecap="round"/>
-        <line x1="-6" y1="3" x2="12" y2="3" stroke="rgba(255,255,255,0.3)" stroke-width="0.85" stroke-linecap="round"/>
-        <animateTransform attributeName="transform" type="translate" values="130,395; 130,255; 130,150" keyTimes="0;0.75;1" dur="5.6s" repeatCount="indefinite" begin="4.4s"/>
-        <animate attributeName="opacity" values="0;0;0.9;0.9;0" keyTimes="0;0.05;0.15;0.75;1" dur="5.6s" repeatCount="indefinite" begin="4.4s"/>
-      </g>
-
-      <!-- Small ambient sparks — subtle background dots -->
-      <g fill="rgba(96,165,250,0.5)">
-        <circle cx="60" cy="80" r="1">
-          <animate attributeName="opacity" values="0;0.5;0" keyTimes="0;0.5;1" dur="3s" repeatCount="indefinite" begin="0s"/>
-        </circle>
-        <circle cx="440" cy="120" r="1">
-          <animate attributeName="opacity" values="0;0.5;0" keyTimes="0;0.5;1" dur="3s" repeatCount="indefinite" begin="0.8s"/>
-        </circle>
-        <circle cx="120" cy="60" r="1">
-          <animate attributeName="opacity" values="0;0.5;0" keyTimes="0;0.5;1" dur="3s" repeatCount="indefinite" begin="1.5s"/>
-        </circle>
-        <circle cx="380" cy="70" r="1">
-          <animate attributeName="opacity" values="0;0.5;0" keyTimes="0;0.5;1" dur="3s" repeatCount="indefinite" begin="2.2s"/>
-        </circle>
+        <rect x="-24" y="-14" width="48" height="28" rx="4" fill="url(#cardGrad)" stroke="#3b82f6" stroke-width="1.2"/>
+        <rect x="-20" y="-10" width="12" height="12" rx="1.5" fill="#dbeafe"/>
+        <circle cx="-14" cy="-4" r="2" fill="#3b82f6"/>
+        <line x1="-4" y1="-8" x2="19" y2="-8" stroke="#334155" stroke-width="1.2" stroke-linecap="round"/>
+        <line x1="-4" y1="-3" x2="16" y2="-3" stroke="#64748b" stroke-width="1" stroke-linecap="round"/>
+        <rect x="-20" y="5" width="18" height="7" rx="2" fill="#dcfce7"/>
+        <line x1="-17" y1="8.5" x2="-5" y2="8.5" stroke="#16a34a" stroke-width="1" stroke-linecap="round"/>
+        <animateTransform attributeName="transform" type="translate" values="360,340; 360,220; 360,120" keyTimes="0;0.75;1" dur="6s" repeatCount="indefinite" begin="4.5s"/>
+        <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.05;0.15;0.75;1" dur="6s" repeatCount="indefinite" begin="4.5s"/>
       </g>
     </svg>
 
