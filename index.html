@@ -95,6 +95,13 @@ body.light-mode #s-login .auth-headline{color:#1a1a2e !important;}
 /* Home button in light mode */
 body.light-mode #nav-home-btn{color:#2d2d3f !important;border-color:rgba(0,0,0,0.15) !important;}
 body.light-mode #nav-home-btn:hover{color:#3b82f6 !important;border-color:#3b82f6 !important;}
+/* Language dropdown menu */
+.lang-menu-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;cursor:pointer;color:var(--text);font-size:13px;font-family:var(--font-b);transition:background 0.15s;}
+.lang-menu-item:hover{background:rgba(96,165,250,0.1);color:#60a5fa;}
+body.light-mode .lang-menu-item{color:#2d2d3f;}
+body.light-mode .lang-menu-item:hover{background:rgba(59,130,246,0.08);color:#3b82f6;}
+body.light-mode #content-lang-btn{color:#2d2d3f;border-color:rgba(0,0,0,0.15);}
+body.light-mode #content-lang-menu{background:#fff;border-color:rgba(0,0,0,0.1);}
 body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-height:100vh;}
 .screen{display:none;}.screen.active{display:block;}
 /* ── Mobile bottom tab bar + FAB ── */
@@ -1284,10 +1291,13 @@ tr:hover td{background:rgba(255,255,255,0.02);}
     </div>
     <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
       <a href="https://calendar.app.google/Kfu81DSrNPFjTe7w5" target="_blank" id="content-demo-btn" style="font-size:12px;color:#fff;text-decoration:none;padding:8px 20px;background:#60a5fa;border-radius:8px;font-weight:600;">Schedule a demo</a>
-      <div style="display:flex;align-items:center;gap:4px;">
-        <span onclick="changeLang(1)" style="cursor:pointer;font-size:16px;opacity:0.5;" id="cflag-en">🇬🇧</span>
-        <span onclick="changeLang(2)" style="cursor:pointer;font-size:16px;opacity:0.5;" id="cflag-pt">🇧🇷</span>
-        <span onclick="changeLang(0)" style="cursor:pointer;font-size:16px;opacity:0.5;" id="cflag-fr">🇫🇷</span>
+      <div style="position:relative;" id="content-lang-wrap">
+        <button onclick="toggleContentLang()" id="content-lang-btn" style="display:flex;align-items:center;gap:6px;background:none;border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:12px;font-weight:500;padding:6px 10px;cursor:pointer;font-family:var(--font-b);transition:border-color 0.15s;" onmouseover="this.style.borderColor='#60a5fa'" onmouseout="this.style.borderColor='var(--border2)'"><span id="content-lang-flag" style="font-size:14px;">🇬🇧</span> <span id="content-lang-label">EN</span> <span style="font-size:9px;opacity:0.7;">▾</span></button>
+        <div id="content-lang-menu" style="display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--navy2);border:1px solid var(--border2);border-radius:10px;padding:6px;min-width:130px;box-shadow:0 8px 24px rgba(0,0,0,0.3);z-index:300;">
+          <div onclick="changeLang(1);toggleContentLang();" class="lang-menu-item"><span style="font-size:14px;">🇬🇧</span> English</div>
+          <div onclick="changeLang(2);toggleContentLang();" class="lang-menu-item"><span style="font-size:14px;">🇧🇷</span> Português</div>
+          <div onclick="changeLang(0);toggleContentLang();" class="lang-menu-item"><span style="font-size:14px;">🇫🇷</span> Français</div>
+        </div>
       </div>
       <button onclick="setTheme(document.body.classList.contains('light-mode')?'dark':'light')" style="background:none;border:none;color:var(--text2);font-size:16px;padding:4px;cursor:pointer;"><i class="ti ti-sun-moon"></i></button>
       <button onclick="toggleLandingMenu()" id="content-mob-menu" style="display:none;background:none;border:none;color:var(--white);font-size:22px;padding:2px;cursor:pointer;"><i class="ti ti-menu-2"></i></button>
@@ -2112,6 +2122,18 @@ function syncLangSelects(){
 
 function toggleLandingMenu(){var m=document.getElementById('landing-mobile-menu');if(m)m.style.display=m.style.display==='none'||!m.style.display?'block':'none';}
 
+function toggleContentLang(){
+  var m=document.getElementById('content-lang-menu');
+  if(!m)return;
+  m.style.display=m.style.display==='block'?'none':'block';
+}
+// Close dropdown when clicking outside
+document.addEventListener('click',function(e){
+  var wrap=document.getElementById('content-lang-wrap');
+  var menu=document.getElementById('content-lang-menu');
+  if(wrap&&menu&&!wrap.contains(e.target))menu.style.display='none';
+});
+
 function showContentPage(tabIdx){
   document.getElementById('s-login').classList.remove('active');
   document.getElementById('s-app').classList.remove('active');
@@ -2408,8 +2430,10 @@ function translateNav(){
   Object.keys(mobFlags).forEach(function(id){var el=document.getElementById(id);if(el)el.style.opacity=mobFlags[id]===lang?'1':'0.5';});
   var bs=document.getElementById('back-signin');if(bs)bs.textContent=lang===0?'← Retour à la connexion':lang===2?'← Voltar ao login':'← Back to sign in';
   // Content page header
-  var cflags={'cflag-en':1,'cflag-pt':2,'cflag-fr':0};
-  Object.keys(cflags).forEach(function(id){var el=document.getElementById(id);if(el)el.style.opacity=cflags[id]===lang?'1':'0.5';});
+  var langFlags={0:'🇫🇷',1:'🇬🇧',2:'🇧🇷'};
+  var langLabels={0:'FR',1:'EN',2:'PT'};
+  var clFlag=document.getElementById('content-lang-flag');if(clFlag)clFlag.textContent=langFlags[lang];
+  var clLabel=document.getElementById('content-lang-label');if(clLabel)clLabel.textContent=langLabels[lang];
   var cdemo=document.getElementById('content-demo-btn');if(cdemo)cdemo.textContent=lang===0?'Réserver une démo':lang===2?'Agendar uma demo':'Schedule a demo';
   // Mobile menu labels
   var mobMenuHome=document.getElementById('mob-menu-home');if(mobMenuHome)mobMenuHome.innerHTML=(lang===0?'À propos':lang===2?'Sobre nós':'About us')+' &#9662;';
