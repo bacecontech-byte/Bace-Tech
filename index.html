@@ -2131,16 +2131,20 @@ function showAuthPage(){
 // Restore page on load
 (function(){
   var wasLoggedIn=localStorage.getItem('bacetech_logged_in')==='1';
+  var currentPage=localStorage.getItem('bacetech_current_page');
   if(wasLoggedIn){
-    // Keep s-app active while Supabase confirms session
     var sc=document.getElementById('s-content');
     var sa=document.getElementById('s-app');
     if(sc&&sa){sc.classList.remove('active');sa.classList.add('active');}
-    // Hide Log in tab immediately
     setTimeout(function(){
       var lt=document.getElementById('ctab-login');if(lt)lt.style.display='none';
       var mlt=document.getElementById('mob-tab-login');if(mlt)mlt.style.display='none';
     },50);
+  } else if(currentPage==='auth'){
+    // User was on sign-up/sign-in page — keep them there
+    var sc=document.getElementById('s-content');
+    var sl=document.getElementById('s-login');
+    if(sc&&sl){sc.classList.remove('active');sl.classList.add('active');}
   } else {
     setTimeout(function(){
       var tab=parseInt(localStorage.getItem('bacetech_current_tab'))||0;
