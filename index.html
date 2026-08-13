@@ -966,15 +966,12 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 
 
   </div>
-  <div id="landing-solutions" class="auth-right-panel" style="background:#111114;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:0;border-left:0.5px solid rgba(96,165,250,0.1);overflow:hidden;position:relative;">
+  <div id="landing-solutions" class="auth-right-panel" style="background:#111114;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:80px 52px;border-left:0.5px solid rgba(96,165,250,0.1);overflow:hidden;position:relative;">
 
-    <!-- Engineer animation video -->
-    <video autoplay loop muted playsinline preload="auto" style="width:100%;height:100%;object-fit:cover;display:block;">
+    <!-- Engineer animation video — contained, not full-bleed -->
+    <video autoplay loop muted playsinline preload="auto" style="width:100%;max-width:440px;height:auto;max-height:calc(100vh - 200px);object-fit:contain;display:block;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
       <source src="https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/videos/signup-engineer.mp4" type="video/mp4">
     </video>
-
-    <!-- Subtle overlay to blend with dark theme -->
-    <div style="position:absolute;inset:0;background:linear-gradient(to right, rgba(17,17,20,0.15) 0%, rgba(17,17,20,0) 20%, rgba(17,17,20,0) 100%);pointer-events:none;"></div>
 
     <!-- Hidden feat elements kept for JS compatibility -->
     <div id="feat-tabs" style="display:none;"></div>
