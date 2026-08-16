@@ -2,6 +2,8 @@
 // Handles all vision/image analysis calls using Google Gemini 2.0 Flash.
 // The key lives in Vercel's environment variables (GEMINI_API_KEY), never in the browser.
 
+import { applyRateLimit } from './_rate-limit.js';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -14,6 +16,10 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: { message: 'Method not allowed' } });
   }
+
+  // Rate limit: 20 vision requests per minute per IP
+  // Protects Gemini API budget (vision is more expensive than text)
+  if (!applyRateLimit(req, res, 'gemini', 20)) return;
 
   const GEMINI_KEY = process.env.GEMINI_API_KEY;
 
