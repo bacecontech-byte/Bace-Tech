@@ -6,8 +6,8 @@
 <title>Pillier</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.11.0/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -2685,6 +2685,71 @@ var _legalStyleTag = document.createElement('style');
 _legalStyleTag.textContent = '#privacy-content h2, #terms-content h2 { font-family: var(--font-d); font-size: 20px; font-weight: 700; margin-top: 28px; margin-bottom: 12px; color: var(--text); } #privacy-content h1, #terms-content h1 { border-bottom: 1px solid var(--border); padding-bottom: 16px; } #privacy-content p, #terms-content p { margin-bottom: 12px; color: var(--text); } #privacy-content ul, #terms-content ul { margin-left: 20px; margin-bottom: 12px; color: var(--text); } #privacy-content li, #terms-content li { margin-bottom: 6px; } #privacy-content a, #terms-content a { color: #60a5fa; text-decoration: none; } #privacy-content a:hover, #terms-content a:hover { text-decoration: underline; } #privacy-content strong, #terms-content strong { color: var(--text); font-weight: 600; }';
 document.head.appendChild(_legalStyleTag);
 
+// ═══════════════════════════════════════════════════════════════
+// UPLOAD SIZE SECURITY — Enforced client-side (also enforce server-side via Supabase Storage!)
+// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// CLIENT-SIDE RATE LIMITING
+// Reduces abuse — server-side limiting should also exist on /api/* endpoints
+// ═══════════════════════════════════════════════════════════════
+var _rateLimits = {
+  ai_chat: { window: 60000, max: 15, calls: [] },      // 15 chats per minute
+  photo_analyze: { window: 60000, max: 20, calls: [] }, // 20 photos per minute
+  doc_upload: { window: 60000, max: 10, calls: [] },   // 10 docs per minute
+  login: { window: 300000, max: 5, calls: [] }         // 5 login attempts per 5 min
+};
+function checkRateLimit(action) {
+  var conf = _rateLimits[action];
+  if (!conf) return true;
+  var now = Date.now();
+  conf.calls = conf.calls.filter(function(t){ return now - t < conf.window; });
+  if (conf.calls.length >= conf.max) {
+    var secondsLeft = Math.ceil((conf.window - (now - conf.calls[0])) / 1000);
+    var msg = (typeof lang !== 'undefined' && lang === 0) ? 'Trop de requêtes. Réessayez dans ' + secondsLeft + 's.' :
+              (typeof lang !== 'undefined' && lang === 2) ? 'Muitas requisições. Tente novamente em ' + secondsLeft + 's.' :
+              'Too many requests. Try again in ' + secondsLeft + 's.';
+    toast('⏱️ ' + msg);
+    return false;
+  }
+  conf.calls.push(now);
+  return true;
+}
+
+var UPLOAD_LIMITS = {
+  photo: 10 * 1024 * 1024,    // 10 MB per photo
+  video: 50 * 1024 * 1024,    // 50 MB per video
+  audio: 25 * 1024 * 1024,    // 25 MB per audio
+  document: 20 * 1024 * 1024, // 20 MB per PDF/DOC/XLSX
+  default: 15 * 1024 * 1024   // 15 MB default
+};
+var ALLOWED_MIME = {
+  photo: /^image\/(jpeg|jpg|png|webp|heic|heif)$/i,
+  video: /^video\//i,
+  audio: /^audio\//i,
+  document: /^(application\/(pdf|msword|vnd\.openxmlformats-officedocument\..+|vnd\.ms-excel|vnd\.ms-powerpoint)|image\/(jpeg|png|jpg))$/i
+};
+function validateUpload(file, kind) {
+  kind = kind || 'default';
+  var limit = UPLOAD_LIMITS[kind] || UPLOAD_LIMITS.default;
+  if (!file) return { ok: false, error: 'No file' };
+  if (file.size > limit) {
+    var mb = Math.round(limit / (1024 * 1024));
+    var actualMb = (file.size / (1024 * 1024)).toFixed(1);
+    var msg = (typeof lang !== 'undefined' && lang === 0) ? 'Fichier trop volumineux (' + actualMb + ' MB). Limite: ' + mb + ' MB.' :
+              (typeof lang !== 'undefined' && lang === 2) ? 'Arquivo muito grande (' + actualMb + ' MB). Limite: ' + mb + ' MB.' :
+              'File too large (' + actualMb + ' MB). Limit: ' + mb + ' MB.';
+    return { ok: false, error: msg };
+  }
+  var mimePattern = ALLOWED_MIME[kind];
+  if (mimePattern && file.type && !mimePattern.test(file.type)) {
+    var msg2 = (typeof lang !== 'undefined' && lang === 0) ? 'Type de fichier non autorisé: ' + file.type :
+               (typeof lang !== 'undefined' && lang === 2) ? 'Tipo de arquivo não permitido: ' + file.type :
+               'File type not allowed: ' + file.type;
+    return { ok: false, error: msg2 };
+  }
+  return { ok: true };
+}
+
 function setTheme(t){
   if(t==='light'){document.body.classList.add('light-mode');}else{document.body.classList.remove('light-mode');}
   localStorage.setItem('pillier_theme',t);
@@ -3317,6 +3382,8 @@ function switchTab(i){
 function showMsg(txt,type){var el=document.getElementById("auth-msg");if(!txt){el.style.display="none";return;}el.className="auth-msg "+(type==="ok"?"ok":"err");el.textContent=txt;el.style.display="block";}
 
 async function doLogin(){
+  // SECURITY: Rate limit login attempts (prevent brute force)
+  if(!checkRateLimit('login'))return;
   var em=document.getElementById("l-email").value.trim(),pw=document.getElementById("l-pass").value;
   var S=STRINGS[lang];
   if(!em||!pw){showMsg(S.fillAll||"Remplissez tous les champs","err");return;}
@@ -4698,6 +4765,8 @@ async function sendChat(){
   var input=document.getElementById("chat-input");
   var val=input.value.trim();
   if(!val)return;
+  // SECURITY: Rate limit AI chat calls
+  if(!checkRateLimit('ai_chat'))return;
   var btn=document.getElementById("chat-send");
   input.value="";input.style.height="auto";btn.disabled=true;
   addMsg("user",val);
@@ -4817,6 +4886,11 @@ function updateDocProjectDropdown(){
 
 async function handleDocUpload(input){
   if(!input.files||!input.files.length)return;
+  // SECURITY: Validate all files before processing
+  for(var vi=0;vi<input.files.length;vi++){
+    var check=validateUpload(input.files[vi],'document');
+    if(!check.ok){toast('❌ '+check.error);input.value='';return;}
+  }
   var proj=document.getElementById("doc-proj-sel").value||"Tous les chantiers";
   var zone=document.getElementById("doc-upload-zone");
   zone.classList.add("processing");
