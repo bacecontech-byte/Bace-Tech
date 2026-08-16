@@ -2,6 +2,8 @@
 // Keeps the Groq API key hidden from the public GitHub repo.
 // The key lives in Vercel's environment variables, never in the browser.
 
+import { applyRateLimit } from './_rate-limit.js';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -14,6 +16,10 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: { message: 'Method not allowed' } });
   }
+
+  // Rate limit: 30 AI chat requests per minute per IP
+  // Protects Groq API budget from bot abuse
+  if (!applyRateLimit(req, res, 'groq', 30)) return;
 
   const GROQ_KEY = process.env.GROQ_API_KEY;
 
