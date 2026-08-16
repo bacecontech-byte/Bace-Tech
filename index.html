@@ -946,6 +946,12 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
       <button class="btn-primary" id="btn-login" onclick="doLogin()" style="width:100%;margin-top:4px;"></button>
       <div style="text-align:center;margin-top:12px;"><a onclick="doReset()" style="font-size:12px;color:#6a6a75;cursor:pointer;" id="lnk-reset"></a></div>
       <div class="auth-switch" style="margin-top:10px;font-size:12px;color:#6a6a75;"><span id="no-acc"></span> <a onclick="switchTab(1)" id="lnk-signup" style="color:#60a5fa;cursor:pointer;"></a></div>
+      <div id="consent-login" style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.06);font-size:11px;color:var(--text3);line-height:1.5;text-align:center;">
+        <span id="consent-login-txt">By continuing, you agree to Pillier's</span>
+        <a href="#terms" onclick="showTermsPage();return false;" style="color:#60a5fa;text-decoration:none;" id="consent-login-terms">Terms of Service</a>
+        <span id="consent-login-and">and</span>
+        <a href="#privacy" onclick="showPrivacyPage();return false;" style="color:#60a5fa;text-decoration:none;" id="consent-login-priv">Privacy Policy</a>.
+      </div>
     </div>
 
     <!-- Signup form -->
@@ -968,6 +974,12 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
       <button class="btn-primary" id="btn-signup" onclick="doSignup()" style="width:100%;"></button>
       <a href="https://app.pillier.com.br" id="trial-link-signup" style="display:block;text-align:center;margin-top:10px;padding:10px;border-radius:10px;border:1px solid rgba(96,165,250,0.25);color:#60a5fa;font-size:13px;font-weight:500;text-decoration:none;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='#60a5fa';this.style.background='rgba(96,165,250,0.06)'" onmouseout="this.style.borderColor='rgba(96,165,250,0.25)';this.style.background='none'">Teste grátis 30 dias</a>
       <div class="auth-switch" style="margin-top:10px;font-size:12px;color:#6a6a75;"><span id="have-acc"></span> <a onclick="switchTab(0)" id="lnk-login" style="color:#60a5fa;cursor:pointer;"></a></div>
+      <div id="consent-signup" style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.06);font-size:11px;color:var(--text3);line-height:1.5;text-align:center;">
+        <span id="consent-signup-txt">By creating an account, you agree to Pillier's</span>
+        <a href="#terms" onclick="showTermsPage();return false;" style="color:#60a5fa;text-decoration:none;" id="consent-signup-terms">Terms of Service</a>
+        <span id="consent-signup-and">and</span>
+        <a href="#privacy" onclick="showPrivacyPage();return false;" style="color:#60a5fa;text-decoration:none;" id="consent-signup-priv">Privacy Policy</a>.
+      </div>
     </div>
 
 
@@ -1411,7 +1423,42 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
   </div>
 
   <!-- Footer -->
-  <footer style="background:var(--navy2);border-top:1px solid var(--border);padding:60px 80px 32px;margin-top:60px;">
+  
+<!-- ══════ LEGAL PAGES (Privacy + Terms) ══════ -->
+<div id="s-privacy" class="screen" style="display:none;background:var(--navy);min-height:100vh;overflow-y:auto;">
+  <div style="max-width:820px;margin:0 auto;padding:40px 24px 80px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;">
+      <button onclick="goBackFromLegal()" style="background:none;border:1px solid var(--border);color:var(--text);padding:8px 16px;border-radius:8px;cursor:pointer;font-family:var(--font-b);font-size:13px;display:flex;align-items:center;gap:8px;transition:all 0.15s;" onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">
+        <i class="ti ti-arrow-left"></i> <span id="legal-back-priv">Back to home</span>
+      </button>
+      <div style="display:flex;gap:4px;">
+        <button onclick="setLegalLang(1)" id="pl-en" style="padding:6px 12px;border:1px solid var(--border);background:none;color:var(--text2);border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--font-b);">EN</button>
+        <button onclick="setLegalLang(2)" id="pl-pt" style="padding:6px 12px;border:1px solid var(--border);background:none;color:var(--text2);border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--font-b);">PT</button>
+        <button onclick="setLegalLang(0)" id="pl-fr" style="padding:6px 12px;border:1px solid var(--border);background:none;color:var(--text2);border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--font-b);">FR</button>
+      </div>
+    </div>
+    <div id="privacy-content" style="color:var(--text);line-height:1.7;font-size:14px;"></div>
+  </div>
+</div>
+
+<div id="s-terms" class="screen" style="display:none;background:var(--navy);min-height:100vh;overflow-y:auto;">
+  <div style="max-width:820px;margin:0 auto;padding:40px 24px 80px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;">
+      <button onclick="goBackFromLegal()" style="background:none;border:1px solid var(--border);color:var(--text);padding:8px 16px;border-radius:8px;cursor:pointer;font-family:var(--font-b);font-size:13px;display:flex;align-items:center;gap:8px;transition:all 0.15s;" onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">
+        <i class="ti ti-arrow-left"></i> <span id="legal-back-terms">Back to home</span>
+      </button>
+      <div style="display:flex;gap:4px;">
+        <button onclick="setLegalLang(1)" id="tl-en" style="padding:6px 12px;border:1px solid var(--border);background:none;color:var(--text2);border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--font-b);">EN</button>
+        <button onclick="setLegalLang(2)" id="tl-pt" style="padding:6px 12px;border:1px solid var(--border);background:none;color:var(--text2);border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--font-b);">PT</button>
+        <button onclick="setLegalLang(0)" id="tl-fr" style="padding:6px 12px;border:1px solid var(--border);background:none;color:var(--text2);border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--font-b);">FR</button>
+      </div>
+    </div>
+    <div id="terms-content" style="color:var(--text);line-height:1.7;font-size:14px;"></div>
+  </div>
+</div>
+
+
+<footer style="background:var(--navy2);border-top:1px solid var(--border);padding:60px 80px 32px;margin-top:60px;">
     <div style="max-width:1200px;margin:0 auto;">
       <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px;" class="footer-grid">
         <!-- Brand column -->
@@ -1445,8 +1492,8 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
         <div>
           <div style="font-size:12px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;" id="footer-h3">Legal</div>
           <div style="display:flex;flex-direction:column;gap:10px;">
-            <a href="#" style="color:var(--text2);font-size:13px;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='var(--text2)'" id="footer-l8">Privacy Policy</a>
-            <a href="#" style="color:var(--text2);font-size:13px;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='var(--text2)'" id="footer-l9">Terms of Service</a>
+            <a href="#privacy" onclick="showPrivacyPage();return false;" style="color:var(--text2);font-size:13px;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='var(--text2)'" id="footer-l8">Privacy Policy</a>
+            <a href="#terms" onclick="showTermsPage();return false;" style="color:var(--text2);font-size:13px;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='var(--text2)'" id="footer-l9">Terms of Service</a>
             <a href="#" style="color:var(--text2);font-size:13px;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='var(--text2)'" id="footer-l10">Cookie Policy</a>
           </div>
         </div>
@@ -2005,6 +2052,671 @@ function renderUsageWidgets() {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════
+// PILLIER LEGAL PAGES — Privacy Policy + Terms of Service
+// ═══════════════════════════════════════════════════════════════
+
+var _legalPrevPage = 'content'; // Where to go back to
+
+var LEGAL_CONTENT = {
+  // English (1)
+  1: {
+    backHome: 'Back to home',
+    privacy: {
+      title: 'Privacy Policy',
+      subtitle: 'Last updated: 18/08/2026',
+      lawyerNote: '<em style="color:var(--text3);font-size:12px;">This document is provided as-is and does not constitute legal advice.</em>',
+      body: `
+<h2>1. About Pillier</h2>
+<p>Pillier is a construction knowledge management platform operated by <strong>Pillier Ltda.</strong>, headquartered in Brazil. We are committed to protecting the personal data of our users in compliance with the Brazilian General Data Protection Law (Lei nº 13.709/2018 — LGPD) and other applicable data protection regulations.</p>
+<p><strong>Data Controller:</strong> Pillier<br><strong>Email:</strong> contact@pillier.com.br<br><strong>Website:</strong> https://pillier.com.br</p>
+
+<h2>2. Data We Collect</h2>
+<ul>
+<li><strong>Account data:</strong> name, email address, company name, professional role</li>
+<li><strong>Usage data:</strong> incident captures (photos, voice notes), documents uploaded, AI chat messages, project data</li>
+<li><strong>Technical data:</strong> IP address, device type, browser, approximate location, session information</li>
+<li><strong>Payment data:</strong> processed by Stripe — we do not store credit card information</li>
+</ul>
+
+<h2>3. How We Use Your Data</h2>
+<ul>
+<li>Deliver and maintain the Pillier service</li>
+<li>Improve our AI models and platform features</li>
+<li>Communicate service updates and support responses</li>
+<li>Comply with legal and regulatory obligations</li>
+<li>Analyze usage to prevent fraud and abuse</li>
+</ul>
+
+<h2>4. Legal Basis (LGPD Art. 7)</h2>
+<ul>
+<li><strong>Consent:</strong> for optional features and marketing communications</li>
+<li><strong>Contract execution:</strong> to deliver the paid or free service</li>
+<li><strong>Legitimate interest:</strong> for platform security, fraud prevention, and service improvement</li>
+<li><strong>Legal obligation:</strong> for tax, accounting, and regulatory compliance</li>
+</ul>
+
+<h2>5. Third-Party Processors</h2>
+<p>To deliver Pillier, we use the following data processors:</p>
+<ul>
+<li><strong>Supabase</strong> (database hosting) — United States</li>
+<li><strong>Groq</strong> (AI language processing) — United States</li>
+<li><strong>Google Cloud Gemini API</strong> (AI image analysis) — Global</li>
+<li><strong>Vercel</strong> (application hosting) — United States</li>
+<li><strong>Stripe</strong> (payment processing) — United States</li>
+</ul>
+<p>All processors are bound by data processing agreements that meet LGPD requirements.</p>
+
+<h2>6. International Data Transfers</h2>
+<p>Some data is transferred outside Brazil (primarily to the United States) to our service providers. Such transfers are protected by contractual clauses and safeguards consistent with LGPD Art. 33.</p>
+
+<h2>7. Data Retention</h2>
+<ul>
+<li><strong>Account data:</strong> for the duration of your active account plus 5 years</li>
+<li><strong>Usage data:</strong> 24 months after the last activity</li>
+<li><strong>Billing data:</strong> 5 years (tax obligation)</li>
+<li><strong>Deleted data:</strong> anonymized or permanently deleted within 30 days of request</li>
+</ul>
+
+<h2>8. Your Rights (LGPD Art. 18)</h2>
+<p>You have the right to:</p>
+<ul>
+<li>Confirm the existence of data processing</li>
+<li>Access your data</li>
+<li>Correct incomplete or outdated data</li>
+<li>Anonymize, block, or delete unnecessary data</li>
+<li>Data portability</li>
+<li>Delete data processed with consent</li>
+<li>Information about with whom your data is shared</li>
+<li>Revoke your consent at any time</li>
+<li>Object to processing based on legitimate interest</li>
+</ul>
+<p>To exercise your rights, email <strong>contact@pillier.com.br</strong>. We respond within 15 days.</p>
+
+<h2>9. Security Measures</h2>
+<p>We implement technical and organizational measures appropriate to the risk: encryption in transit (TLS 1.3), encryption at rest, role-based access control, security monitoring, regular backups, employee training, and incident response procedures.</p>
+
+<h2>10. Cookies</h2>
+<p>We use essential cookies for service functionality (authentication, preferences). We do not use third-party tracking cookies or advertising cookies.</p>
+
+<h2>11. Minors</h2>
+<p>Pillier is exclusively intended for adult professionals in the construction industry. We do not knowingly collect data from persons under 18 years of age.</p>
+
+<h2>12. Data Protection Officer (DPO)</h2>
+<p>Our DPO can be reached at <strong>contact@pillier.com.br</strong> for any privacy-related inquiries.</p>
+
+<h2>13. Policy Changes</h2>
+<p>We may update this policy. Material changes will be notified via email at least 30 days before taking effect.</p>
+
+<h2>14. Governing Law</h2>
+<p>This policy is governed by Brazilian law. Any disputes shall be resolved in the courts of São Paulo/SP, Brazil.</p>
+
+<h2>Contact</h2>
+<p><strong>Email:</strong> contact@pillier.com.br<br><strong>Website:</strong> https://pillier.com.br</p>
+`
+    },
+    terms: {
+      title: 'Terms of Service',
+      subtitle: 'Last updated: 18/08/2026',
+      lawyerNote: '<em style="color:var(--text3);font-size:12px;">This document is provided as-is and does not constitute legal advice.</em>',
+      body: `
+<h2>1. Acceptance of Terms</h2>
+<p>By creating an account or using Pillier, you agree to be bound by these Terms of Service. If you do not agree, do not use the service.</p>
+
+<h2>2. Service Description</h2>
+<p>Pillier is a Software-as-a-Service (SaaS) construction knowledge management platform that enables users to: capture site incidents with photos and voice notes, analyze incidents using AI, manage project documents, collaborate with team members, and maintain a searchable knowledge base.</p>
+
+<h2>3. Eligibility</h2>
+<p>You must be at least 18 years old and an authorized representative of a company operating in the construction, engineering, architecture, real estate, or related industry. By creating an account, you represent and warrant that you meet these requirements.</p>
+
+<h2>4. User Accounts</h2>
+<ul>
+<li>You are responsible for maintaining the security of your account credentials</li>
+<li>You must provide accurate and truthful information</li>
+<li>You must notify us immediately at contact@pillier.com.br of any unauthorized use</li>
+<li>You are responsible for all activities under your account</li>
+</ul>
+
+<h2>5. Acceptable Use</h2>
+<p>You agree not to use Pillier to:</p>
+<ul>
+<li>Engage in illegal activities</li>
+<li>Upload content that infringes third-party rights (IP, privacy, etc.)</li>
+<li>Distribute malware, viruses, or harmful code</li>
+<li>Attempt unauthorized access to Pillier systems or other user accounts</li>
+<li>Share account credentials with unauthorized parties</li>
+<li>Reverse engineer, decompile, or extract source code</li>
+<li>Use automated tools to scrape or extract data at scale</li>
+</ul>
+
+<h2>6. User Content and Intellectual Property</h2>
+<ul>
+<li>You retain all ownership rights to content you upload (captures, documents, project data)</li>
+<li>You grant Pillier a worldwide, non-exclusive license to process, store, and display your content solely to provide the service</li>
+<li>You are solely responsible for the legality, accuracy, and appropriateness of your content</li>
+<li>You represent that you have all necessary rights to the content you upload</li>
+</ul>
+
+<h2>7. Pillier Intellectual Property</h2>
+<p>All software, trademarks, designs, algorithms, and content created by Pillier are the exclusive property of Pillier Ltda. These Terms do not grant you any rights to Pillier IP except as necessary to use the service.</p>
+
+<h2>8. Subscription Plans and Payment</h2>
+<ul>
+<li>Pillier offers Free, Starter, Pro, Team, and Enterprise plans</li>
+<li>Paid subscriptions are billed monthly or annually via credit card</li>
+<li>Billing is automatic; you may cancel at any time in Settings</li>
+<li>Cancellation takes effect at the end of the current billing cycle</li>
+<li>No refunds are provided for partial billing periods</li>
+<li>Prices may change with 30 days notice; existing subscriptions honor the original price for the current term</li>
+</ul>
+
+<h2>9. AI-Generated Content Disclaimer</h2>
+<p>Pillier uses artificial intelligence to analyze photos, extract information from documents, and suggest actions. <strong>AI-generated content is provided "as is" and does not replace professional engineering judgment.</strong> You are responsible for validating all AI outputs before acting on them. Pillier is not liable for decisions made based on AI-generated content.</p>
+
+<h2>10. Warranties and Disclaimers</h2>
+<p>The service is provided "AS IS" and "AS AVAILABLE." Pillier makes no warranties regarding uninterrupted service, error-free operation, or the accuracy of AI-generated results, to the fullest extent permitted by law.</p>
+
+<h2>11. Limitation of Liability</h2>
+<p>To the maximum extent permitted by law, Pillier's total liability for any claim arising from these Terms or the service is limited to the amount paid by you to Pillier in the 12 months preceding the claim. Pillier is not liable for indirect, incidental, consequential, or punitive damages.</p>
+
+<h2>12. Indemnification</h2>
+<p>You agree to indemnify and hold Pillier harmless from any claims, damages, or expenses arising from your violation of these Terms or your use of the service.</p>
+
+<h2>13. Termination</h2>
+<ul>
+<li>You may terminate your account at any time through Settings</li>
+<li>We may suspend or terminate accounts that violate these Terms</li>
+<li>Upon termination, your data is retained per our Privacy Policy</li>
+</ul>
+
+<h2>14. Data Protection</h2>
+<p>Our processing of personal data is governed by our <a href="#" onclick="showPrivacyPage();return false;" style="color:#60a5fa;">Privacy Policy</a>, which forms part of these Terms.</p>
+
+<h2>15. Changes to Terms</h2>
+<p>We may update these Terms with 30 days notice via email. Continued use after changes constitutes acceptance.</p>
+
+<h2>16. Governing Law and Jurisdiction</h2>
+<p>These Terms are governed by the laws of Brazil. Any disputes shall be resolved exclusively in the courts of São Paulo/SP, Brazil.</p>
+
+<h2>Contact</h2>
+<p><strong>Email:</strong> contact@pillier.com.br<br><strong>Website:</strong> https://pillier.com.br</p>
+`
+    }
+  },
+  // Portuguese (2)
+  2: {
+    backHome: 'Voltar ao início',
+    privacy: {
+      title: 'Política de Privacidade',
+      subtitle: 'Última atualização: 18/08/2026',
+      lawyerNote: '<em style="color:var(--text3);font-size:12px;">Este documento é fornecido no estado em que se encontra e não constitui aconselhamento jurídico.</em>',
+      body: `
+<h2>1. Sobre a Pillier</h2>
+<p>A Pillier é uma plataforma de gestão de conhecimento de construção civil operada pela <strong>Pillier Ltda.</strong>, com sede no Brasil. Estamos comprometidos com a proteção dos dados pessoais de nossos usuários, em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 — LGPD).</p>
+<p><strong>Controlador dos Dados:</strong> Pillier<br><strong>E-mail:</strong> contact@pillier.com.br<br><strong>Website:</strong> https://pillier.com.br</p>
+
+<h2>2. Dados que Coletamos</h2>
+<ul>
+<li><strong>Dados de conta:</strong> nome, e-mail, empresa, função profissional</li>
+<li><strong>Dados de uso:</strong> capturas de incidentes (fotos, notas de voz), documentos carregados, mensagens de chat com IA, dados de projeto</li>
+<li><strong>Dados técnicos:</strong> endereço IP, tipo de dispositivo, navegador, localização aproximada, informações de sessão</li>
+<li><strong>Dados de pagamento:</strong> processados pelo Stripe — não armazenamos informações de cartão de crédito</li>
+</ul>
+
+<h2>3. Como Usamos Seus Dados</h2>
+<ul>
+<li>Prestar e manter o serviço Pillier</li>
+<li>Melhorar nossos modelos de IA e funcionalidades da plataforma</li>
+<li>Comunicar atualizações do serviço e responder a solicitações de suporte</li>
+<li>Cumprir obrigações legais e regulatórias</li>
+<li>Analisar uso para prevenir fraude e abuso</li>
+</ul>
+
+<h2>4. Base Legal (Art. 7º LGPD)</h2>
+<ul>
+<li><strong>Consentimento:</strong> para funcionalidades opcionais e comunicações de marketing</li>
+<li><strong>Execução de contrato:</strong> para prestar o serviço pago ou gratuito</li>
+<li><strong>Legítimo interesse:</strong> para segurança da plataforma, prevenção de fraude e melhoria do serviço</li>
+<li><strong>Cumprimento de obrigação legal:</strong> para conformidade fiscal, contábil e regulatória</li>
+</ul>
+
+<h2>5. Processadores Terceiros</h2>
+<p>Para prestar o serviço Pillier, utilizamos os seguintes processadores de dados:</p>
+<ul>
+<li><strong>Supabase</strong> (hospedagem de banco de dados) — Estados Unidos</li>
+<li><strong>Groq</strong> (processamento de linguagem por IA) — Estados Unidos</li>
+<li><strong>Google Cloud Gemini API</strong> (análise de imagens por IA) — Global</li>
+<li><strong>Vercel</strong> (hospedagem da aplicação) — Estados Unidos</li>
+<li><strong>Stripe</strong> (processamento de pagamentos) — Estados Unidos</li>
+</ul>
+<p>Todos os processadores estão vinculados a acordos de processamento de dados que atendem aos requisitos da LGPD.</p>
+
+<h2>6. Transferência Internacional de Dados</h2>
+<p>Alguns dados são transferidos para fora do Brasil (principalmente para os Estados Unidos) aos nossos provedores de serviço. Tais transferências são protegidas por cláusulas contratuais e salvaguardas consistentes com o Art. 33 da LGPD.</p>
+
+<h2>7. Retenção de Dados</h2>
+<ul>
+<li><strong>Dados de conta:</strong> pelo período de sua conta ativa + 5 anos</li>
+<li><strong>Dados de uso:</strong> 24 meses após a última atividade</li>
+<li><strong>Dados de faturamento:</strong> 5 anos (obrigação fiscal)</li>
+<li><strong>Dados excluídos:</strong> anonimizados ou permanentemente excluídos em até 30 dias após a solicitação</li>
+</ul>
+
+<h2>8. Seus Direitos (Art. 18 LGPD)</h2>
+<p>Você tem direito a:</p>
+<ul>
+<li>Confirmação da existência de tratamento</li>
+<li>Acesso aos dados</li>
+<li>Correção de dados incompletos ou desatualizados</li>
+<li>Anonimização, bloqueio ou eliminação de dados desnecessários</li>
+<li>Portabilidade dos dados</li>
+<li>Eliminação dos dados tratados com consentimento</li>
+<li>Informação sobre com quem seus dados são compartilhados</li>
+<li>Revogação do consentimento a qualquer momento</li>
+<li>Oposição ao tratamento fundado em legítimo interesse</li>
+</ul>
+<p>Para exercer seus direitos, envie um e-mail para <strong>contact@pillier.com.br</strong>. Respondemos em até 15 dias.</p>
+
+<h2>9. Medidas de Segurança</h2>
+<p>Implementamos medidas técnicas e organizacionais adequadas ao risco: criptografia em trânsito (TLS 1.3), criptografia em repouso, controle de acesso baseado em função, monitoramento de segurança, backups regulares, treinamento de funcionários e procedimentos de resposta a incidentes.</p>
+
+<h2>10. Cookies</h2>
+<p>Utilizamos cookies essenciais para funcionamento do serviço (autenticação, preferências). Não utilizamos cookies de rastreamento de terceiros ou cookies publicitários.</p>
+
+<h2>11. Menores de Idade</h2>
+<p>A Pillier é destinada exclusivamente a profissionais adultos do setor de construção. Não coletamos intencionalmente dados de menores de 18 anos.</p>
+
+<h2>12. Encarregado de Proteção de Dados (DPO)</h2>
+<p>Nosso DPO pode ser contatado em <strong>contact@pillier.com.br</strong> para quaisquer questões relacionadas à privacidade.</p>
+
+<h2>13. Alterações na Política</h2>
+<p>Podemos atualizar esta política. Alterações materiais serão notificadas por e-mail com pelo menos 30 dias de antecedência.</p>
+
+<h2>14. Lei Aplicável</h2>
+<p>Esta política é regida pela legislação brasileira. Quaisquer disputas serão resolvidas no foro da Comarca de São Paulo/SP, Brasil.</p>
+
+<h2>Contato</h2>
+<p><strong>E-mail:</strong> contact@pillier.com.br<br><strong>Website:</strong> https://pillier.com.br</p>
+`
+    },
+    terms: {
+      title: 'Termos de Serviço',
+      subtitle: 'Última atualização: 18/08/2026',
+      lawyerNote: '<em style="color:var(--text3);font-size:12px;">Este documento é fornecido no estado em que se encontra e não constitui aconselhamento jurídico.</em>',
+      body: `
+<h2>1. Aceitação dos Termos</h2>
+<p>Ao criar uma conta ou usar a Pillier, você concorda em estar vinculado a estes Termos de Serviço. Se você não concorda, não use o serviço.</p>
+
+<h2>2. Descrição do Serviço</h2>
+<p>A Pillier é uma plataforma Software-as-a-Service (SaaS) de gestão de conhecimento de construção civil que permite aos usuários: capturar incidentes em canteiros com fotos e notas de voz, analisar incidentes usando IA, gerenciar documentos de projetos, colaborar com membros da equipe e manter uma base de conhecimento pesquisável.</p>
+
+<h2>3. Elegibilidade</h2>
+<p>Você deve ter pelo menos 18 anos e ser representante autorizado de uma empresa que opere no setor de construção, engenharia, arquitetura, imobiliário ou correlato. Ao criar uma conta, você declara e garante que atende a estes requisitos.</p>
+
+<h2>4. Contas de Usuário</h2>
+<ul>
+<li>Você é responsável por manter a segurança das credenciais de sua conta</li>
+<li>Deve fornecer informações precisas e verdadeiras</li>
+<li>Deve notificar-nos imediatamente em contact@pillier.com.br sobre qualquer uso não autorizado</li>
+<li>Você é responsável por todas as atividades em sua conta</li>
+</ul>
+
+<h2>5. Uso Aceitável</h2>
+<p>Você concorda em não usar a Pillier para:</p>
+<ul>
+<li>Realizar atividades ilegais</li>
+<li>Fazer upload de conteúdo que viole direitos de terceiros (PI, privacidade, etc.)</li>
+<li>Distribuir malware, vírus ou código malicioso</li>
+<li>Tentar acesso não autorizado aos sistemas Pillier ou contas de outros usuários</li>
+<li>Compartilhar credenciais de conta com partes não autorizadas</li>
+<li>Fazer engenharia reversa, descompilar ou extrair código-fonte</li>
+<li>Usar ferramentas automatizadas para extrair dados em escala</li>
+</ul>
+
+<h2>6. Conteúdo do Usuário e Propriedade Intelectual</h2>
+<ul>
+<li>Você mantém todos os direitos de propriedade sobre o conteúdo que carrega (capturas, documentos, dados de projeto)</li>
+<li>Você concede à Pillier uma licença mundial e não-exclusiva para processar, armazenar e exibir seu conteúdo exclusivamente para prestar o serviço</li>
+<li>Você é o único responsável pela legalidade, precisão e adequação de seu conteúdo</li>
+<li>Você declara que possui todos os direitos necessários sobre o conteúdo que carrega</li>
+</ul>
+
+<h2>7. Propriedade Intelectual da Pillier</h2>
+<p>Todo software, marcas, designs, algoritmos e conteúdo criado pela Pillier são propriedade exclusiva da Pillier Ltda. Estes Termos não lhe concedem quaisquer direitos sobre a PI da Pillier, exceto o necessário para usar o serviço.</p>
+
+<h2>8. Planos de Assinatura e Pagamento</h2>
+<ul>
+<li>A Pillier oferece planos Gratuito, Starter, Pro, Team e Enterprise</li>
+<li>Assinaturas pagas são cobradas mensalmente ou anualmente via cartão de crédito</li>
+<li>A cobrança é automática; você pode cancelar a qualquer momento em Configurações</li>
+<li>O cancelamento entra em vigor no final do ciclo de cobrança atual</li>
+<li>Não são fornecidos reembolsos para períodos parciais de cobrança</li>
+<li>Os preços podem mudar com 30 dias de aviso; assinaturas existentes mantêm o preço original pelo prazo atual</li>
+</ul>
+
+<h2>9. Isenção de Responsabilidade sobre Conteúdo Gerado por IA</h2>
+<p>A Pillier usa inteligência artificial para analisar fotos, extrair informações de documentos e sugerir ações. <strong>O conteúdo gerado por IA é fornecido "no estado em que se encontra" e não substitui o julgamento profissional de engenharia.</strong> Você é responsável por validar todos os resultados da IA antes de agir com base neles. A Pillier não é responsável por decisões tomadas com base em conteúdo gerado por IA.</p>
+
+<h2>10. Garantias e Isenções</h2>
+<p>O serviço é fornecido "NO ESTADO EM QUE SE ENCONTRA" e "CONFORME DISPONÍVEL". A Pillier não oferece garantias sobre serviço ininterrupto, operação livre de erros ou precisão dos resultados gerados por IA, na máxima extensão permitida por lei.</p>
+
+<h2>11. Limitação de Responsabilidade</h2>
+<p>Na máxima extensão permitida por lei, a responsabilidade total da Pillier por qualquer reclamação decorrente destes Termos ou do serviço é limitada ao valor pago por você à Pillier nos 12 meses anteriores à reclamação. A Pillier não é responsável por danos indiretos, incidentais, consequenciais ou punitivos.</p>
+
+<h2>12. Indenização</h2>
+<p>Você concorda em indenizar e isentar a Pillier de quaisquer reclamações, danos ou despesas decorrentes de sua violação destes Termos ou uso do serviço.</p>
+
+<h2>13. Rescisão</h2>
+<ul>
+<li>Você pode rescindir sua conta a qualquer momento através de Configurações</li>
+<li>Podemos suspender ou rescindir contas que violem estes Termos</li>
+<li>Após a rescisão, seus dados são retidos conforme nossa Política de Privacidade</li>
+</ul>
+
+<h2>14. Proteção de Dados</h2>
+<p>Nosso processamento de dados pessoais é regido por nossa <a href="#" onclick="showPrivacyPage();return false;" style="color:#60a5fa;">Política de Privacidade</a>, que faz parte destes Termos.</p>
+
+<h2>15. Alterações nos Termos</h2>
+<p>Podemos atualizar estes Termos com 30 dias de antecedência via e-mail. O uso continuado após alterações constitui aceitação.</p>
+
+<h2>16. Lei Aplicável e Jurisdição</h2>
+<p>Estes Termos são regidos pelas leis do Brasil. Quaisquer disputas serão resolvidas exclusivamente no foro da Comarca de São Paulo/SP, Brasil.</p>
+
+<h2>Contato</h2>
+<p><strong>E-mail:</strong> contact@pillier.com.br<br><strong>Website:</strong> https://pillier.com.br</p>
+`
+    }
+  },
+  // French (0)
+  0: {
+    backHome: 'Retour à l\'accueil',
+    privacy: {
+      title: 'Politique de Confidentialité',
+      subtitle: 'Dernière mise à jour : 18/08/2026',
+      lawyerNote: '<em style="color:var(--text3);font-size:12px;">Ce document est fourni tel quel et ne constitue pas un conseil juridique.</em>',
+      body: `
+<h2>1. À propos de Pillier</h2>
+<p>Pillier est une plateforme de gestion des connaissances pour la construction, exploitée par <strong>Pillier Ltda.</strong>, basée au Brésil. Nous nous engageons à protéger les données personnelles de nos utilisateurs conformément à la Loi Générale sur la Protection des Données brésilienne (LGPD, Loi n° 13.709/2018) et au RGPD lorsque applicable.</p>
+<p><strong>Responsable du traitement :</strong> Pillier<br><strong>Email :</strong> contact@pillier.com.br<br><strong>Site web :</strong> https://pillier.com.br</p>
+
+<h2>2. Données Collectées</h2>
+<ul>
+<li><strong>Données de compte :</strong> nom, adresse email, entreprise, rôle professionnel</li>
+<li><strong>Données d'usage :</strong> captures d'incidents (photos, notes vocales), documents téléchargés, messages de chat IA, données de projet</li>
+<li><strong>Données techniques :</strong> adresse IP, type d'appareil, navigateur, localisation approximative, informations de session</li>
+<li><strong>Données de paiement :</strong> traitées par Stripe — nous ne stockons pas les informations de carte de crédit</li>
+</ul>
+
+<h2>3. Utilisation des Données</h2>
+<ul>
+<li>Fournir et maintenir le service Pillier</li>
+<li>Améliorer nos modèles IA et fonctionnalités de la plateforme</li>
+<li>Communiquer les mises à jour et répondre au support</li>
+<li>Respecter les obligations légales et réglementaires</li>
+<li>Analyser l'usage pour prévenir la fraude et les abus</li>
+</ul>
+
+<h2>4. Base Légale</h2>
+<ul>
+<li><strong>Consentement :</strong> pour les fonctionnalités optionnelles et les communications marketing</li>
+<li><strong>Exécution contractuelle :</strong> pour fournir le service payant ou gratuit</li>
+<li><strong>Intérêt légitime :</strong> pour la sécurité de la plateforme, la prévention de la fraude et l'amélioration du service</li>
+<li><strong>Obligation légale :</strong> pour la conformité fiscale, comptable et réglementaire</li>
+</ul>
+
+<h2>5. Sous-traitants</h2>
+<p>Pour fournir Pillier, nous utilisons les sous-traitants suivants :</p>
+<ul>
+<li><strong>Supabase</strong> (hébergement de base de données) — États-Unis</li>
+<li><strong>Groq</strong> (traitement IA du langage) — États-Unis</li>
+<li><strong>Google Cloud Gemini API</strong> (analyse d'images par IA) — Global</li>
+<li><strong>Vercel</strong> (hébergement d'application) — États-Unis</li>
+<li><strong>Stripe</strong> (traitement des paiements) — États-Unis</li>
+</ul>
+<p>Tous les sous-traitants sont liés par des accords de traitement de données conformes.</p>
+
+<h2>6. Transferts Internationaux</h2>
+<p>Certaines données sont transférées hors du Brésil (principalement aux États-Unis). Ces transferts sont protégés par des clauses contractuelles types.</p>
+
+<h2>7. Conservation des Données</h2>
+<ul>
+<li><strong>Données de compte :</strong> durée du compte actif + 5 ans</li>
+<li><strong>Données d'usage :</strong> 24 mois après la dernière activité</li>
+<li><strong>Données de facturation :</strong> 5 ans (obligation fiscale)</li>
+<li><strong>Données supprimées :</strong> anonymisées ou supprimées définitivement dans les 30 jours</li>
+</ul>
+
+<h2>8. Vos Droits</h2>
+<p>Vous avez le droit de :</p>
+<ul>
+<li>Confirmer l'existence du traitement</li>
+<li>Accéder à vos données</li>
+<li>Corriger les données incomplètes ou obsolètes</li>
+<li>Anonymiser, bloquer ou supprimer les données inutiles</li>
+<li>Portabilité des données</li>
+<li>Supprimer les données traitées avec consentement</li>
+<li>Être informé du partage de vos données</li>
+<li>Retirer votre consentement à tout moment</li>
+<li>S'opposer au traitement basé sur l'intérêt légitime</li>
+</ul>
+<p>Pour exercer vos droits, contactez <strong>contact@pillier.com.br</strong>. Nous répondons sous 15 jours.</p>
+
+<h2>9. Mesures de Sécurité</h2>
+<p>Nous mettons en œuvre des mesures techniques et organisationnelles appropriées : chiffrement en transit (TLS 1.3), chiffrement au repos, contrôle d'accès, surveillance de sécurité, sauvegardes régulières.</p>
+
+<h2>10. Cookies</h2>
+<p>Nous utilisons uniquement des cookies essentiels (authentification, préférences). Aucun cookie de tracking tiers ou publicitaire.</p>
+
+<h2>11. Mineurs</h2>
+<p>Pillier est destiné exclusivement aux professionnels adultes. Nous ne collectons pas sciemment de données de personnes de moins de 18 ans.</p>
+
+<h2>12. Délégué à la Protection des Données</h2>
+<p>Notre DPO est joignable à <strong>contact@pillier.com.br</strong>.</p>
+
+<h2>13. Modifications</h2>
+<p>Nous pouvons mettre à jour cette politique. Les changements matériels seront notifiés par email au moins 30 jours avant leur entrée en vigueur.</p>
+
+<h2>14. Loi Applicable</h2>
+<p>Cette politique est régie par le droit brésilien. Les litiges seront tranchés par les tribunaux de São Paulo/SP, Brésil.</p>
+
+<h2>Contact</h2>
+<p><strong>Email :</strong> contact@pillier.com.br<br><strong>Site web :</strong> https://pillier.com.br</p>
+`
+    },
+    terms: {
+      title: 'Conditions Générales d\'Utilisation',
+      subtitle: 'Dernière mise à jour : 18/08/2026',
+      lawyerNote: '<em style="color:var(--text3);font-size:12px;">Ce document est fourni tel quel et ne constitue pas un conseil juridique.</em>',
+      body: `
+<h2>1. Acceptation des Conditions</h2>
+<p>En créant un compte ou en utilisant Pillier, vous acceptez d'être lié par ces Conditions Générales d'Utilisation. Si vous n'acceptez pas, n'utilisez pas le service.</p>
+
+<h2>2. Description du Service</h2>
+<p>Pillier est une plateforme SaaS de gestion des connaissances pour la construction, permettant aux utilisateurs de : capturer des incidents sur chantier avec photos et notes vocales, analyser les incidents par IA, gérer les documents de projet, collaborer en équipe, maintenir une base de connaissances consultable.</p>
+
+<h2>3. Éligibilité</h2>
+<p>Vous devez avoir au moins 18 ans et être un représentant autorisé d'une entreprise du secteur de la construction, de l'ingénierie, de l'architecture, de l'immobilier ou d'un secteur connexe.</p>
+
+<h2>4. Comptes Utilisateur</h2>
+<ul>
+<li>Vous êtes responsable de la sécurité de vos identifiants</li>
+<li>Vous devez fournir des informations exactes</li>
+<li>Vous devez nous notifier immédiatement à contact@pillier.com.br de tout usage non autorisé</li>
+<li>Vous êtes responsable de toutes les activités sur votre compte</li>
+</ul>
+
+<h2>5. Usage Acceptable</h2>
+<p>Vous vous engagez à ne pas utiliser Pillier pour :</p>
+<ul>
+<li>Des activités illégales</li>
+<li>Télécharger du contenu violant les droits de tiers</li>
+<li>Distribuer des malwares ou virus</li>
+<li>Tenter un accès non autorisé aux systèmes Pillier</li>
+<li>Partager les identifiants avec des tiers non autorisés</li>
+<li>Effectuer de l'ingénierie inverse</li>
+<li>Utiliser des outils automatisés d'extraction de données</li>
+</ul>
+
+<h2>6. Contenu Utilisateur et PI</h2>
+<ul>
+<li>Vous conservez tous les droits de propriété sur votre contenu</li>
+<li>Vous accordez à Pillier une licence mondiale non-exclusive pour traiter et stocker votre contenu afin de fournir le service</li>
+<li>Vous êtes seul responsable de la légalité et de l'exactitude de votre contenu</li>
+</ul>
+
+<h2>7. Propriété Intellectuelle Pillier</h2>
+<p>Tous les logiciels, marques, designs, algorithmes et contenus créés par Pillier sont la propriété exclusive de Pillier Ltda.</p>
+
+<h2>8. Plans et Paiement</h2>
+<ul>
+<li>Pillier propose des plans Gratuit, Starter, Pro, Team et Enterprise</li>
+<li>Les abonnements payants sont facturés mensuellement ou annuellement</li>
+<li>Vous pouvez annuler à tout moment dans les paramètres</li>
+<li>L'annulation prend effet à la fin du cycle de facturation en cours</li>
+<li>Pas de remboursement pour les périodes partielles</li>
+</ul>
+
+<h2>9. Contenu Généré par IA</h2>
+<p>Pillier utilise l'IA pour analyser photos et documents. <strong>Le contenu généré par IA est fourni "tel quel" et ne remplace pas le jugement professionnel d'ingénierie.</strong> Vous êtes responsable de valider les résultats avant d'agir.</p>
+
+<h2>10. Garanties</h2>
+<p>Le service est fourni "TEL QUEL". Pillier ne garantit pas un service ininterrompu ou sans erreur.</p>
+
+<h2>11. Limitation de Responsabilité</h2>
+<p>La responsabilité totale de Pillier est limitée au montant payé dans les 12 mois précédant la réclamation. Pillier n'est pas responsable des dommages indirects, incidents ou consécutifs.</p>
+
+<h2>12. Indemnisation</h2>
+<p>Vous acceptez d'indemniser Pillier de toute réclamation résultant de votre violation de ces Conditions.</p>
+
+<h2>13. Résiliation</h2>
+<ul>
+<li>Vous pouvez résilier votre compte à tout moment</li>
+<li>Nous pouvons suspendre les comptes violant ces Conditions</li>
+</ul>
+
+<h2>14. Protection des Données</h2>
+<p>Le traitement des données personnelles est régi par notre <a href="#" onclick="showPrivacyPage();return false;" style="color:#60a5fa;">Politique de Confidentialité</a>.</p>
+
+<h2>15. Modifications</h2>
+<p>Nous pouvons modifier ces Conditions avec 30 jours de préavis par email.</p>
+
+<h2>16. Loi Applicable</h2>
+<p>Ces Conditions sont régies par le droit brésilien. Les litiges seront tranchés par les tribunaux de São Paulo/SP, Brésil.</p>
+
+<h2>Contact</h2>
+<p><strong>Email :</strong> contact@pillier.com.br<br><strong>Site web :</strong> https://pillier.com.br</p>
+`
+    }
+  }
+};
+
+var _currentLegalLang = 1; // Default EN
+
+function renderLegalContent(type){
+  var L = LEGAL_CONTENT[_currentLegalLang] || LEGAL_CONTENT[1];
+  var doc = L[type];
+  var contentDiv = document.getElementById(type + '-content');
+  if(!contentDiv || !doc) return;
+  contentDiv.innerHTML =
+    '<h1 style="font-family:var(--font-d);font-size:32px;font-weight:800;margin-bottom:8px;color:var(--text);">' + doc.title + '</h1>' +
+    '<div style="color:var(--text3);font-size:13px;margin-bottom:6px;">' + doc.subtitle + '</div>' +
+    '<div style="margin-bottom:32px;">' + doc.lawyerNote + '</div>' +
+    doc.body;
+  // Update back button label
+  var backEl = document.getElementById('legal-back-' + (type === 'privacy' ? 'priv' : 'terms'));
+  if(backEl) backEl.textContent = L.backHome;
+  // Update language toggle button states
+  updateLegalLangButtons(type);
+}
+
+function updateLegalLangButtons(type){
+  var prefix = type === 'privacy' ? 'pl' : 'tl';
+  ['en','pt','fr'].forEach(function(l){
+    var el = document.getElementById(prefix + '-' + l);
+    if(!el) return;
+    var langNum = l === 'fr' ? 0 : (l === 'pt' ? 2 : 1);
+    if(langNum === _currentLegalLang){
+      el.style.background = 'rgba(96,165,250,0.15)';
+      el.style.borderColor = 'rgba(96,165,250,0.4)';
+      el.style.color = '#60a5fa';
+      el.style.fontWeight = '700';
+    } else {
+      el.style.background = 'none';
+      el.style.borderColor = 'var(--border)';
+      el.style.color = 'var(--text2)';
+      el.style.fontWeight = '500';
+    }
+  });
+}
+
+function setLegalLang(l){
+  _currentLegalLang = l;
+  // Re-render whichever page is currently visible
+  if(document.getElementById('s-privacy').style.display !== 'none') renderLegalContent('privacy');
+  if(document.getElementById('s-terms').style.display !== 'none') renderLegalContent('terms');
+}
+
+function hideAllScreens(){
+  var screens = ['s-login', 's-content', 's-app', 's-privacy', 's-terms'];
+  screens.forEach(function(id){
+    var el = document.getElementById(id);
+    if(!el) return;
+    if(id === 's-privacy' || id === 's-terms'){ el.style.display = 'none'; }
+    else { el.classList.remove('active'); }
+  });
+}
+
+function showPrivacyPage(){
+  // Remember where user came from
+  var prev = localStorage.getItem('pillier_current_page') || 'content';
+  if(prev !== 'privacy' && prev !== 'terms') _legalPrevPage = prev;
+  hideAllScreens();
+  // Sync legal lang to app lang
+  _currentLegalLang = (typeof lang !== 'undefined') ? lang : 1;
+  document.getElementById('s-privacy').style.display = 'block';
+  renderLegalContent('privacy');
+  window.scrollTo(0, 0);
+  if(window.location.hash !== '#privacy'){ history.replaceState(null, '', '#privacy'); }
+}
+
+function showTermsPage(){
+  var prev = localStorage.getItem('pillier_current_page') || 'content';
+  if(prev !== 'privacy' && prev !== 'terms') _legalPrevPage = prev;
+  hideAllScreens();
+  _currentLegalLang = (typeof lang !== 'undefined') ? lang : 1;
+  document.getElementById('s-terms').style.display = 'block';
+  renderLegalContent('terms');
+  window.scrollTo(0, 0);
+  if(window.location.hash !== '#terms'){ history.replaceState(null, '', '#terms'); }
+}
+
+function goBackFromLegal(){
+  hideAllScreens();
+  history.replaceState(null, '', window.location.pathname);
+  if(_legalPrevPage === 'auth'){ showAuthPage(); }
+  else if(_legalPrevPage === 'app'){ if(typeof enterApp === 'function') enterApp(); }
+  else { showContentPage(0); }
+}
+
+// Hash-based routing — listen for hash changes
+window.addEventListener('hashchange', function(){
+  var h = window.location.hash;
+  if(h === '#privacy') showPrivacyPage();
+  else if(h === '#terms') showTermsPage();
+});
+
+// On initial page load, check hash
+window.addEventListener('DOMContentLoaded', function(){
+  var h = window.location.hash;
+  if(h === '#privacy') setTimeout(showPrivacyPage, 100);
+  else if(h === '#terms') setTimeout(showTermsPage, 100);
+});
+
+// Style h2 elements in legal content
+var _legalStyleTag = document.createElement('style');
+_legalStyleTag.textContent = '#privacy-content h2, #terms-content h2 { font-family: var(--font-d); font-size: 20px; font-weight: 700; margin-top: 28px; margin-bottom: 12px; color: var(--text); } #privacy-content h1, #terms-content h1 { border-bottom: 1px solid var(--border); padding-bottom: 16px; } #privacy-content p, #terms-content p { margin-bottom: 12px; color: var(--text); } #privacy-content ul, #terms-content ul { margin-left: 20px; margin-bottom: 12px; color: var(--text); } #privacy-content li, #terms-content li { margin-bottom: 6px; } #privacy-content a, #terms-content a { color: #60a5fa; text-decoration: none; } #privacy-content a:hover, #terms-content a:hover { text-decoration: underline; } #privacy-content strong, #terms-content strong { color: var(--text); font-weight: 600; }';
+document.head.appendChild(_legalStyleTag);
+
 function setTheme(t){
   if(t==='light'){document.body.classList.add('light-mode');}else{document.body.classList.remove('light-mode');}
   localStorage.setItem('pillier_theme',t);
@@ -2443,6 +3155,25 @@ function applyLang(){
   // Sync Resources page translations to main app language
   try{translateResources(lang===0?'fr':lang===2?'pt':'en');}catch(e){}
   try{renderUsageWidgets();}catch(e){}
+
+  // Translate consent notices (login + signup)
+  try {
+    var consentTxt = {0:"En continuant, vous acceptez les",1:"By continuing, you agree to Pillier\u2019s",2:"Ao continuar, você concorda com os"};
+    var consentSignupTxt = {0:"En créant un compte, vous acceptez les",1:"By creating an account, you agree to Pillier\u2019s",2:"Ao criar uma conta, você concorda com os"};
+    var consentAnd = {0:"et la",1:"and",2:"e a"};
+    var consentTerms = {0:"Conditions d\u2019Utilisation de Pillier",1:"Terms of Service",2:"Termos de Serviço da Pillier"};
+    var consentPriv = {0:"Politique de Confidentialité",1:"Privacy Policy",2:"Política de Privacidade"};
+    var el;
+    el=document.getElementById('consent-login-txt'); if(el) el.textContent = consentTxt[lang] + ' ';
+    el=document.getElementById('consent-signup-txt'); if(el) el.textContent = consentSignupTxt[lang] + ' ';
+    el=document.getElementById('consent-login-and'); if(el) el.textContent = ' ' + consentAnd[lang] + ' ';
+    el=document.getElementById('consent-signup-and'); if(el) el.textContent = ' ' + consentAnd[lang] + ' ';
+    el=document.getElementById('consent-login-terms'); if(el) el.textContent = consentTerms[lang];
+    el=document.getElementById('consent-signup-terms'); if(el) el.textContent = consentTerms[lang];
+    el=document.getElementById('consent-login-priv'); if(el) el.textContent = consentPriv[lang];
+    el=document.getElementById('consent-signup-priv'); if(el) el.textContent = consentPriv[lang];
+  } catch(e){}
+
   var S=STRINGS[lang];
   // Core UI IDs
   var ids={
