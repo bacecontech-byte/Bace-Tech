@@ -1512,6 +1512,8 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
       </div>
       <div class="app-content">
         <div id="tab-0" class="tab active">
+          <!-- Usage widget (Phase 1) -->
+          <div id="usage-widget-dashboard" style="margin-bottom:20px;padding:18px;background:var(--navy2);border:1px solid var(--border);border-radius:12px;"></div>
           <!-- Alert bar: hidden when no criticals -->
           <div class="dash-alert" id="dash-alert" style="display:none;">
             <i class="ti ti-alert-triangle"></i>
@@ -1829,6 +1831,9 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
     <button onclick="closeProfilePanel(event);openSettingsModal()" id="pwa-settings-sidebar" style="width:100%;background:none;border:1px solid var(--border2);color:var(--text2);border-radius:8px;padding:10px;font-family:var(--font-b);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.12s;margin-bottom:8px" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'">
       <i class="ti ti-settings"></i> <span id="sidebar-settings-label">Configurações</span>
     </button>
+    <!-- Usage widget (Phase 1) -->
+    <div id="usage-widget-sidebar" style="margin:12px 0;padding:12px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;"></div>
+
     <!-- Logout -->
     <button onclick="doLogout()" style="width:100%;background:none;border:1px solid var(--border2);color:var(--text2);border-radius:8px;padding:10px;font-family:var(--font-b);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.12s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'">
       <i class="ti ti-logout"></i> <span id="pp-logout">Déconnexion</span>
@@ -1858,6 +1863,147 @@ var STRINGS=[
 ];
 
 try{db=supabase.createClient(SB_URL,SB_KEY);}catch(e){console.error(e);}
+
+// ═══════════════════════════════════════════════════════════════
+// PILLIER USAGE TRACKING — Phase 1 (Telemetry only, no blocking)
+// ═══════════════════════════════════════════════════════════════
+var PILLIER_PLANS = {
+  free:       { captures: 15,  ai_messages: 30,  documents: 5,  label: 'Free' },
+  starter:    { captures: 100, ai_messages: 100, documents: 20, label: 'Starter' },
+  pro:        { captures: 999999, ai_messages: 500, documents: 999999, label: 'Pro' },
+  team:       { captures: 999999, ai_messages: 2000, documents: 999999, label: 'Team' },
+  enterprise: { captures: 999999, ai_messages: 999999, documents: 999999, label: 'Enterprise' }
+};
+var _pUsage = { captures: 0, ai_messages: 0, documents: 0, plan: 'free', month: '' };
+
+function pillierCurrentMonth() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+function pillierDaysUntilReset() {
+  var now = new Date();
+  var next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  return Math.ceil((next - now) / (1000 * 60 * 60 * 24));
+}
+
+// Load/create the current month's usage row for this user
+async function loadPillierUsage() {
+  if (!dbOk || !me.email) return;
+  var month = pillierCurrentMonth();
+  try {
+    var r = await db.from('user_usage').select('*').eq('user_email', me.email).eq('month', month).limit(1);
+    if (r.error) { console.error('loadPillierUsage error:', r.error); return; }
+    if (r.data && r.data.length > 0) {
+      _pUsage = {
+        captures: r.data[0].captures_used || 0,
+        ai_messages: r.data[0].ai_messages_used || 0,
+        documents: r.data[0].documents_uploaded || 0,
+        plan: r.data[0].plan || 'free',
+        month: month
+      };
+    } else {
+      // First time this month — create row
+      var ins = await db.from('user_usage').insert({
+        user_email: me.email, company_id: dbCoId, month: month, plan: 'free'
+      }).select();
+      if (ins.error) console.error('loadPillierUsage insert error:', ins.error);
+      _pUsage = { captures: 0, ai_messages: 0, documents: 0, plan: 'free', month: month };
+    }
+    renderUsageWidgets();
+  } catch (e) { console.error('loadPillierUsage exception:', e); }
+}
+
+// Increment a counter (called after every capture/AI/doc)
+async function incrementPillierUsage(field) {
+  if (!dbOk || !me.email) return;
+  var month = pillierCurrentMonth();
+  var dbField, jsField, timestampField;
+  if (field === 'captures') { dbField = 'captures_used'; jsField = 'captures'; timestampField = 'last_capture_at'; }
+  else if (field === 'ai_messages') { dbField = 'ai_messages_used'; jsField = 'ai_messages'; timestampField = 'last_ai_at'; }
+  else if (field === 'documents') { dbField = 'documents_uploaded'; jsField = 'documents'; timestampField = 'last_document_at'; }
+  else return;
+
+  _pUsage[jsField] = (_pUsage[jsField] || 0) + 1;
+  renderUsageWidgets();
+
+  try {
+    // Fetch current value, increment, update — simple approach
+    var cur = await db.from('user_usage').select(dbField).eq('user_email', me.email).eq('month', month).limit(1);
+    var currentVal = (cur.data && cur.data[0]) ? (cur.data[0][dbField] || 0) : 0;
+    var newVal = currentVal + 1;
+    var updateObj = {};
+    updateObj[dbField] = newVal;
+    updateObj[timestampField] = new Date().toISOString();
+    var upd = await db.from('user_usage').update(updateObj).eq('user_email', me.email).eq('month', month);
+    if (upd.error) {
+      // Row didn't exist — insert instead
+      var insObj = { user_email: me.email, company_id: dbCoId, month: month, plan: _pUsage.plan };
+      insObj[dbField] = 1;
+      insObj[timestampField] = new Date().toISOString();
+      await db.from('user_usage').insert(insObj);
+    }
+  } catch (e) { console.error('incrementPillierUsage exception:', e); }
+}
+
+// Render the sidebar + dashboard usage widgets with current counts
+function renderUsageWidgets() {
+  var plan = PILLIER_PLANS[_pUsage.plan] || PILLIER_PLANS.free;
+  var L = (lang === 0) ? {
+    usage: 'UTILISATION', captures: 'Captures', ai: 'Messages IA', docs: 'Documents',
+    plan: 'Formule', resetIn: 'Réinitialisation dans', days: 'j', viewPlans: 'Voir les formules',
+    monthName: ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc']
+  } : (lang === 2) ? {
+    usage: 'USO', captures: 'Capturas', ai: 'Mensagens IA', docs: 'Documentos',
+    plan: 'Plano', resetIn: 'Renovação em', days: 'd', viewPlans: 'Ver planos',
+    monthName: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
+  } : {
+    usage: 'USAGE', captures: 'Captures', ai: 'AI messages', docs: 'Documents',
+    plan: 'Plan', resetIn: 'Resets in', days: 'd', viewPlans: 'View plans',
+    monthName: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  };
+  var monthLabel = L.monthName[new Date().getMonth()];
+  var daysLeft = pillierDaysUntilReset();
+
+  function pctColor(used, limit) {
+    if (limit >= 999999) return { pct: 3, color: '#22c55e', text: '∞' };
+    var pct = Math.min(100, (used / limit) * 100);
+    var color = pct < 60 ? '#22c55e' : (pct < 90 ? '#f59e0b' : '#ef4444');
+    return { pct: pct, color: color, text: used + '/' + limit };
+  }
+
+  var cap = pctColor(_pUsage.captures, plan.captures);
+  var ai = pctColor(_pUsage.ai_messages, plan.ai_messages);
+  var docs = pctColor(_pUsage.documents, plan.documents);
+
+  // Sidebar widget
+  var sw = document.getElementById('usage-widget-sidebar');
+  if (sw) {
+    sw.innerHTML =
+      '<div style="font-size:9px;font-weight:700;color:var(--text3);letter-spacing:0.8px;margin-bottom:8px;">' + L.usage + ' · ' + monthLabel + '</div>' +
+      '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;"><span style="color:var(--text2);">' + L.captures + '</span><span style="color:var(--text);font-weight:600;">' + cap.text + '</span></div>' +
+      '<div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;margin-bottom:8px;"><div style="height:100%;width:' + cap.pct + '%;background:' + cap.color + ';transition:width 0.3s;"></div></div>' +
+      '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;"><span style="color:var(--text2);">' + L.ai + '</span><span style="color:var(--text);font-weight:600;">' + ai.text + '</span></div>' +
+      '<div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;margin-bottom:8px;"><div style="height:100%;width:' + ai.pct + '%;background:' + ai.color + ';transition:width 0.3s;"></div></div>' +
+      '<div style="font-size:10px;color:var(--text3);margin-top:8px;">' + L.plan + ': <span style="color:#60a5fa;font-weight:700;">' + plan.label + '</span></div>';
+  }
+
+  // Dashboard widget
+  var dw = document.getElementById('usage-widget-dashboard');
+  if (dw) {
+    dw.innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">' +
+        '<div><div style="font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--text);">' + L.usage.charAt(0) + L.usage.slice(1).toLowerCase() + ' · ' + monthLabel + '</div>' +
+        '<div style="font-size:11px;color:var(--text3);margin-top:2px;">' + L.resetIn + ' ' + daysLeft + ' ' + L.days + ' · ' + L.plan + ': <span style="color:#60a5fa;font-weight:700;">' + plan.label + '</span></div></div>' +
+        '<button onclick="showContentPage(2)" style="background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.3);padding:6px 12px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font-b);">' + L.viewPlans + '</button>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">' +
+        '<div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span style="color:var(--text2);">' + L.captures + '</span><span style="color:var(--text);font-weight:700;">' + cap.text + '</span></div><div style="height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;"><div style="height:100%;width:' + cap.pct + '%;background:' + cap.color + ';transition:width 0.3s;"></div></div></div>' +
+        '<div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span style="color:var(--text2);">' + L.ai + '</span><span style="color:var(--text);font-weight:700;">' + ai.text + '</span></div><div style="height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;"><div style="height:100%;width:' + ai.pct + '%;background:' + ai.color + ';transition:width 0.3s;"></div></div></div>' +
+        '<div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span style="color:var(--text2);">' + L.docs + '</span><span style="color:var(--text);font-weight:700;">' + docs.text + '</span></div><div style="height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;"><div style="height:100%;width:' + docs.pct + '%;background:' + docs.color + ';transition:width 0.3s;"></div></div></div>' +
+      '</div>';
+  }
+}
 
 function setTheme(t){
   if(t==='light'){document.body.classList.add('light-mode');}else{document.body.classList.remove('light-mode');}
@@ -2296,6 +2442,7 @@ function applyLang(){
   syncLangSelects();
   // Sync Resources page translations to main app language
   try{translateResources(lang===0?'fr':lang===2?'pt':'en');}catch(e){}
+  try{renderUsageWidgets();}catch(e){}
   var S=STRINGS[lang];
   // Core UI IDs
   var ids={
@@ -3010,6 +3157,7 @@ async function connectDB(){
     if(!dbCoId)return;
     dbOk=true;
     await loadDB();
+    await loadPillierUsage();
     await loadProjects();
     startRealtime();
   }catch(e){console.error("DB",e);}
@@ -3026,7 +3174,7 @@ async function saveDB(e){
   if(!dbOk||!dbCoId)return;
   var r=await db.from("captures").insert({company_id:dbCoId,user_name:me.name,title:e.title,category:e.cat,severity:e.sev,description:e.desc,action:e.action,project:e.project,status:e.status,photo_url:e.photo_url||null,ai_analysis:e.ai||""}).select();
   if(r.error){console.error("saveDB ERROR:",r.error);toast("❌ DB save failed: "+r.error.message);}
-  else{console.log("saveDB OK, id:",r.data&&r.data[0]&&r.data[0].id);if(r.data&&r.data[0]){var idx=entries.findIndex(function(x){return String(x.id)===String(e.id);});if(idx>=0)entries[idx].id=r.data[0].id;}fileStorage(e);}
+  else{console.log("saveDB OK, id:",r.data&&r.data[0]&&r.data[0].id);if(r.data&&r.data[0]){var idx=entries.findIndex(function(x){return String(x.id)===String(e.id);});if(idx>=0)entries[idx].id=r.data[0].id;}fileStorage(e);incrementPillierUsage("captures");}
 }
 
 async function fileStorage(e){
@@ -3910,7 +4058,7 @@ async function sendChat(){
       btn.disabled=false;return;
     }
     var reply=data.choices[0].message.content;
-    chatHistory.push({role:"assistant",content:reply});
+    chatHistory.push({role:"assistant",content:reply});incrementPillierUsage("ai_messages");
     saveChat();
     addMsg("bot",reply.replace(/\n/g,"<br>"));
   }catch(e){
@@ -4127,7 +4275,7 @@ async function processDoc(file,proj){
       projectDocs[proj].unshift(doc);
 
       if(dbOk&&dbCoId){
-        var ins=await db.from("project_documents").insert({company_id:dbCoId,project:proj,name:file.name,summary:doc.summary,file_type:file.type,file_size:doc.size,uploaded_by:me.name,file_url:fileUrl}).select();
+        var ins=await db.from("project_documents").insert({company_id:dbCoId,project:proj,name:file.name,summary:doc.summary,file_type:file.type,file_size:doc.size,uploaded_by:me.name,file_url:fileUrl}).select();incrementPillierUsage("documents");
         if(ins.data&&ins.data[0])doc.id=ins.data[0].id;
       }
 
