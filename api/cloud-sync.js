@@ -1,6 +1,8 @@
 // /api/cloud-sync.js — Cloud storage sync for BaceTech
 // Handles OAuth flows and file uploads for Google Drive, OneDrive, Dropbox, S3, GCP, WebDAV
 
+import { applyRateLimit } from './_rate-limit.js';
+
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://rzdoeehbpdgjxtfbbmwp.supabase.co";
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const PROVIDERS = {
@@ -31,6 +33,10 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") return res.status(200).end();
+
+  // Rate limit: 30 requests per minute per IP
+  // OAuth flows + file uploads shouldn't spike above this
+  if (!applyRateLimit(req, res, 'cloud-sync', 30)) return;
 
   const { action } = req.query;
 
