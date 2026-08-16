@@ -472,6 +472,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .form-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .btn-save{width:100%;background:var(--blue);color:white;border:none;border-radius:8px;padding:13px;font-family:var(--font-d);font-size:13px;font-weight:700;cursor:pointer;margin-top:6px;transition:all 0.12s;}
 .btn-save:hover{background:var(--blue2);}
+body.light-mode #settings-title,body.light-mode #settings-modal-title{color:#0f172a !important;}
 .cloud-btn{background:rgba(255,255,255,0.03) !important;transition:all 0.15s;}
 .cloud-btn:hover{background:rgba(96,165,250,0.08) !important;border-color:var(--blue) !important;}
 body.light-mode .cloud-btn{background:#ffffff !important;border:1px solid var(--border2) !important;color:var(--text) !important;box-shadow:0 1px 2px rgba(0,0,0,0.04);}
@@ -1760,7 +1761,7 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
 
         <div id="tab-8" class="tab">
           <div style="max-width:560px;padding:4px;">
-            <div style="font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--white);margin-bottom:20px" id="settings-title">Configurações</div>
+            <div style="font-family:var(--font-d);font-size:18px;font-weight:800;color:var(--text);margin-bottom:20px" id="settings-title">Configurações</div>
             <div style="margin-bottom:24px">
               <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px" id="settings-cloud-label">Armazenamento em nuvem</div>
               <div id="cloud-connections-panel" style="background:var(--navy3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
@@ -5223,7 +5224,7 @@ function sanitizeProject(proj){
 <div id="settings-modal-overlay" onclick="if(event.target===this)closeSettingsModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
   <div style="background:#18181c;border:1px solid rgba(96,165,250,0.15);border-radius:16px;padding:24px;width:420px;max-width:90vw;max-height:80vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,0.5);">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-      <div style="font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--white);" id="settings-modal-title">Configurações</div>
+      <div style="font-family:var(--font-d);font-size:18px;font-weight:800;color:var(--text);" id="settings-modal-title">Configurações</div>
       <button onclick="closeSettingsModal()" style="background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;"><i class="ti ti-x"></i></button>
     </div>
     <div style="margin-bottom:20px;">
