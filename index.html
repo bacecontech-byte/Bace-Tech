@@ -2763,7 +2763,7 @@ function validateUpload(file, kind) {
 // Turnstile config — REPLACE with your real site key from cloudflare.com
 // Site keys are PUBLIC (safe to commit). Only the SECRET KEY is private (Vercel env var).
 // Until you set a real key, Turnstile is disabled (graceful degradation).
-var TURNSTILE_SITE_KEY = '0x4AAAAAAESdvk_8nQWtC0pD';
+var TURNSTILE_SITE_KEY = 'YOUR_TURNSTILE_SITE_KEY_HERE';
 var TURNSTILE_ENABLED = TURNSTILE_SITE_KEY && TURNSTILE_SITE_KEY !== 'YOUR_TURNSTILE_SITE_KEY_HERE';
 
 // Debug flag: set to true to enable console.log in production
@@ -2796,6 +2796,17 @@ function escapeHTML(str) {
 
 // Turnstile: render widgets on the login and signup forms once script is ready
 var _turnstileTokens = { login: null, signup: null };
+// Map app lang code (0=FR, 1=EN, 2=PT) to Turnstile locale code
+function _pillierTurnstileLang() {
+  if (typeof lang === 'undefined') return 'en';
+  if (lang === 0) return 'fr';
+  if (lang === 2) return 'pt-br';
+  return 'en';
+}
+
+// Track widget IDs so we can reset/remove them properly
+var _turnstileWidgetIds = { login: null, signup: null };
+
 function _pillierRenderTurnstile() {
   if (!TURNSTILE_ENABLED || typeof window.turnstile === 'undefined') return;
   ['login', 'signup'].forEach(function(kind) {
@@ -2803,16 +2814,47 @@ function _pillierRenderTurnstile() {
     if (!el || el.dataset.rendered === '1') return;
     el.dataset.rendered = '1';
     try {
-      window.turnstile.render(el, {
+      var wid = window.turnstile.render(el, {
         sitekey: TURNSTILE_SITE_KEY,
         theme: 'dark',
         size: 'flexible',
+        language: _pillierTurnstileLang(),
         callback: function(token) { _turnstileTokens[kind] = token; },
         'expired-callback': function() { _turnstileTokens[kind] = null; },
         'error-callback': function() { _turnstileTokens[kind] = null; }
       });
+      _turnstileWidgetIds[kind] = wid;
     } catch(e) { console.error('Turnstile render error:', e); }
   });
+}
+
+// Called when user changes app language — re-renders widgets in new locale
+function _pillierReRenderTurnstile() {
+  if (!TURNSTILE_ENABLED || typeof window.turnstile === 'undefined') return;
+  ['login', 'signup'].forEach(function(kind) {
+    var el = document.getElementById('turnstile-' + kind);
+    if (!el) return;
+    // Remove old widget
+    if (_turnstileWidgetIds[kind]) {
+      try { window.turnstile.remove(_turnstileWidgetIds[kind]); } catch(e){}
+    }
+    _turnstileTokens[kind] = null;
+    _turnstileWidgetIds[kind] = null;
+    el.innerHTML = '';
+    el.dataset.rendered = '0';
+  });
+  // Re-render with new language
+  setTimeout(_pillierRenderTurnstile, 100);
+}
+
+// Reset a used CAPTCHA token so user can solve it again (needed after login/signup attempts)
+function _pillierResetTurnstile(kind) {
+  if (!TURNSTILE_ENABLED || typeof window.turnstile === 'undefined') return;
+  var wid = _turnstileWidgetIds[kind];
+  if (wid) {
+    try { window.turnstile.reset(wid); } catch(e){}
+  }
+  _turnstileTokens[kind] = null;
 }
 // Retry until Turnstile SDK loads
 setTimeout(_pillierRenderTurnstile, 500);
@@ -2887,11 +2929,20 @@ async function _pillierVerifyCaptcha(token) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token: token })
     });
+    // Fail-open on backend errors (network issue, 5xx) — user shouldn't be locked out because our backend hiccupped
+    // Only block if we get a DEFINITIVE "no" from Cloudflare (data.ok === false)
+    if (!r.ok) {
+      console.warn('Captcha backend returned', r.status, '— allowing login (fail-open)');
+      return { ok: true, backendError: true };
+    }
     var data = await r.json();
-    return data;
+    // Handle new API response format: {ok: true} or {ok: false, error: "..."}
+    if (data && data.ok === false) return data;
+    // Any other response (including {ok: true, skipped: true} when secret not configured) — allow
+    return { ok: true };
   } catch(e) {
-    console.error('Captcha verify error:', e);
-    return { ok: false, error: 'Captcha verification failed. Please try again.' };
+    console.warn('Captcha verify network error — allowing login (fail-open):', e && e.message);
+    return { ok: true, networkError: true };
   }
 }
 
@@ -3333,6 +3384,7 @@ function applyLang(){
   // Sync Resources page translations to main app language
   try{translateResources(lang===0?'fr':lang===2?'pt':'en');}catch(e){}
   try{renderUsageWidgets();}catch(e){}
+  try{_pillierReRenderTurnstile();}catch(e){}
 
   // Translate consent notices (login + signup)
   try {
@@ -3551,6 +3603,8 @@ async function doLogin(){
   showLoad(false);btn.disabled=false;btn.textContent=S.btnLogin||"Se connecter";
   // Log auth event (best-effort, non-blocking)
   _pillierLogAuthEvent(r.error ? 'login_failure' : 'login_success', em, r.error ? (r.error.message||'unknown') : null);
+  // Reset CAPTCHA so next attempt (or re-login later) has fresh token
+  try { _pillierResetTurnstile('login'); } catch(e){}
   if(r.error){
     rlData.count++;rlData.ts=Date.now();
     localStorage.setItem(rlKey,JSON.stringify(rlData));
@@ -3592,6 +3646,8 @@ async function doSignup(){
   showLoad(false);btn.disabled=false;btn.textContent=STRINGS[lang].btnSignup||"Creer mon compte";
   // Log signup event (best-effort)
   _pillierLogAuthEvent(r.error ? 'signup_failure' : 'signup_success', em, r.error ? (r.error.message||'unknown') : null);
+  // Reset CAPTCHA so next attempt has fresh token
+  try { _pillierResetTurnstile('signup'); } catch(e){}
   if(r.error){showMsg(r.error.message,"err");return;}
   if(r.data&&r.data.session){enterApp(r.data.user);}
   else{showMsg("Compte créé ! Connectez-vous.","ok");switchTab(0);}
