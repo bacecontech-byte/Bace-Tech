@@ -2830,8 +2830,7 @@ function _pillierRenderTurnstile() {
           var btnId = kind === 'login' ? 'btn-login' : 'btn-signup';
           var btn = document.getElementById(btnId);
           if (btn) { btn.disabled = false; btn.style.pointerEvents = 'auto'; btn.style.opacity = '1'; }
-          console.warn('[Pillier] Turnstile token received for', kind, '— button enabled');
-        },
+          },
         'expired-callback': function() { _turnstileTokens[kind] = null; },
         'error-callback': function() { _turnstileTokens[kind] = null; }
       });
@@ -2889,47 +2888,8 @@ window.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-// ═══════════════════════════════════════════════════════════════
-// DEFENSE IN DEPTH: Auto-sanitize innerHTML globally
-// This wraps the native innerHTML setter with DOMPurify.
-// Any string being assigned via el.innerHTML = "..." gets sanitized.
-// Zero code changes needed elsewhere — protection is automatic.
-// ═══════════════════════════════════════════════════════════════
-(function(){
-  // Wait until DOMPurify is loaded
-  function _installProtection(){
-    if (typeof DOMPurify === 'undefined' || !DOMPurify.sanitize) {
-      setTimeout(_installProtection, 100);
-      return;
-    }
-    try {
-      var proto = Element.prototype;
-      var descriptor = Object.getOwnPropertyDescriptor(proto, 'innerHTML');
-      if (!descriptor || !descriptor.set) return;
-      var origSetter = descriptor.set;
-      Object.defineProperty(proto, 'innerHTML', {
-        set: function(html) {
-          try {
-            var clean = DOMPurify.sanitize(html, {
-              ADD_ATTR: ['target', 'onclick', 'onmouseover', 'onmouseout', 'onchange', 'oninput', 'onkeydown', 'onkeyup', 'onload', 'onerror', 'onfocus', 'onblur', 'onsubmit'],
-              ADD_TAGS: ['iframe', 'video', 'audio', 'source', 'track'],
-              ALLOW_UNKNOWN_PROTOCOLS: false
-            });
-            origSetter.call(this, clean);
-          } catch(e) {
-            origSetter.call(this, html); // Fallback to unsanitized on error
-          }
-        },
-        get: descriptor.get,
-        configurable: true
-      });
-      plog('DOMPurify auto-protection installed');
-    } catch(e) { console.error('Failed to install DOMPurify protection:', e); }
-  }
-  _installProtection();
-})();
-
-
+// Note: Global auto-innerHTML sanitization removed — was breaking animations & event handlers.
+// Use safeHTML(el, html) explicitly for user-controlled data.
 
 // Verify a Turnstile token with our backend (server-side confirms with Cloudflare)
 
@@ -3608,18 +3568,15 @@ function switchTab(i){
 function showMsg(txt,type){var el=document.getElementById("auth-msg");if(!txt){el.style.display="none";return;}el.className="auth-msg "+(type==="ok"?"ok":"err");el.textContent=txt;el.style.display="block";}
 
 async function doLogin(){
-  console.warn('[Pillier] Login button clicked. Token present:', !!_turnstileTokens.login, 'Turnstile enabled:', TURNSTILE_ENABLED);
   var btn = document.getElementById("btn-login");
   // Force-reset button state at start (in case it was stuck)
   if (btn) { btn.disabled = false; btn.style.pointerEvents = 'auto'; }
   try {
     // SECURITY: Rate limit login attempts (prevent brute force)
-    if(!checkRateLimit('login')){console.warn('[Pillier] Blocked by client rate limit');return;}
+    if(!checkRateLimit('login')){return;}
     // SECURITY: Verify Turnstile CAPTCHA (if enabled)
     if (TURNSTILE_ENABLED) {
-      console.warn('[Pillier] Verifying CAPTCHA token...');
       var capCheck = await _pillierVerifyCaptcha(_turnstileTokens.login);
-      console.warn('[Pillier] CAPTCHA verify result:', capCheck);
       if (!capCheck.ok) { toast('❌ ' + (capCheck.error || 'CAPTCHA failed')); return; }
     }
     var em=document.getElementById("l-email").value.trim(),pw=document.getElementById("l-pass").value;
@@ -3662,7 +3619,6 @@ async function doLogin(){
 }
 
 async function doSignup(){
-  console.warn('[Pillier] Signup button clicked. Token present:', !!_turnstileTokens.signup, 'Turnstile enabled:', TURNSTILE_ENABLED);
   var btnSU = document.getElementById("btn-signup");
   if (btnSU) { btnSU.disabled = false; btnSU.style.pointerEvents = 'auto'; }
   try {
@@ -3670,9 +3626,7 @@ async function doSignup(){
     if(!checkRateLimit('login'))return;
     // SECURITY: Verify Turnstile CAPTCHA (if enabled)
     if (TURNSTILE_ENABLED) {
-      console.warn('[Pillier] Verifying signup CAPTCHA token...');
       var capCheckS = await _pillierVerifyCaptcha(_turnstileTokens.signup);
-      console.warn('[Pillier] Signup CAPTCHA verify result:', capCheckS);
       if (!capCheckS.ok) { toast('❌ ' + (capCheckS.error || 'CAPTCHA failed')); return; }
     }
     var first=document.getElementById("s-first").value.trim(),last=document.getElementById("s-last").value.trim();
