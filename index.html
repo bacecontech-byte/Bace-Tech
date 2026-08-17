@@ -2824,7 +2824,14 @@ function _pillierRenderTurnstile() {
         theme: 'dark',
         size: 'flexible',
         language: wantedLang,
-        callback: function(token) { _turnstileTokens[kind] = token; },
+        callback: function(token) {
+          _turnstileTokens[kind] = token;
+          // Explicitly re-enable the auth button (in case it was stuck disabled)
+          var btnId = kind === 'login' ? 'btn-login' : 'btn-signup';
+          var btn = document.getElementById(btnId);
+          if (btn) { btn.disabled = false; btn.style.pointerEvents = 'auto'; btn.style.opacity = '1'; }
+          console.warn('[Pillier] Turnstile token received for', kind, '— button enabled');
+        },
         'expired-callback': function() { _turnstileTokens[kind] = null; },
         'error-callback': function() { _turnstileTokens[kind] = null; }
       });
@@ -2874,6 +2881,14 @@ function _pillierResetTurnstile(kind) {
 setTimeout(_pillierRenderTurnstile, 500);
 setTimeout(_pillierRenderTurnstile, 1500);
 setTimeout(_pillierRenderTurnstile, 3000);
+// Ensure auth buttons are never stuck disabled on page load
+window.addEventListener('DOMContentLoaded', function() {
+  ['btn-login', 'btn-signup'].forEach(function(id) {
+    var b = document.getElementById(id);
+    if (b) { b.disabled = false; b.style.pointerEvents = 'auto'; b.style.opacity = '1'; }
+  });
+});
+
 // ═══════════════════════════════════════════════════════════════
 // DEFENSE IN DEPTH: Auto-sanitize innerHTML globally
 // This wraps the native innerHTML setter with DOMPurify.
@@ -3594,14 +3609,20 @@ function showMsg(txt,type){var el=document.getElementById("auth-msg");if(!txt){e
 
 async function doLogin(){
   console.warn('[Pillier] Login button clicked. Token present:', !!_turnstileTokens.login, 'Turnstile enabled:', TURNSTILE_ENABLED);
-  // SECURITY: Rate limit login attempts (prevent brute force)
-  if(!checkRateLimit('login')){console.warn('[Pillier] Blocked by client rate limit');return;}
-  // SECURITY: Verify Turnstile CAPTCHA (if enabled)
-  if (TURNSTILE_ENABLED) {
-    var capCheck = await _pillierVerifyCaptcha(_turnstileTokens.login);
-    if (!capCheck.ok) { toast('❌ ' + (capCheck.error || 'CAPTCHA failed')); return; }
-  }
-  var em=document.getElementById("l-email").value.trim(),pw=document.getElementById("l-pass").value;
+  var btn = document.getElementById("btn-login");
+  // Force-reset button state at start (in case it was stuck)
+  if (btn) { btn.disabled = false; btn.style.pointerEvents = 'auto'; }
+  try {
+    // SECURITY: Rate limit login attempts (prevent brute force)
+    if(!checkRateLimit('login')){console.warn('[Pillier] Blocked by client rate limit');return;}
+    // SECURITY: Verify Turnstile CAPTCHA (if enabled)
+    if (TURNSTILE_ENABLED) {
+      console.warn('[Pillier] Verifying CAPTCHA token...');
+      var capCheck = await _pillierVerifyCaptcha(_turnstileTokens.login);
+      console.warn('[Pillier] CAPTCHA verify result:', capCheck);
+      if (!capCheck.ok) { toast('❌ ' + (capCheck.error || 'CAPTCHA failed')); return; }
+    }
+    var em=document.getElementById("l-email").value.trim(),pw=document.getElementById("l-pass").value;
   var S=STRINGS[lang];
   if(!em||!pw){showMsg(S.fillAll||"Remplissez tous les champs","err");return;}
   // Rate limiting: 5 attempts, 2 min lockout
@@ -3631,17 +3652,30 @@ async function doLogin(){
   // Reset on success
   localStorage.removeItem(rlKey);
   enterApp(r.data.user);
+  } catch (loginErr) {
+    console.error('[Pillier] doLogin threw:', loginErr);
+    toast('Login error: ' + (loginErr && loginErr.message || 'unknown'));
+  } finally {
+    // ALWAYS re-enable the button so user isn't locked out
+    if (btn) { btn.disabled = false; btn.style.pointerEvents = 'auto'; btn.style.opacity = '1'; }
+  }
 }
 
 async function doSignup(){
-  // SECURITY: Rate limit signup attempts (prevent bot signups)
-  if(!checkRateLimit('login'))return;
-  // SECURITY: Verify Turnstile CAPTCHA (if enabled)
-  if (TURNSTILE_ENABLED) {
-    var capCheckS = await _pillierVerifyCaptcha(_turnstileTokens.signup);
-    if (!capCheckS.ok) { toast('❌ ' + (capCheckS.error || 'CAPTCHA failed')); return; }
-  }
-  var first=document.getElementById("s-first").value.trim(),last=document.getElementById("s-last").value.trim();
+  console.warn('[Pillier] Signup button clicked. Token present:', !!_turnstileTokens.signup, 'Turnstile enabled:', TURNSTILE_ENABLED);
+  var btnSU = document.getElementById("btn-signup");
+  if (btnSU) { btnSU.disabled = false; btnSU.style.pointerEvents = 'auto'; }
+  try {
+    // SECURITY: Rate limit signup attempts (prevent bot signups)
+    if(!checkRateLimit('login'))return;
+    // SECURITY: Verify Turnstile CAPTCHA (if enabled)
+    if (TURNSTILE_ENABLED) {
+      console.warn('[Pillier] Verifying signup CAPTCHA token...');
+      var capCheckS = await _pillierVerifyCaptcha(_turnstileTokens.signup);
+      console.warn('[Pillier] Signup CAPTCHA verify result:', capCheckS);
+      if (!capCheckS.ok) { toast('❌ ' + (capCheckS.error || 'CAPTCHA failed')); return; }
+    }
+    var first=document.getElementById("s-first").value.trim(),last=document.getElementById("s-last").value.trim();
   var em=document.getElementById("s-email").value.trim(),co=document.getElementById("s-co").value.trim(),pw=document.getElementById("s-pass").value;
   if(!first||!last||!em||!co||!pw){showMsg("Remplissez tous les champs","err");return;}
   // Password strength validation
@@ -3666,6 +3700,12 @@ async function doSignup(){
   if(r.error){showMsg(r.error.message,"err");return;}
   if(r.data&&r.data.session){enterApp(r.data.user);}
   else{showMsg("Compte créé ! Connectez-vous.","ok");switchTab(0);}
+  } catch (signupErr) {
+    console.error('[Pillier] doSignup threw:', signupErr);
+    toast('Signup error: ' + (signupErr && signupErr.message || 'unknown'));
+  } finally {
+    if (btnSU) { btnSU.disabled = false; btnSU.style.pointerEvents = 'auto'; btnSU.style.opacity = '1'; }
+  }
 }
 
 async function doReset(){
