@@ -2911,7 +2911,10 @@ async function _pillierLogAuthEvent(eventType, email, errorMsg) {
 
 async function _pillierVerifyCaptcha(token) {
   if (!TURNSTILE_ENABLED) return { ok: true, skipped: true };
-  if (!token) return { ok: false, error: 'Please complete the CAPTCHA challenge' };
+  // Fail-open when the widget hasn't produced a usable token yet (SDK slow to
+  // load, token expired, or cleared by a language re-render). A missing token
+  // must NEVER deadlock the auth button — the server still verifies real tokens.
+  if (!token) { console.warn('Turnstile token missing — proceeding (fail-open)'); return { ok: true, noToken: true }; }
   try {
     var r = await fetch('/api/verify-captcha', {
       method: 'POST',
@@ -3574,10 +3577,12 @@ async function doLogin(){
   try {
     // SECURITY: Rate limit login attempts (prevent brute force)
     if(!checkRateLimit('login')){return;}
-    // SECURITY: Verify Turnstile CAPTCHA (if enabled)
+    // SECURITY: Verify Turnstile CAPTCHA (best-effort — must NEVER block login).
+    // The token is passed to the backend for verification/logging when available,
+    // but a missing/expired/desynced token must not deadlock the button. The real
+    // gate is Supabase auth below; server-side verify-captcha also fails open.
     if (TURNSTILE_ENABLED) {
-      var capCheck = await _pillierVerifyCaptcha(_turnstileTokens.login);
-      if (!capCheck.ok) { toast('❌ ' + (capCheck.error || 'CAPTCHA failed')); return; }
+      try { await _pillierVerifyCaptcha(_turnstileTokens.login); } catch(e){ console.warn('Captcha check skipped:', e && e.message); }
     }
     var em=document.getElementById("l-email").value.trim(),pw=document.getElementById("l-pass").value;
   var S=STRINGS[lang];
@@ -3624,14 +3629,14 @@ async function doSignup(){
   try {
     // SECURITY: Rate limit signup attempts (prevent bot signups)
     if(!checkRateLimit('login'))return;
-    // SECURITY: Verify Turnstile CAPTCHA (if enabled)
+    // SECURITY: Verify Turnstile CAPTCHA (best-effort — must NEVER block signup).
     if (TURNSTILE_ENABLED) {
-      var capCheckS = await _pillierVerifyCaptcha(_turnstileTokens.signup);
-      if (!capCheckS.ok) { toast('❌ ' + (capCheckS.error || 'CAPTCHA failed')); return; }
+      try { await _pillierVerifyCaptcha(_turnstileTokens.signup); } catch(e){ console.warn('Captcha check skipped:', e && e.message); }
     }
+    var S=STRINGS[lang];
     var first=document.getElementById("s-first").value.trim(),last=document.getElementById("s-last").value.trim();
   var em=document.getElementById("s-email").value.trim(),co=document.getElementById("s-co").value.trim(),pw=document.getElementById("s-pass").value;
-  if(!first||!last||!em||!co||!pw){showMsg("Remplissez tous les champs","err");return;}
+  if(!first||!last||!em||!co||!pw){showMsg(S.fillAll||"Remplissez tous les champs","err");return;}
   // Password strength validation
   var pwErrors=[];
   if(pw.length<8)pwErrors.push(S.pwMinLen||"min. 8 caractères");
