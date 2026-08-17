@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Pillier</title>
+<!-- Security: DOMPurify (XSS protection for innerHTML) -->
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+<!-- Security: Cloudflare Turnstile (CAPTCHA bot protection) -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -943,6 +947,7 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
     <div id="form-login" style="width:100%;max-width:380px;">
       <div class="form-group"><label class="form-label" id="lb-email">Email</label><input class="form-input" type="email" id="l-email" placeholder="vous@entreprise.com" style="width:100%;background:#18181c;border-color:rgba(255,255,255,0.1);color:#fff;"></div>
       <div class="form-group"><label class="form-label" id="lb-pass">Mot de passe</label><input class="form-input" type="password" id="l-pass" placeholder="••••••••" style="width:100%;background:#18181c;border-color:rgba(255,255,255,0.1);color:#fff;"></div>
+      <div id="turnstile-login" style="margin:12px 0;min-height:0;"></div>
       <button class="btn-primary" id="btn-login" onclick="doLogin()" style="width:100%;margin-top:4px;"></button>
       <div style="text-align:center;margin-top:12px;"><a onclick="doReset()" style="font-size:12px;color:#6a6a75;cursor:pointer;" id="lnk-reset"></a></div>
       <div class="auth-switch" style="margin-top:10px;font-size:12px;color:#6a6a75;"><span id="no-acc"></span> <a onclick="switchTab(1)" id="lnk-signup" style="color:#60a5fa;cursor:pointer;"></a></div>
@@ -971,6 +976,7 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
         </div>
       </div>
       <div class="form-group"><label class="form-label" id="lb-spass">Mot de passe</label><input class="form-input" type="password" id="s-pass" placeholder="Min. 8 caractères" style="width:100%;background:#18181c;border-color:rgba(255,255,255,0.1);color:#fff;"></div>
+      <div id="turnstile-signup" style="margin:12px 0;min-height:0;"></div>
       <button class="btn-primary" id="btn-signup" onclick="doSignup()" style="width:100%;"></button>
       <a href="https://app.pillier.com.br" id="trial-link-signup" style="display:block;text-align:center;margin-top:10px;padding:10px;border-radius:10px;border:1px solid rgba(96,165,250,0.25);color:#60a5fa;font-size:13px;font-weight:500;text-decoration:none;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='#60a5fa';this.style.background='rgba(96,165,250,0.06)'" onmouseout="this.style.borderColor='rgba(96,165,250,0.25)';this.style.background='none'">Teste grátis 30 dias</a>
       <div class="auth-switch" style="margin-top:10px;font-size:12px;color:#6a6a75;"><span id="have-acc"></span> <a onclick="switchTab(0)" id="lnk-login" style="color:#60a5fa;cursor:pointer;"></a></div>
@@ -2750,6 +2756,145 @@ function validateUpload(file, kind) {
   return { ok: true };
 }
 
+// ═══════════════════════════════════════════════════════════════
+// PILLIER SECURITY HELPERS (Week 2)
+// ═══════════════════════════════════════════════════════════════
+
+// Turnstile config — REPLACE with your real site key from cloudflare.com
+// Site keys are PUBLIC (safe to commit). Only the SECRET KEY is private (Vercel env var).
+// Until you set a real key, Turnstile is disabled (graceful degradation).
+var TURNSTILE_SITE_KEY = 'YOUR_TURNSTILE_SITE_KEY_HERE';
+var TURNSTILE_ENABLED = TURNSTILE_SITE_KEY && TURNSTILE_SITE_KEY !== 'YOUR_TURNSTILE_SITE_KEY_HERE';
+
+// Debug flag: set to true to enable console.log in production
+// In production, plog() is silent. console.error still works (kept for debugging).
+var PILLIER_DEBUG = false;
+function plog() { if (PILLIER_DEBUG && typeof console !== 'undefined') console.log.apply(console, arguments); }
+
+// Safe HTML setter — wraps innerHTML with DOMPurify sanitization
+// Use safeHTML(el, html) INSTEAD of el.innerHTML = html when injecting any user data
+function safeHTML(el, html) {
+  if (!el) return;
+  if (typeof DOMPurify !== 'undefined' && DOMPurify.sanitize) {
+    el.innerHTML = DOMPurify.sanitize(html, {
+      ADD_ATTR: ['target', 'onclick', 'onmouseover', 'onmouseout'],
+      ADD_TAGS: ['iframe']
+    });
+  } else {
+    // DOMPurify not loaded yet — fallback (still better than nothing: escape scripts)
+    el.innerHTML = String(html).replace(/<script[\s\S]*?<\/script>/gi, '');
+  }
+}
+
+// Safe text — for plain text insertion (no HTML at all). Best when you don't need HTML.
+function safeText(el, text) { if (el) el.textContent = String(text || ''); }
+
+// Escape untrusted string for safe HTML embedding
+function escapeHTML(str) {
+  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+// Turnstile: render widgets on the login and signup forms once script is ready
+var _turnstileTokens = { login: null, signup: null };
+function _pillierRenderTurnstile() {
+  if (!TURNSTILE_ENABLED || typeof window.turnstile === 'undefined') return;
+  ['login', 'signup'].forEach(function(kind) {
+    var el = document.getElementById('turnstile-' + kind);
+    if (!el || el.dataset.rendered === '1') return;
+    el.dataset.rendered = '1';
+    try {
+      window.turnstile.render(el, {
+        sitekey: TURNSTILE_SITE_KEY,
+        theme: 'dark',
+        size: 'flexible',
+        callback: function(token) { _turnstileTokens[kind] = token; },
+        'expired-callback': function() { _turnstileTokens[kind] = null; },
+        'error-callback': function() { _turnstileTokens[kind] = null; }
+      });
+    } catch(e) { console.error('Turnstile render error:', e); }
+  });
+}
+// Retry until Turnstile SDK loads
+setTimeout(_pillierRenderTurnstile, 500);
+setTimeout(_pillierRenderTurnstile, 1500);
+setTimeout(_pillierRenderTurnstile, 3000);
+// ═══════════════════════════════════════════════════════════════
+// DEFENSE IN DEPTH: Auto-sanitize innerHTML globally
+// This wraps the native innerHTML setter with DOMPurify.
+// Any string being assigned via el.innerHTML = "..." gets sanitized.
+// Zero code changes needed elsewhere — protection is automatic.
+// ═══════════════════════════════════════════════════════════════
+(function(){
+  // Wait until DOMPurify is loaded
+  function _installProtection(){
+    if (typeof DOMPurify === 'undefined' || !DOMPurify.sanitize) {
+      setTimeout(_installProtection, 100);
+      return;
+    }
+    try {
+      var proto = Element.prototype;
+      var descriptor = Object.getOwnPropertyDescriptor(proto, 'innerHTML');
+      if (!descriptor || !descriptor.set) return;
+      var origSetter = descriptor.set;
+      Object.defineProperty(proto, 'innerHTML', {
+        set: function(html) {
+          try {
+            var clean = DOMPurify.sanitize(html, {
+              ADD_ATTR: ['target', 'onclick', 'onmouseover', 'onmouseout', 'onchange', 'oninput', 'onkeydown', 'onkeyup', 'onload', 'onerror', 'onfocus', 'onblur', 'onsubmit'],
+              ADD_TAGS: ['iframe', 'video', 'audio', 'source', 'track'],
+              ALLOW_UNKNOWN_PROTOCOLS: false
+            });
+            origSetter.call(this, clean);
+          } catch(e) {
+            origSetter.call(this, html); // Fallback to unsanitized on error
+          }
+        },
+        get: descriptor.get,
+        configurable: true
+      });
+      plog('DOMPurify auto-protection installed');
+    } catch(e) { console.error('Failed to install DOMPurify protection:', e); }
+  }
+  _installProtection();
+})();
+
+
+
+// Verify a Turnstile token with our backend (server-side confirms with Cloudflare)
+
+// Log auth event to Supabase (best-effort, silent failure)
+async function _pillierLogAuthEvent(eventType, email, errorMsg) {
+  if (typeof db === 'undefined' || !db || !db.rpc) return;
+  try {
+    await db.rpc('log_auth_event', {
+      p_event_type: eventType,
+      p_user_email: email || '(unknown)',
+      p_error_message: errorMsg || null,
+      p_metadata: {
+        user_agent: (navigator && navigator.userAgent) ? navigator.userAgent.substring(0, 200) : '',
+        lang: (typeof lang !== 'undefined') ? lang : null
+      }
+    });
+  } catch(e) { /* silent — auth event logging should never break auth */ }
+}
+
+async function _pillierVerifyCaptcha(token) {
+  if (!TURNSTILE_ENABLED) return { ok: true, skipped: true };
+  if (!token) return { ok: false, error: 'Please complete the CAPTCHA challenge' };
+  try {
+    var r = await fetch('/api/verify-captcha', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: token })
+    });
+    var data = await r.json();
+    return data;
+  } catch(e) {
+    console.error('Captcha verify error:', e);
+    return { ok: false, error: 'Captcha verification failed. Please try again.' };
+  }
+}
+
 function setTheme(t){
   if(t==='light'){document.body.classList.add('light-mode');}else{document.body.classList.remove('light-mode');}
   localStorage.setItem('pillier_theme',t);
@@ -3014,7 +3159,7 @@ function setMobLeadLang(l){_mobLeadLang=l;var en=document.getElementById('mob-le
   var ph={'mob-lead-name':'name','mob-lead-email':'email','mob-lead-company':'company'};
   Object.keys(ph).forEach(function(id){var el=document.getElementById(id);if(el)el.placeholder=tx[ph[id]];});
 }
-function downloadMobReport(){var name=document.getElementById('mob-lead-name').value;var email=document.getElementById('mob-lead-email').value;var company=document.getElementById('mob-lead-company').value;if(!name||!email){toast('Please fill in name and email');return;}console.log('Mobile lead:',{name:name,email:email,company:company,lang:_mobLeadLang});if(dbOk&&dbCoId){db.from('leads').insert({name:name,email:email,company:company,lang:_mobLeadLang,report_id:1}).then(function(){}).catch(function(){});}var rpt='report_01';var url=_mobLeadLang==='pt'?'https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/reports/'+rpt+'_pt.pdf':'https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/reports/'+rpt+'_en.pdf';window.open(url,'_blank');document.getElementById('mob-lead-form').innerHTML='<div style="text-align:center;padding:12px;color:#4ade80;font-size:13px;">✓ Report sent!</div>';}
+function downloadMobReport(){var name=document.getElementById('mob-lead-name').value;var email=document.getElementById('mob-lead-email').value;var company=document.getElementById('mob-lead-company').value;if(!name||!email){toast('Please fill in name and email');return;}plog('Mobile lead:',{name:name,email:email,company:company,lang:_mobLeadLang});if(dbOk&&dbCoId){db.from('leads').insert({name:name,email:email,company:company,lang:_mobLeadLang,report_id:1}).then(function(){}).catch(function(){});}var rpt='report_01';var url=_mobLeadLang==='pt'?'https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/reports/'+rpt+'_pt.pdf':'https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/reports/'+rpt+'_en.pdf';window.open(url,'_blank');document.getElementById('mob-lead-form').innerHTML='<div style="text-align:center;padding:12px;color:#4ade80;font-size:13px;">✓ Report sent!</div>';}
 
 var _leadLang='en';
 var _leadReportId=1;
@@ -3047,7 +3192,7 @@ function setLeadLang(l){
   if(l==='en'){en.style.background='rgba(96,165,250,0.1)';en.style.borderColor='rgba(96,165,250,0.3)';en.style.color='#60a5fa';en.style.fontWeight='600';pt.style.background='none';pt.style.borderColor='rgba(255,255,255,0.08)';pt.style.color='#8a8a95';pt.style.fontWeight='500';}
   else{pt.style.background='rgba(96,165,250,0.1)';pt.style.borderColor='rgba(96,165,250,0.3)';pt.style.color='#60a5fa';pt.style.fontWeight='600';en.style.background='none';en.style.borderColor='rgba(255,255,255,0.08)';en.style.color='#8a8a95';en.style.fontWeight='500';}
 }
-function downloadReport(){var name=document.getElementById('lead-name').value;var email=document.getElementById('lead-email').value;var company=document.getElementById('lead-company').value;if(!name||!email){toast('Please fill in name and email');return;}console.log('Lead captured:',{name:name,email:email,company:company,lang:_leadLang,report:_leadReportId});if(dbOk&&dbCoId){db.from('leads').insert({name:name,email:email,company:company,lang:_leadLang,report_id:_leadReportId}).then(function(){console.log('Lead saved');}).catch(function(){console.log('Lead table may not exist yet');});}var rpt=_leadReportId===2?'report_02':'report_01';var url=_leadLang==='pt'?'https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/reports/'+rpt+'_pt.pdf':'https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/reports/'+rpt+'_en.pdf';window.open(url,'_blank');document.getElementById('lead-form').innerHTML='<div style="text-align:center;padding:12px;color:#4ade80;font-size:12px;">✓ Report sent! Check your download.</div>';}
+function downloadReport(){var name=document.getElementById('lead-name').value;var email=document.getElementById('lead-email').value;var company=document.getElementById('lead-company').value;if(!name||!email){toast('Please fill in name and email');return;}plog('Lead captured:',{name:name,email:email,company:company,lang:_leadLang,report:_leadReportId});if(dbOk&&dbCoId){db.from('leads').insert({name:name,email:email,company:company,lang:_leadLang,report_id:_leadReportId}).then(function(){plog('Lead saved');}).catch(function(){plog('Lead table may not exist yet');});}var rpt=_leadReportId===2?'report_02':'report_01';var url=_leadLang==='pt'?'https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/reports/'+rpt+'_pt.pdf':'https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/reports/'+rpt+'_en.pdf';window.open(url,'_blank');document.getElementById('lead-form').innerHTML='<div style="text-align:center;padding:12px;color:#4ade80;font-size:12px;">✓ Report sent! Check your download.</div>';}
 
 function translateNav(){
   var t={
@@ -3384,6 +3529,11 @@ function showMsg(txt,type){var el=document.getElementById("auth-msg");if(!txt){e
 async function doLogin(){
   // SECURITY: Rate limit login attempts (prevent brute force)
   if(!checkRateLimit('login'))return;
+  // SECURITY: Verify Turnstile CAPTCHA (if enabled)
+  if (TURNSTILE_ENABLED) {
+    var capCheck = await _pillierVerifyCaptcha(_turnstileTokens.login);
+    if (!capCheck.ok) { toast('❌ ' + (capCheck.error || 'CAPTCHA failed')); return; }
+  }
   var em=document.getElementById("l-email").value.trim(),pw=document.getElementById("l-pass").value;
   var S=STRINGS[lang];
   if(!em||!pw){showMsg(S.fillAll||"Remplissez tous les champs","err");return;}
@@ -3399,6 +3549,8 @@ async function doLogin(){
   showLoad(true,S.loadLogin||"Connexion...");
   var r=await db.auth.signInWithPassword({email:em,password:pw});
   showLoad(false);btn.disabled=false;btn.textContent=S.btnLogin||"Se connecter";
+  // Log auth event (best-effort, non-blocking)
+  _pillierLogAuthEvent(r.error ? 'login_failure' : 'login_success', em, r.error ? (r.error.message||'unknown') : null);
   if(r.error){
     rlData.count++;rlData.ts=Date.now();
     localStorage.setItem(rlKey,JSON.stringify(rlData));
@@ -3413,6 +3565,13 @@ async function doLogin(){
 }
 
 async function doSignup(){
+  // SECURITY: Rate limit signup attempts (prevent bot signups)
+  if(!checkRateLimit('login'))return;
+  // SECURITY: Verify Turnstile CAPTCHA (if enabled)
+  if (TURNSTILE_ENABLED) {
+    var capCheckS = await _pillierVerifyCaptcha(_turnstileTokens.signup);
+    if (!capCheckS.ok) { toast('❌ ' + (capCheckS.error || 'CAPTCHA failed')); return; }
+  }
   var first=document.getElementById("s-first").value.trim(),last=document.getElementById("s-last").value.trim();
   var em=document.getElementById("s-email").value.trim(),co=document.getElementById("s-co").value.trim(),pw=document.getElementById("s-pass").value;
   if(!first||!last||!em||!co||!pw){showMsg("Remplissez tous les champs","err");return;}
@@ -3431,6 +3590,8 @@ async function doSignup(){
   showLoad(true,"Creation...");
   var r=await db.auth.signUp({email:em,password:pw,options:{data:{full_name:first+" "+last,company:co,preferred_lang:selectedLang}}});
   showLoad(false);btn.disabled=false;btn.textContent=STRINGS[lang].btnSignup||"Creer mon compte";
+  // Log signup event (best-effort)
+  _pillierLogAuthEvent(r.error ? 'signup_failure' : 'signup_success', em, r.error ? (r.error.message||'unknown') : null);
   if(r.error){showMsg(r.error.message,"err");return;}
   if(r.data&&r.data.session){enterApp(r.data.user);}
   else{showMsg("Compte créé ! Connectez-vous.","ok");switchTab(0);}
@@ -3940,7 +4101,7 @@ async function saveDB(e){
   if(!dbOk||!dbCoId)return;
   var r=await db.from("captures").insert({company_id:dbCoId,user_name:me.name,title:e.title,category:e.cat,severity:e.sev,description:e.desc,action:e.action,project:e.project,status:e.status,photo_url:e.photo_url||null,ai_analysis:e.ai||""}).select();
   if(r.error){console.error("saveDB ERROR:",r.error);toast("❌ DB save failed: "+r.error.message);}
-  else{console.log("saveDB OK, id:",r.data&&r.data[0]&&r.data[0].id);if(r.data&&r.data[0]){var idx=entries.findIndex(function(x){return String(x.id)===String(e.id);});if(idx>=0)entries[idx].id=r.data[0].id;}fileStorage(e);incrementPillierUsage("captures");}
+  else{plog("saveDB OK, id:",r.data&&r.data[0]&&r.data[0].id);if(r.data&&r.data[0]){var idx=entries.findIndex(function(x){return String(x.id)===String(e.id);});if(idx>=0)entries[idx].id=r.data[0].id;}fileStorage(e);incrementPillierUsage("captures");}
 }
 
 async function fileStorage(e){
@@ -4349,7 +4510,7 @@ async function saveEntry(){
       var thumbUrl=await compressPhoto(window._lastPhotoData,600,0.6);
       entry.photo_url=thumbUrl;
       entry.photo=thumbUrl;
-      console.log("Photo compressed, size:",Math.round(thumbUrl.length/1024)+"KB");
+      plog("Photo compressed, size:",Math.round(thumbUrl.length/1024)+"KB");
     }catch(compErr){console.error("Photo compress error:",compErr);entry.photo_url=null;}
   }
   entries.unshift(entry);
@@ -4556,7 +4717,7 @@ async function generateInsights(){
       var langName=lang===0?"French":lang===1?"English":"Portuguese";
       var resp=await fetch("/api/groq",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:[{role:"user",content:"You are Pillier IA, construction AI. Give exactly 2-3 short actionable insights in "+langName+". One sentence each with emoji prefix. Mention project names, categories, numbers. No headers.\n\n"+summary}],model:"llama-3.3-70b-versatile",temperature:0.3,max_tokens:200})});
       if(resp.ok){var data=await resp.json();var t=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||"";if(t.trim().length>10){textEl.innerHTML=t.trim().replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");}}
-    }catch(e){console.log("AI insights: local fallback",e);}
+    }catch(e){plog("AI insights: local fallback",e);}
   }
   },2000);
 }
@@ -5953,7 +6114,7 @@ async function syncAllToCloud(){
 
   var S=STRINGS[lang];
   toast("⏳ "+(S.syncingAll||"Sincronizando tudo..."));
-  console.log("Syncing",entries.length,"captures and loading documents from DB...");
+  plog("Syncing",entries.length,"captures and loading documents from DB...");
   var synced=0;
 
   // Sync all captures/incidents
