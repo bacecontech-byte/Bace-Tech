@@ -2806,9 +2806,12 @@ function _pillierTurnstileLang() {
 
 // Track widget IDs so we can reset/remove them properly
 var _turnstileWidgetIds = { login: null, signup: null };
+// Track which language the widget was last rendered in (prevents unnecessary re-render race)
+var _turnstileRenderedLang = null;
 
 function _pillierRenderTurnstile() {
   if (!TURNSTILE_ENABLED || typeof window.turnstile === 'undefined') return;
+  var wantedLang = _pillierTurnstileLang();
   ['login', 'signup'].forEach(function(kind) {
     var el = document.getElementById('turnstile-' + kind);
     if (!el || el.dataset.rendered === '1') return;
@@ -2818,23 +2821,32 @@ function _pillierRenderTurnstile() {
         sitekey: TURNSTILE_SITE_KEY,
         theme: 'dark',
         size: 'flexible',
-        language: _pillierTurnstileLang(),
+        language: wantedLang,
         callback: function(token) { _turnstileTokens[kind] = token; },
         'expired-callback': function() { _turnstileTokens[kind] = null; },
         'error-callback': function() { _turnstileTokens[kind] = null; }
       });
       _turnstileWidgetIds[kind] = wid;
-    } catch(e) { console.error('Turnstile render error:', e); }
+    } catch(e) {
+      console.error('Turnstile render error:', e);
+      el.dataset.rendered = '0'; // allow retry
+    }
   });
+  _turnstileRenderedLang = wantedLang;
 }
 
 // Called when user changes app language — re-renders widgets in new locale
+// GUARD: only re-renders if language actually changed (prevents race during applyLang() calls at page load)
 function _pillierReRenderTurnstile() {
-  if (!TURNSTILE_ENABLED || typeof window.turnstile === 'undefined') return;
+  if (!TURNSTILE_ENABLED) return;
+  var wantedLang = _pillierTurnstileLang();
+  // If language hasn't changed since last render, DO NOTHING (critical guard)
+  if (_turnstileRenderedLang === wantedLang) return;
+  // If Turnstile SDK not loaded yet, just update the tracker — the initial retries will handle rendering
+  if (typeof window.turnstile === 'undefined') return;
   ['login', 'signup'].forEach(function(kind) {
     var el = document.getElementById('turnstile-' + kind);
     if (!el) return;
-    // Remove old widget
     if (_turnstileWidgetIds[kind]) {
       try { window.turnstile.remove(_turnstileWidgetIds[kind]); } catch(e){}
     }
@@ -2843,7 +2855,7 @@ function _pillierReRenderTurnstile() {
     el.innerHTML = '';
     el.dataset.rendered = '0';
   });
-  // Re-render with new language
+  // Re-render with new language after brief settle
   setTimeout(_pillierRenderTurnstile, 100);
 }
 
