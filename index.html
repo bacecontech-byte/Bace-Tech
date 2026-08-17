@@ -6,6 +6,8 @@
 <title>Pillier</title>
 <!-- Security: DOMPurify (XSS protection for innerHTML) -->
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+<!-- Pillier runtime config from Vercel env vars (survives code updates) -->
+<script src="/api/config.js"></script>
 <!-- Security: Cloudflare Turnstile (CAPTCHA bot protection) -->
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2760,11 +2762,11 @@ function validateUpload(file, kind) {
 // PILLIER SECURITY HELPERS (Week 2)
 // ═══════════════════════════════════════════════════════════════
 
-// Turnstile config — REPLACE with your real site key from cloudflare.com
-// Site keys are PUBLIC (safe to commit). Only the SECRET KEY is private (Vercel env var).
-// Until you set a real key, Turnstile is disabled (graceful degradation).
-var TURNSTILE_SITE_KEY = 'YOUR_TURNSTILE_SITE_KEY_HERE';
-var TURNSTILE_ENABLED = TURNSTILE_SITE_KEY && TURNSTILE_SITE_KEY !== 'YOUR_TURNSTILE_SITE_KEY_HERE';
+// Turnstile config — site key loaded from Vercel env var via /api/config.js
+// This ensures the key survives code updates (my pushes don't overwrite it).
+// Set in Vercel: Settings → Environment Variables → TURNSTILE_SITE_KEY
+var TURNSTILE_SITE_KEY = (typeof window !== 'undefined' && window.PILLIER_CONFIG && window.PILLIER_CONFIG.turnstileSiteKey) || '';
+var TURNSTILE_ENABLED = TURNSTILE_SITE_KEY && TURNSTILE_SITE_KEY.length > 5;
 
 // Debug flag: set to true to enable console.log in production
 // In production, plog() is silent. console.error still works (kept for debugging).
