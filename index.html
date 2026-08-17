@@ -949,8 +949,8 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
     <div id="form-login" style="width:100%;max-width:380px;">
       <div class="form-group"><label class="form-label" id="lb-email">Email</label><input class="form-input" type="email" id="l-email" placeholder="vous@entreprise.com" style="width:100%;background:#18181c;border-color:rgba(255,255,255,0.1);color:#fff;"></div>
       <div class="form-group"><label class="form-label" id="lb-pass">Mot de passe</label><input class="form-input" type="password" id="l-pass" placeholder="••••••••" style="width:100%;background:#18181c;border-color:rgba(255,255,255,0.1);color:#fff;"></div>
-      <div id="turnstile-login" style="margin:12px 0;min-height:0;"></div>
-      <button class="btn-primary" id="btn-login" onclick="doLogin()" style="width:100%;margin-top:4px;"></button>
+      <div id="turnstile-login" style="margin:16px 0 24px;min-height:65px;position:relative;z-index:1;"></div>
+      <button class="btn-primary" id="btn-login" onclick="doLogin()" style="width:100%;margin-top:4px;position:relative;z-index:5;pointer-events:auto;cursor:pointer;"></button>
       <div style="text-align:center;margin-top:12px;"><a onclick="doReset()" style="font-size:12px;color:#6a6a75;cursor:pointer;" id="lnk-reset"></a></div>
       <div class="auth-switch" style="margin-top:10px;font-size:12px;color:#6a6a75;"><span id="no-acc"></span> <a onclick="switchTab(1)" id="lnk-signup" style="color:#60a5fa;cursor:pointer;"></a></div>
       <div id="consent-login" style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.06);font-size:11px;color:var(--text3);line-height:1.5;text-align:center;">
@@ -978,8 +978,8 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
         </div>
       </div>
       <div class="form-group"><label class="form-label" id="lb-spass">Mot de passe</label><input class="form-input" type="password" id="s-pass" placeholder="Min. 8 caractères" style="width:100%;background:#18181c;border-color:rgba(255,255,255,0.1);color:#fff;"></div>
-      <div id="turnstile-signup" style="margin:12px 0;min-height:0;"></div>
-      <button class="btn-primary" id="btn-signup" onclick="doSignup()" style="width:100%;"></button>
+      <div id="turnstile-signup" style="margin:16px 0 24px;min-height:65px;position:relative;z-index:1;"></div>
+      <button class="btn-primary" id="btn-signup" onclick="doSignup()" style="width:100%;position:relative;z-index:5;pointer-events:auto;cursor:pointer;"></button>
       <a href="https://app.pillier.com.br" id="trial-link-signup" style="display:block;text-align:center;margin-top:10px;padding:10px;border-radius:10px;border:1px solid rgba(96,165,250,0.25);color:#60a5fa;font-size:13px;font-weight:500;text-decoration:none;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='#60a5fa';this.style.background='rgba(96,165,250,0.06)'" onmouseout="this.style.borderColor='rgba(96,165,250,0.25)';this.style.background='none'">Teste grátis 30 dias</a>
       <div class="auth-switch" style="margin-top:10px;font-size:12px;color:#6a6a75;"><span id="have-acc"></span> <a onclick="switchTab(0)" id="lnk-login" style="color:#60a5fa;cursor:pointer;"></a></div>
       <div id="consent-signup" style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.06);font-size:11px;color:var(--text3);line-height:1.5;text-align:center;">
@@ -3593,8 +3593,9 @@ function switchTab(i){
 function showMsg(txt,type){var el=document.getElementById("auth-msg");if(!txt){el.style.display="none";return;}el.className="auth-msg "+(type==="ok"?"ok":"err");el.textContent=txt;el.style.display="block";}
 
 async function doLogin(){
+  console.warn('[Pillier] Login button clicked. Token present:', !!_turnstileTokens.login, 'Turnstile enabled:', TURNSTILE_ENABLED);
   // SECURITY: Rate limit login attempts (prevent brute force)
-  if(!checkRateLimit('login'))return;
+  if(!checkRateLimit('login')){console.warn('[Pillier] Blocked by client rate limit');return;}
   // SECURITY: Verify Turnstile CAPTCHA (if enabled)
   if (TURNSTILE_ENABLED) {
     var capCheck = await _pillierVerifyCaptcha(_turnstileTokens.login);
