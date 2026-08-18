@@ -713,6 +713,15 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
 .chat-attachment-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--blue);}
 .chat-attachment-clear{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0;}
 .chat-attachment-clear:hover{color:var(--red);}
+.chat-icon-btn{width:38px;height:38px;border-radius:10px;background:var(--navy2);border:1px solid var(--border2);color:var(--text2);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.12s;}
+.chat-icon-btn:hover{color:#60a5fa;border-color:rgba(96,165,250,0.4);}
+.chat-icon-btn.recording{background:#ef4444;color:#fff;border-color:#ef4444;}
+.chat-plus-item{display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:var(--text);font-size:14px;font-family:inherit;padding:11px 14px;border-radius:10px;cursor:pointer;text-align:left;}
+.chat-plus-item:hover{background:rgba(96,165,250,0.1);}
+.chat-plus-item i{font-size:18px;color:#60a5fa;}
+.chat-usage-pill{background:var(--navy2);border:1px solid var(--border2);color:var(--text2);font-size:12px;font-weight:600;padding:8px 12px;border-radius:10px;cursor:pointer;flex-shrink:0;font-family:inherit;white-space:nowrap;}
+.chat-usage-pill:hover{border-color:rgba(96,165,250,0.4);color:#60a5fa;}
+.chat-hist-section{font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text3);margin:12px 4px 6px;text-transform:uppercase;}
 .chat-saved-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
 .chat-saved-item{background:var(--navy2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:border-color 0.12s;}
 .chat-saved-item:hover{border-color:var(--blue);}
@@ -1749,7 +1758,12 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
               <button class="btn-chat-new" onclick="newChat()"><span>&#x2B;</span> <span id="lbl-new-chat">Nouvelle conversation</span></button>
               <div style="font-size:11px;color:var(--blue);cursor:pointer;margin-left:auto" onclick="toggleSavedChats()">&#x1F4CB; <span id="lbl-history">Historique</span></div>
             </div>
-            <div id="saved-chats-panel" style="display:none;margin-bottom:12px">
+            <div id="saved-chats-panel" style="display:none;margin-bottom:12px;background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:12px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#60a5fa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/><path d="M9 19v-5h6v5"/></svg>
+                <span id="hist-logo" style="font-family:var(--font-d);font-weight:800;font-size:15px;color:var(--white);">Pillier IA</span>
+                <button onclick="newChat()" style="margin-left:auto;display:flex;align-items:center;gap:6px;background:var(--navy3);border:1px solid var(--border2);color:var(--text);font-size:12px;font-weight:600;padding:7px 12px;border-radius:9px;cursor:pointer;font-family:inherit;"><i class="ti ti-plus"></i><span id="hist-newchat">New chat</span></button>
+              </div>
               <div id="saved-chats-list" class="chat-saved-list"></div>
             </div>
             <div class="chat-suggestions" id="chat-suggs">
@@ -1764,30 +1778,25 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
               <span class="chat-attachment-name" id="chat-attachment-name">fichier.pdf</span>
               <button class="chat-attachment-clear" onclick="clearChatAttachment()">&#x2715;</button>
             </div>
-            <div class="chat-media-bar">
-              <div class="chat-media-btn">
-                <input type="file" accept="image/*" capture="environment" onchange="attachChatFile(this,'photo-camera')">
-                <span>&#x1F4F7;</span><span id="cmb-camera">Photo</span>
+            <!-- Composer (Claude-style): + menu, quick voice, usage pill -->
+            <div style="position:relative;">
+              <input type="file" accept="image/*" capture="environment" id="chat-in-cam" onchange="attachChatFile(this,'photo-camera')" style="display:none">
+              <input type="file" accept="image/*" id="chat-in-gal" onchange="attachChatFile(this,'photo-gallery')" style="display:none">
+              <input type="file" accept=".pdf,.doc,.docx,.xlsx" id="chat-in-doc" onchange="attachChatFile(this,'document')" style="display:none">
+              <input type="file" accept="video/*" id="chat-in-vid" onchange="attachChatFile(this,'video')" style="display:none">
+              <div id="chat-plus-menu" style="display:none;position:absolute;bottom:52px;left:0;z-index:30;background:var(--navy2);border:1px solid var(--border2);border-radius:14px;padding:8px;box-shadow:0 12px 44px rgba(0,0,0,0.55);min-width:210px;">
+                <button type="button" class="chat-plus-item" onclick="chatPlusPick('cam')"><i class="ti ti-camera"></i><span id="cpm-cam">Photo</span></button>
+                <button type="button" class="chat-plus-item" onclick="chatPlusPick('gal')"><i class="ti ti-photo"></i><span id="cpm-gal">Galerie</span></button>
+                <button type="button" class="chat-plus-item" onclick="chatPlusPick('doc')"><i class="ti ti-file-upload"></i><span id="cpm-doc">Document</span></button>
+                <button type="button" class="chat-plus-item" onclick="chatPlusPick('vid')"><i class="ti ti-video"></i><span id="cpm-vid">Vidéo</span></button>
               </div>
-              <div class="chat-media-btn">
-                <input type="file" accept="image/*" onchange="attachChatFile(this,'photo-gallery')">
-                <span>&#x1F5BC;&#xFE0F;</span><span id="cmb-gallery">Galerie</span>
+              <div class="chat-input-wrap" style="display:flex;align-items:flex-end;gap:8px;">
+                <button type="button" class="chat-icon-btn" onclick="toggleChatPlus(event)" title="+"><i class="ti ti-plus"></i></button>
+                <textarea class="chat-input" id="chat-input" placeholder="Posez votre question..." rows="1" onkeydown="chatKeydown(event)" oninput="autoResize(this)" style="flex:1;"></textarea>
+                <button type="button" class="chat-usage-pill" id="chat-usage-pill" onclick="showContentPage(2)"></button>
+                <button type="button" class="chat-icon-btn" id="cmb-voice-btn" onclick="toggleChatVoice()" title="Voice"><i class="ti ti-microphone"></i><span id="cmb-voice" style="display:none"></span></button>
+                <button class="chat-send" id="chat-send" onclick="sendChat()"><i class="ti ti-send"></i></button>
               </div>
-              <div class="chat-media-btn">
-                <input type="file" accept=".pdf,.doc,.docx,.xlsx" onchange="attachChatFile(this,'document')">
-                <span>&#x1F4C4;</span><span id="cmb-doc">Document</span>
-              </div>
-              <div class="chat-media-btn">
-                <input type="file" accept="video/*" onchange="attachChatFile(this,'video')">
-                <span>&#x1F3A5;</span><span id="cmb-video">Vidéo</span>
-              </div>
-              <div class="chat-media-btn" id="cmb-voice-btn" onclick="toggleChatVoice()">
-                <span>&#x1F399;&#xFE0F;</span><span id="cmb-voice">Note vocale</span>
-              </div>
-            </div>
-            <div class="chat-input-wrap">
-              <textarea class="chat-input" id="chat-input" placeholder="Posez votre question..." rows="1" onkeydown="chatKeydown(event)" oninput="autoResize(this)"></textarea>
-              <button class="chat-send" id="chat-send" onclick="sendChat()"><i class="ti ti-send"></i></button>
             </div>
           </div>
         </div>
@@ -3667,6 +3676,12 @@ function applyLang(){
   // Chat save/history buttons
   var chatBtnIds={"lbl-save-chat":"lblSaveChat","lbl-new-chat":"lblNewChat","lbl-history":"lblHistory"};
   Object.keys(chatBtnIds).forEach(function(id){var el=document.getElementById(id);if(el&&S[chatBtnIds[id]])el.textContent=S[chatBtnIds[id]];});
+  // Chat composer + menu, history sidebar, usage pill (Claude-style)
+  var _cpm={"cpm-cam":"cmbCamera","cpm-gal":"cmbGallery","cpm-doc":"cmbDoc","cpm-vid":"cmbVideo"};
+  Object.keys(_cpm).forEach(function(id){var el=document.getElementById(id);if(el&&S[_cpm[id]])el.textContent=S[_cpm[id]];});
+  var _hl=document.getElementById("hist-logo");if(_hl)_hl.textContent=lang===1?"Pillier AI":"Pillier IA";
+  var _hn=document.getElementById("hist-newchat");if(_hn)_hn.textContent=lang===1?"New chat":lang===2?"Novo chat":"Nouveau chat";
+  try{renderChatUsagePill();}catch(e){}
   // Chat media buttons
   var cmbMap={"cmb-camera":"cmbCamera","cmb-gallery":"cmbGallery","cmb-doc":"cmbDoc","cmb-video":"cmbVideo","cmb-voice":"cmvVoice"};
   Object.keys(cmbMap).forEach(function(id){var el=document.getElementById(id);if(el&&S[cmbMap[id]])el.textContent=S[cmbMap[id]];});
@@ -5176,6 +5191,10 @@ function clearChatAttachment(){
   document.getElementById("chat-attachment").classList.remove("show");
 }
 
+function toggleChatPlus(e){if(e){e.preventDefault();e.stopPropagation();}var m=document.getElementById("chat-plus-menu");if(m)m.style.display=(m.style.display==="block")?"none":"block";}
+function chatPlusPick(k){var m=document.getElementById("chat-plus-menu");if(m)m.style.display="none";var id={cam:"chat-in-cam",gal:"chat-in-gal",doc:"chat-in-doc",vid:"chat-in-vid"}[k];var el=document.getElementById(id);if(el)el.click();}
+document.addEventListener("click",function(e){var m=document.getElementById("chat-plus-menu");if(m&&m.style.display==="block"){var wrap=m.parentNode;if(wrap&&!wrap.contains(e.target))m.style.display="none";}});
+function renderChatUsagePill(){var el=document.getElementById("chat-usage-pill");if(!el)return;try{var plan=(typeof PILLIER_PLANS!=="undefined"&&PILLIER_PLANS[_pUsage.plan])||(typeof PILLIER_PLANS!=="undefined"&&PILLIER_PLANS.free)||{label:"Free",ai_messages:30};var used=(_pUsage&&_pUsage.ai_messages)||0;var lim=plan.ai_messages;el.textContent=(plan.label||"Free")+" · "+used+"/"+(lim>=999999?"∞":lim);}catch(e){el.textContent="Free";}}
 async function toggleChatVoice(){
   var btn=document.getElementById("cmb-voice-btn");
   var lbl=document.getElementById("cmb-voice");
@@ -5970,17 +5989,18 @@ function renderSavedChats(){
     list.innerHTML="<div class='empty-state' style='padding:20px'><div class='empty-text'>"+( STRINGS[lang].noSavedChats||"Aucune conversation sauvegardée")+"</div></div>";
     return;
   }
-  list.innerHTML=saved.map(function(c){
-    var delBtn=document.createElement("button");
-    delBtn.className="chat-saved-del";
-    delBtn.setAttribute("onclick","deleteSavedChat('"+c.id+"')");
-    delBtn.innerHTML="&#x1F5D1;";
-    var loadBtn=document.createElement("div");
-    loadBtn.className="chat-saved-item";
-    loadBtn.setAttribute("onclick","loadChat('"+c.id+"')");
-    loadBtn.innerHTML="<div><div class='chat-saved-title'>"+c.title+"</div><div class='chat-saved-meta'>"+c.date+" &bull; "+c.messages.length+" messages</div></div>"+delBtn.outerHTML;
-    return loadBtn.outerHTML;
-  }).join("");
+  var todayStrs=["fr-FR","en-US","pt-BR"].map(function(l){try{return new Date().toLocaleDateString(l);}catch(e){return"";}});
+  var secToday=lang===1?"TODAY":lang===2?"HOJE":"AUJOURD'HUI";
+  var secEarlier=lang===1?"EARLIER":lang===2?"ANTERIORES":"PLUS TÔT";
+  function itemHTML(c){
+    return "<div class='chat-saved-item' onclick=\"loadChat('"+c.id+"')\"><div><div class='chat-saved-title'>"+c.title+"</div><div class='chat-saved-meta'>"+c.date+" &bull; "+c.messages.length+" msg</div></div><button class='chat-saved-del' onclick=\"event.stopPropagation();deleteSavedChat('"+c.id+"')\">&#x1F5D1;</button></div>";
+  }
+  var today=saved.filter(function(c){return todayStrs.indexOf(c.date)>=0;});
+  var earlier=saved.filter(function(c){return todayStrs.indexOf(c.date)<0;});
+  var html="";
+  if(today.length)html+="<div class='chat-hist-section'>"+secToday+"</div>"+today.map(itemHTML).join("");
+  if(earlier.length)html+="<div class='chat-hist-section'>"+secEarlier+"</div>"+earlier.map(itemHTML).join("");
+  list.innerHTML=html;
 }
 
 function loadChat(id){
