@@ -1618,22 +1618,14 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
             <div class="capture-panel">
               <div class="panel-title" id="panel-capture-title">Capture &amp; Pillier IA</div>
               <div style="background:var(--blue-light);border:1px solid rgba(30,111,255,0.2);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--blue);margin-bottom:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-map-pin" style="font-size:14px"></i><span id="ai-hint"><span id="ai-hint">L'IA analysera selon le projet sélectionné</span></span></div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-                <!-- TAKE PHOTO - opens camera directly -->
-                <label style="border:1.5px dashed var(--border2);border-radius:10px;padding:24px 16px;text-align:center;cursor:pointer;transition:all 0.15s;display:block;position:relative" onmouseover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-light)'" onmouseout="this.style.borderColor='var(--border2)';this.style.background='transparent'">
-                  <input type="file" accept="image/*" capture="environment" onchange="handlePhoto(this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">
-                  <div style="font-size:28px;margin-bottom:8px">&#x1F4F7;</div>
-                  <div style="font-size:12px;font-weight:600;color:var(--white);margin-bottom:3px" id="ut-camera">Prendre une photo</div>
-                  <div style="font-size:10px;color:var(--text3)"><span id="lbl-camera-sub">Caméra</span></div>
-                </label>
-                <!-- IMPORT FROM GALLERY - opens file browser -->
-                <label style="border:1.5px dashed var(--border2);border-radius:10px;padding:24px 16px;text-align:center;cursor:pointer;transition:all 0.15s;display:block;position:relative" onmouseover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-light)'" onmouseout="this.style.borderColor='var(--border2)';this.style.background='transparent'">
-                  <input type="file" accept="image/*" onchange="handlePhoto(this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">
-                  <div style="font-size:28px;margin-bottom:8px">&#x1F5BC;&#xFE0F;</div>
-                  <div style="font-size:12px;font-weight:600;color:var(--white);margin-bottom:3px" id="ut-gallery">Depuis la galerie</div>
-                  <div style="font-size:10px;color:var(--text3)" id="ut-photo">Importer</div>
-                </label>
-              </div>
+              <!-- Single capture dropzone: click lets the user pick camera OR gallery; also accepts drag & drop -->
+              <label id="cap-dropzone" style="display:block;position:relative;border:2px dashed var(--border2);border-radius:16px;padding:44px 24px;text-align:center;cursor:pointer;margin-bottom:14px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-light)'" onmouseout="this.style.borderColor='var(--border2)';this.style.background='transparent'" ondragover="event.preventDefault();this.style.borderColor='var(--blue)';this.style.background='var(--blue-light)'" ondragleave="this.style.borderColor='var(--border2)';this.style.background='transparent'" ondrop="capDrop(event)">
+                <input type="file" accept="image/*" onchange="handlePhoto(this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">
+                <div style="width:64px;height:64px;border-radius:50%;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;"><i class="ti ti-camera" style="font-size:28px;color:#60a5fa;"></i></div>
+                <div id="ut-camera" style="font-size:18px;font-weight:700;color:var(--white);margin-bottom:8px;">Prendre une photo</div>
+                <div id="cap-drop-sub" style="font-size:13px;color:var(--text2);line-height:1.5;max-width:360px;margin:0 auto 18px;">Prenez l'incident en photo. Pillier détecte le lieu, les matériaux et la gravité.</div>
+                <div id="cap-drop-hint" style="font-size:11px;color:var(--text3);letter-spacing:0.5px;">ou déposez une image · JPG/PNG · &lt;15 MB</div>
+              </label>
               <div class="ai-solution-box" id="ai-photo">
                 <div class="ai-solution-header">
                   <div class="ai-solution-tag">Pillier IA</div>
@@ -3637,6 +3629,8 @@ function applyLang(){
   sevScale.forEach(function(pair){var el=document.getElementById(pair[0]);if(el&&S[pair[1]])el.textContent=S[pair[1]];});
   try{renderCatChips();}catch(e){}
   try{syncSevSlider();}catch(e){}
+  var _cds=document.getElementById("cap-drop-sub");if(_cds)_cds.textContent=lang===1?"Snap the incident. Pillier auto-tags location, materials and severity.":lang===2?"Fotografe o incidente. A Pillier detecta local, materiais e gravidade.":"Prenez l'incident en photo. Pillier détecte le lieu, les matériaux et la gravité.";
+  var _cdh=document.getElementById("cap-drop-hint");if(_cdh)_cdh.textContent=lang===1?"or drop image · JPG/PNG · <15 MB":lang===2?"ou solte a imagem · JPG/PNG · <15 MB":"ou déposez une image · JPG/PNG · <15 MB";
   var kbAll=document.getElementById("kbf-all");if(kbAll&&S.kbAll)kbAll.textContent=S.kbAll;
   var kbSearch=document.getElementById("kb-search-input");if(kbSearch&&S.kbSearchPlaceholder)kbSearch.placeholder=S.kbSearchPlaceholder;
   [["cs-0","chatSugg0"],["cs-1","chatSugg1"],["cs-2","chatSugg2"],["cs-3","chatSugg3"]].forEach(function(pair){var el=document.getElementById(pair[0]);if(el&&S[pair[1]])el.textContent=S[pair[1]];});
@@ -4546,6 +4540,13 @@ function assignAI(r,key,val){
   else if(key.match(/site/)){}
 }
 
+function capDrop(e){
+  e.preventDefault();
+  var dz=document.getElementById("cap-dropzone");
+  if(dz){dz.style.borderColor="var(--border2)";dz.style.background="transparent";}
+  var files=e.dataTransfer&&e.dataTransfer.files;
+  if(files&&files[0])handlePhoto({files:files});
+}
 async function handlePhoto(input){
   if(!input.files||!input.files[0])return;
   var proj=document.getElementById("c-proj").value||"the site";
