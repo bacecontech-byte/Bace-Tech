@@ -391,6 +391,18 @@ body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-heig
 .topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;}
 .site-chip{display:flex;align-items:center;gap:6px;background:var(--navy2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--text2);cursor:pointer;white-space:nowrap;}
 .site-chip i{font-size:13px;}
+.site-chip-wrap{position:relative;}
+.site-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:220px;max-height:320px;overflow-y:auto;background:var(--navy2);border:1px solid var(--border2);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.45);padding:6px;z-index:9997;display:none;}
+.site-menu.show{display:block;}
+.site-menu-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--text);}
+.site-menu-item:hover{background:var(--blue-light);}
+.site-menu-item.active{background:var(--blue-light);color:var(--blue);font-weight:600;}
+.site-menu-item i{font-size:15px;color:var(--text3);flex-shrink:0;}
+.site-menu-item.active i{color:var(--blue);}
+.site-menu-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.site-menu-check{font-size:13px;color:var(--blue);}
+.site-menu-sep{height:1px;background:var(--border);margin:4px 6px;}
+.site-menu-empty{padding:12px;text-align:center;font-size:12px;color:var(--text3);}
 .bell-btn{width:32px;height:32px;border-radius:8px;background:var(--navy2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;flex-shrink:0;}
 .bell-btn i{font-size:16px;color:var(--text2);}
 .bell-dot{position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%;background:#f87171;border:1.5px solid var(--navy);}
@@ -1648,10 +1660,13 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
         <button id="hamburger-btn" onclick="toggleSidebar()" style="display:none;background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:4px 8px;margin-right:4px;-webkit-tap-highlight-color:rgba(96,165,250,0.3);"><i class="ti ti-menu-2"></i></button>
         <div class="topbar-title" id="top-title">Dashboard</div>
         <div class="topbar-right">
-          <div class="site-chip" id="site-chip" onclick="showTab(6,document.querySelectorAll('.sidebar-link')[6])">
-            <i class="ti ti-map-pin"></i>
-            <span id="site-chip-label">—</span>
-            <i class="ti ti-chevron-down"></i>
+          <div class="site-chip-wrap">
+            <div class="site-chip" id="site-chip" onclick="toggleSiteMenu(event)">
+              <i class="ti ti-map-pin"></i>
+              <span id="site-chip-label">—</span>
+              <i class="ti ti-chevron-down"></i>
+            </div>
+            <div class="site-menu" id="site-menu"></div>
           </div>
           <div class="bell-btn notif-bell" onclick="toggleNotifPanel()" title="Notifications">
             <i class="ti ti-bell"></i>
@@ -4787,7 +4802,56 @@ function updateProjectDropdowns(){
   var cp=document.getElementById("c-proj");if(cp)cp.innerHTML=opts;
   updateSiteSelector();
   updateComposerAccess();
+  renderSiteChip();
 }
+
+/* ───────── Topbar site selector (dropdown to pick the active canteiro) ───────── */
+function allSitesLabel(){return plL("Tous les chantiers","All sites","Todos os canteiros");}
+function getActiveSite(){try{return localStorage.getItem("pillier-active-site")||"";}catch(e){return "";}}
+function setActiveSite(name){
+  try{localStorage.setItem("pillier-active-site",name||"");}catch(e){}
+  renderSiteChip();
+  // keep the Community tab in sync with the globally selected canteiro
+  if(name){
+    saveSelectedSite(name);
+    var ss=document.getElementById("site-sel");
+    if(ss&&Array.prototype.some.call(ss.options,function(o){return o.value===name;})){ss.value=name;}
+  }
+  var t5=document.getElementById("tab-5");if(t5&&t5.classList.contains("active"))loadPosts();
+  closeSiteMenu();
+}
+function renderSiteChip(){
+  var lbl=document.getElementById("site-chip-label");if(!lbl)return;
+  var act=getActiveSite();
+  if(act&&projects.some(function(p){return p.name===act;}))lbl.textContent=act;
+  else lbl.textContent=projects.length?allSitesLabel():allSitesLabel();
+}
+function renderSiteMenu(){
+  var m=document.getElementById("site-menu");if(!m)return;
+  var act=getActiveSite();
+  var html="<div class='site-menu-item"+(!act?" active":"")+"' onclick=\"setActiveSite('')\"><i class='ti ti-world'></i><span class='site-menu-name'>"+allSitesLabel()+"</span>"+(!act?"<span class='site-menu-check'>✓</span>":"")+"</div>";
+  if(projects.length)html+="<div class='site-menu-sep'></div>";
+  if(!projects.length){html+="<div class='site-menu-empty'>"+plL("Aucun chantier","No site","Nenhum canteiro")+"</div>";}
+  else{
+    html+=projects.map(function(p){
+      var on=p.name===act;
+      return "<div class='site-menu-item"+(on?" active":"")+"' onclick=\"setActiveSite('"+String(p.name).replace(/'/g,"\\'").replace(/\"/g,"&quot;")+"')\"><i class='ti ti-map-pin'></i><span class='site-menu-name'>"+escapeHTML(p.name)+"</span>"+(on?"<span class='site-menu-check'>✓</span>":"")+"</div>";
+    }).join("");
+  }
+  m.innerHTML=html;
+}
+function toggleSiteMenu(e){
+  if(e){e.stopPropagation();}
+  var m=document.getElementById("site-menu");if(!m)return;
+  if(m.classList.contains("show")){closeSiteMenu();return;}
+  renderSiteMenu();
+  m.classList.add("show");
+}
+function closeSiteMenu(){var m=document.getElementById("site-menu");if(m)m.classList.remove("show");}
+document.addEventListener("click",function(e){
+  var m=document.getElementById("site-menu");
+  if(m&&m.classList.contains("show")&&!e.target.closest(".site-chip-wrap"))closeSiteMenu();
+});
 
 function startRealtime(){
   if(!db||!dbCoId)return;
@@ -5318,8 +5382,7 @@ function renderDash(){
   var bellDot=document.getElementById("bell-dot");
   if(bellDot)bellDot.style.display=criticals.length>0?"block":"none";
   // Site chip label
-  var chipLabel=document.getElementById("site-chip-label");
-  if(chipLabel)chipLabel.textContent=projects.length>0?projects[0].name:(lang===1?"All sites":lang===2?"Todos os canteiros":"Tous les chantiers");
+  try{renderSiteChip();}catch(e){}
   // Activity feed
   var actEl=document.getElementById("dash-activity");
   if(actEl){
@@ -5560,7 +5623,7 @@ function toggleComposer(){
   c.classList.toggle("show");
   if(c.classList.contains("show"))setTimeout(function(){var t=document.getElementById("post-input");if(t)t.focus();},50);
 }
-function onSiteChange(){var el=document.getElementById("site-sel");if(el)saveSelectedSite(el.value);_commEdit=null;updateComposerAccess();loadPosts();}
+function onSiteChange(){var el=document.getElementById("site-sel");if(el){saveSelectedSite(el.value);try{localStorage.setItem("pillier-active-site",el.value);}catch(e){}renderSiteChip();}_commEdit=null;updateComposerAccess();loadPosts();}
 function setCommFilter(tag,btn){
   _commFilter=tag;
   document.querySelectorAll("#comm-pills .comm-pill").forEach(function(b){b.classList.toggle("active",b===btn);});
