@@ -1618,14 +1618,21 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
             <div class="capture-panel">
               <div class="panel-title" id="panel-capture-title">Capture &amp; Pillier IA</div>
               <div style="background:var(--blue-light);border:1px solid rgba(30,111,255,0.2);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--blue);margin-bottom:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-map-pin" style="font-size:14px"></i><span id="ai-hint"><span id="ai-hint">L'IA analysera selon le projet sélectionné</span></span></div>
-              <!-- Single capture dropzone: click lets the user pick camera OR gallery; also accepts drag & drop -->
-              <label id="cap-dropzone" style="display:block;position:relative;border:2px dashed var(--border2);border-radius:16px;padding:44px 24px;text-align:center;cursor:pointer;margin-bottom:14px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-light)'" onmouseout="this.style.borderColor='var(--border2)';this.style.background='transparent'" ondragover="event.preventDefault();this.style.borderColor='var(--blue)';this.style.background='var(--blue-light)'" ondragleave="this.style.borderColor='var(--border2)';this.style.background='transparent'" ondrop="capDrop(event)">
-                <input type="file" accept="image/*" onchange="handlePhoto(this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">
-                <div style="width:64px;height:64px;border-radius:50%;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;"><i class="ti ti-camera" style="font-size:28px;color:#60a5fa;"></i></div>
-                <div id="ut-camera" style="font-size:18px;font-weight:700;color:var(--white);margin-bottom:8px;">Prendre une photo</div>
-                <div id="cap-drop-sub" style="font-size:13px;color:var(--text2);line-height:1.5;max-width:360px;margin:0 auto 18px;">Prenez l'incident en photo. Pillier détecte le lieu, les matériaux et la gravité.</div>
-                <div id="cap-drop-hint" style="font-size:11px;color:var(--text3);letter-spacing:0.5px;">ou déposez une image · JPG/PNG · &lt;15 MB</div>
-              </label>
+              <!-- Single capture dropzone: click opens a chooser (camera OR gallery); also accepts drag & drop -->
+              <div style="position:relative;margin-bottom:14px;">
+                <div id="cap-dropzone" style="position:relative;border:2px dashed var(--border2);border-radius:16px;padding:44px 24px;text-align:center;cursor:pointer;transition:all 0.15s;" onclick="toggleCapMenu(event)" onmouseover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-light)'" onmouseout="this.style.borderColor='var(--border2)';this.style.background='transparent'" ondragover="event.preventDefault();this.style.borderColor='var(--blue)';this.style.background='var(--blue-light)'" ondragleave="this.style.borderColor='var(--border2)';this.style.background='transparent'" ondrop="capDrop(event)">
+                  <div style="width:64px;height:64px;border-radius:50%;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;"><i class="ti ti-camera" style="font-size:28px;color:#60a5fa;"></i></div>
+                  <div id="ut-camera" style="font-size:18px;font-weight:700;color:var(--white);margin-bottom:8px;">Prendre une photo</div>
+                  <div id="cap-drop-sub" style="font-size:13px;color:var(--text2);line-height:1.5;max-width:360px;margin:0 auto 18px;">Prenez l'incident en photo. Pillier détecte le lieu, les matériaux et la gravité.</div>
+                  <div id="cap-drop-hint" style="font-size:11px;color:var(--text3);letter-spacing:0.5px;">ou déposez une image · JPG/PNG · &lt;15 MB</div>
+                </div>
+                <input type="file" accept="image/*" capture="environment" id="cap-in-cam" onchange="handlePhoto(this)" style="display:none">
+                <input type="file" accept="image/*" id="cap-in-gal" onchange="handlePhoto(this)" style="display:none">
+                <div id="cap-menu" style="display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:30;background:var(--navy2);border:1px solid var(--border2);border-radius:14px;padding:8px;box-shadow:0 12px 44px rgba(0,0,0,0.55);min-width:240px;">
+                  <button type="button" onclick="capPick('cam')" style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:var(--text);font-size:14px;font-family:inherit;padding:12px 14px;border-radius:10px;cursor:pointer;text-align:left;" onmouseover="this.style.background='rgba(96,165,250,0.1)'" onmouseout="this.style.background='none'"><i class="ti ti-camera" style="font-size:18px;color:#60a5fa;"></i><span id="cap-opt-cam">Take a photo</span></button>
+                  <button type="button" onclick="capPick('gal')" style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:var(--text);font-size:14px;font-family:inherit;padding:12px 14px;border-radius:10px;cursor:pointer;text-align:left;" onmouseover="this.style.background='rgba(96,165,250,0.1)'" onmouseout="this.style.background='none'"><i class="ti ti-photo" style="font-size:18px;color:#60a5fa;"></i><span id="cap-opt-gal">From gallery</span></button>
+                </div>
+              </div>
               <div class="ai-solution-box" id="ai-photo">
                 <div class="ai-solution-header">
                   <div class="ai-solution-tag">Pillier IA</div>
@@ -3631,6 +3638,8 @@ function applyLang(){
   try{syncSevSlider();}catch(e){}
   var _cds=document.getElementById("cap-drop-sub");if(_cds)_cds.textContent=lang===1?"Snap the incident. Pillier auto-tags location, materials and severity.":lang===2?"Fotografe o incidente. A Pillier detecta local, materiais e gravidade.":"Prenez l'incident en photo. Pillier détecte le lieu, les matériaux et la gravité.";
   var _cdh=document.getElementById("cap-drop-hint");if(_cdh)_cdh.textContent=lang===1?"or drop image · JPG/PNG · <15 MB":lang===2?"ou solte a imagem · JPG/PNG · <15 MB":"ou déposez une image · JPG/PNG · <15 MB";
+  var _coc=document.getElementById("cap-opt-cam");if(_coc)_coc.textContent=lang===1?"Take a photo":lang===2?"Tirar uma foto":"Prendre une photo";
+  var _cog=document.getElementById("cap-opt-gal");if(_cog)_cog.textContent=lang===1?"From gallery":lang===2?"Da galeria":"Depuis la galerie";
   var kbAll=document.getElementById("kbf-all");if(kbAll&&S.kbAll)kbAll.textContent=S.kbAll;
   var kbSearch=document.getElementById("kb-search-input");if(kbSearch&&S.kbSearchPlaceholder)kbSearch.placeholder=S.kbSearchPlaceholder;
   [["cs-0","chatSugg0"],["cs-1","chatSugg1"],["cs-2","chatSugg2"],["cs-3","chatSugg3"]].forEach(function(pair){var el=document.getElementById(pair[0]);if(el&&S[pair[1]])el.textContent=S[pair[1]];});
@@ -4540,6 +4549,10 @@ function assignAI(r,key,val){
   else if(key.match(/site/)){}
 }
 
+function toggleCapMenu(e){if(e){e.preventDefault();e.stopPropagation();}var m=document.getElementById("cap-menu");if(m)m.style.display=(m.style.display==="block")?"none":"block";}
+function hideCapMenu(){var m=document.getElementById("cap-menu");if(m)m.style.display="none";}
+function capPick(which){hideCapMenu();var el=document.getElementById(which==="cam"?"cap-in-cam":"cap-in-gal");if(el)el.click();}
+document.addEventListener("click",function(e){var m=document.getElementById("cap-menu");var dz=document.getElementById("cap-dropzone");if(m&&m.style.display==="block"&&!m.contains(e.target)&&dz&&!dz.contains(e.target))m.style.display="none";});
 function capDrop(e){
   e.preventDefault();
   var dz=document.getElementById("cap-dropzone");
