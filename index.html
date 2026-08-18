@@ -1663,6 +1663,10 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
                   <button onclick="toggleVoice()" style="display:flex;align-items:center;gap:8px;background:none;border:none;color:var(--text2);font-size:13px;font-weight:700;letter-spacing:1.5px;cursor:pointer;flex-shrink:0;">STOP<span style="width:11px;height:11px;background:var(--text2);border-radius:2px;display:inline-block;"></span></button>
                 </div>
               </div>
+              <div id="voice-transcript" style="display:none;border-left:3px solid #60a5fa;padding:12px 16px;margin-top:14px;background:rgba(96,165,250,0.05);border-radius:0 10px 10px 0;">
+                <div id="voice-transcript-label" style="font-size:11px;font-weight:700;color:#60a5fa;letter-spacing:1px;margin-bottom:8px;">TRANSCRIPTION · PT-BR</div>
+                <div id="voice-transcript-text" style="font-size:14px;color:var(--text);line-height:1.55;"></div>
+              </div>
               <div class="ai-solution-box" id="ai-voice">
                 <div class="ai-solution-header">
                   <div class="ai-solution-tag">Pillier IA</div>
@@ -4648,7 +4652,13 @@ async function processVoice(){
       document.getElementById("ai-v-solution").textContent=p.solution||p.action||"-";
       document.getElementById("ai-v-normes").textContent=p.normes||"NA";
       if(p.title)document.getElementById("c-title").value=cleanTitle(p.title);
-      if(p.sev)document.getElementById("c-sev").value=p.sev;
+      // Auto-select category + severity (and sync the chips/slider) from AI analysis
+      applyAIFields(p);
+      // Transcription box (shows the spoken note)
+      var trText=p.transcript||p.transcription||p.desc||resp;
+      var tl=document.getElementById("voice-transcript-label");if(tl)tl.textContent="TRANSCRIPTION · "+(lang===2?"PT-BR":lang===0?"FR":"EN");
+      var tt=document.getElementById("voice-transcript-text");if(tt)tt.textContent=trText||"";
+      var tb=document.getElementById("voice-transcript");if(tb)tb.style.display=trText?"block":"none";
       window._lastAI=p;
       toast(STRINGS[lang].toastAIVoice||"Note vocale analysée");
     }
@@ -4700,7 +4710,7 @@ function editAI(){
 
 function declineAI(){
   window._lastPhotoData=null;window._lastPhotoFile=null;
-  ["ai-photo","ai-voice"].forEach(function(id){document.getElementById(id).style.display="none";});
+  ["ai-photo","ai-voice","voice-transcript"].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display="none";});
   document.getElementById("c-desc").value="";
   document.getElementById("c-action").value="";
   window._lastAI=null;
