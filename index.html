@@ -5506,14 +5506,10 @@ function siteMembersOf(proj){
   return out;
 }
 function isSiteMember(proj){
-  if(!proj)return false;
-  var mem=siteMembersOf(proj);
-  if(!mem.length)return true; // open / legacy site with no roster defined
-  if(!me||!me.name)return false;
-  var mine=me.name.trim().toLowerCase();
-  return mem.some(function(n){return n.toLowerCase()===mine;});
+  // Canteiros come from "Meus projetos" — every site in the account is joinable.
+  return !!proj;
 }
-function communitySites(){return projects.filter(isSiteMember);}
+function communitySites(){return projects.slice();}
 function activeCommProject(){var el=document.getElementById("site-sel");return el?projByName(el.value):null;}
 function updateSiteSelector(){
   var el=document.getElementById("site-sel");if(!el)return;
