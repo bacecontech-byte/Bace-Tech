@@ -629,6 +629,18 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
 .mention-opt-name{font-size:13px;color:var(--white);font-weight:600;}
 .mention-opt-role{font-size:11px;color:var(--text3);}
 .mention-empty{padding:10px;font-size:12px;color:var(--text3);text-align:center;}
+.pc-acts{display:flex;gap:6px;margin-left:auto;align-items:center;}
+.pc-tagwrap{margin-left:auto;}
+.pc-act{background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:2px 4px;border-radius:5px;line-height:1;transition:color .12s,background .12s;}
+.pc-act:hover{color:var(--white);background:var(--navy3);}
+.pc-act.del:hover{color:var(--red);}
+.pc-edit-area{width:100%;background:var(--navy3);border:1px solid var(--blue);border-radius:8px;padding:10px 12px;font-family:var(--font-b);font-size:13px;color:var(--text);outline:none;resize:vertical;min-height:60px;}
+.pc-edit-btns{display:flex;gap:8px;margin-top:8px;}
+.pc-edit-save{background:var(--blue);color:#fff;border:none;border-radius:7px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;}
+.pc-edit-cancel{background:var(--navy3);border:1px solid var(--border2);color:var(--text2);border-radius:7px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;}
+.reply-item .pc-acts{opacity:0;transition:opacity .12s;}
+.reply-item:hover .pc-acts{opacity:1;}
+.reply-edited,.post-edited{font-size:10px;color:var(--text3);font-style:italic;margin-left:6px;}
 .chat-wrap{display:flex;flex-direction:row;gap:20px;height:calc(100vh - 110px);position:relative;}
 .chat-sidebar{width:260px;flex-shrink:0;display:flex;flex-direction:column;background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:12px;overflow-y:auto;}
 .chat-sidebar-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:0 4px;}
@@ -4518,10 +4530,18 @@ var PROJ_STATUS_META={
   completed:{dot:"#9ca3af",label:function(){return "COMPLETED";}}
 };
 
+function cacheProjects(){try{localStorage.setItem("pillier-projects-cache",JSON.stringify(projects.map(function(p){return {id:p.id,name:p.name,location:p.location||"",owner:p.owner||""};})));}catch(e){}}
+function loadCachedProjects(){try{return JSON.parse(localStorage.getItem("pillier-projects-cache")||"[]");}catch(e){return [];}}
 async function loadProjects(){
+  // Show cached projects immediately so nothing disappears while/if the DB is slow or unreachable
+  var cached=loadCachedProjects();
+  if(cached.length&&!projects.length){projects=cached.map(pmMerge);renderProjects();updateProjectDropdowns();}
   if(!dbOk||!dbCoId)return;
   var r=await db.from("projects").select("*").eq("company_id",dbCoId).order("created_at",{ascending:false});
-  if(r.data){projects=r.data.map(pmMerge);renderProjects();updateProjectDropdowns();}
+  if(r&&r.data&&r.data.length){projects=r.data.map(pmMerge);renderProjects();updateProjectDropdowns();cacheProjects();}
+  else if(r&&r.error){console.error("loadProjects:",r.error);} // keep cached list on error
+  // If the community tab is open, refresh it now that sites are loaded
+  var t5=document.getElementById("tab-5");if(t5&&t5.classList.contains("active"))loadPosts();
 }
 
 // Legacy quick-add (kept for any external callers)
@@ -4595,6 +4615,7 @@ function renderProjLang(){
 }
 function renderProjects(){
   renderProjLang();
+  try{cacheProjects();}catch(e){}
   var merged=projects.map(function(p){return p._meta?p:pmMerge(p);});
   // Live status counts
   var counts={active:0,completed:0,paused:0};
@@ -5517,7 +5538,12 @@ function updateSiteSelector(){
   var sites=communitySites();
   if(!sites.length){el.innerHTML="<option>"+plL("Aucun chantier","No site","Nenhum canteiro")+"</option>";return;}
   el.innerHTML=sites.map(function(p){return "<option>"+escapeHTML(p.name)+"</option>";}).join("");
-  if(prev&&sites.some(function(p){return p.name===prev;}))el.value=prev;
+  // Restore the canteiro the user last had selected (survives refresh)
+  var stored=storedSelectedSite();
+  var want=(prev&&sites.some(function(p){return p.name===prev;}))?prev
+          :(stored&&sites.some(function(p){return p.name===stored;}))?stored
+          :sites[0].name;
+  el.value=want;
 }
 // -- Composer / filter / header --
 function updateComposerAccess(){
@@ -5534,7 +5560,7 @@ function toggleComposer(){
   c.classList.toggle("show");
   if(c.classList.contains("show"))setTimeout(function(){var t=document.getElementById("post-input");if(t)t.focus();},50);
 }
-function onSiteChange(){updateComposerAccess();loadPosts();}
+function onSiteChange(){var el=document.getElementById("site-sel");if(el)saveSelectedSite(el.value);_commEdit=null;updateComposerAccess();loadPosts();}
 function setCommFilter(tag,btn){
   _commFilter=tag;
   document.querySelectorAll("#comm-pills .comm-pill").forEach(function(b){b.classList.toggle("active",b===btn);});
@@ -5634,73 +5660,169 @@ function storeMentions(kind,id,names){
   try{var k="pillier-comm-mentions";var m=JSON.parse(localStorage.getItem(k)||"{}");m[kind+":"+id]=names;localStorage.setItem(k,JSON.stringify(m));}catch(e){}
 }
 
+/* ---- Community local store (source of truth, survives refresh) ---- */
+function commScope(){return (me&&me.email)||String(dbCoId||"")||"local";}
+function commAll(){try{return JSON.parse(localStorage.getItem("pillier-comm-v1")||"{}");}catch(e){return {};}}
+function commSaveAll(o){try{localStorage.setItem("pillier-comm-v1",JSON.stringify(o));}catch(e){}}
+function commSiteKey(site){return commScope()+"::"+site;}
+function commGet(site){var a=commAll();return a[commSiteKey(site)]||[];}
+function commSetSite(site,arr){var a=commAll();a[commSiteKey(site)]=arr;commSaveAll(a);}
+function commUID(prefix){return prefix+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,7);}
+function saveSelectedSite(site){try{localStorage.setItem("pillier-comm-site",site);}catch(e){}}
+function storedSelectedSite(){try{return localStorage.getItem("pillier-comm-site")||"";}catch(e){return "";}}
+// One-time hydration of the local store from Supabase (for pre-existing rows / other devices)
+async function commHydrate(site){
+  if(!dbOk||!dbCoId)return;
+  if(commGet(site).length)return; // already have local data — keep it as source of truth
+  try{
+    var r=await db.from("community_posts").select("*").eq("company_id",dbCoId).eq("project",site).order("created_at",{ascending:false}).limit(50);
+    if(!r.data||!r.data.length)return;
+    var ids=r.data.map(function(p){return p.id;});
+    var rr=await db.from("community_replies").select("*").eq("company_id",dbCoId).in("post_id",ids).order("created_at",{ascending:true});
+    var rep={};if(rr.data)rr.data.forEach(function(x){(rep[x.post_id]=rep[x.post_id]||[]).push(x);});
+    var arr=r.data.map(function(p){
+      return {id:String(p.id),dbId:p.id,author:p.author_name,tag:p.tag,content:p.content,ts:new Date(p.created_at).getTime(),edited:false,
+        replies:(rep[p.id]||[]).map(function(x){return {id:String(x.id),dbId:x.id,author:x.author_name,content:x.content,ts:new Date(x.created_at).getTime(),edited:false};})};
+    });
+    commSetSite(site,arr);
+  }catch(e){}
+}
+
+var _commEdit=null; // {kind:'post'|'reply', pid, rid}
+function fmtCommDate(ts){var locale=lang===1?"en-US":lang===2?"pt-BR":"fr-FR";return new Date(ts||Date.now()).toLocaleDateString(locale);}
+
 async function loadPosts(){
-  if(!db||!dbCoId)return;
   updateSiteSelector();
   updateComposerAccess();
   var site=document.getElementById("site-sel").value;
   var out=document.getElementById("posts-out");
+  if(!communitySites().length){out.innerHTML="<div class='comm-not-member'>"+plL("Vous n'êtes assigné à aucun chantier pour le moment.","You are not assigned to any construction site yet.","Você ainda não está atribuído a nenhum canteiro.")+"</div>";return;}
+  await commHydrate(site);
   var proj=projByName(site);
-  if(!communitySites().length){out.innerHTML="<div class='comm-not-member'>"+plL("Vous n'êtes assigné à aucun chantier pour le moment. Demandez à être ajouté à l'équipe d'un chantier.","You are not assigned to any construction site yet. Ask to be added to a site team.","Você ainda não está atribuído a nenhum canteiro. Peça para ser adicionado à equipe de um canteiro.")+"</div>";return;}
   var members=siteMembersOf(proj);
-  var r=await db.from("community_posts").select("*").eq("company_id",dbCoId).eq("project",site).order("created_at",{ascending:false}).limit(50);
-  var posts=(r.data||[]).filter(function(p){return _commFilter==="all"||p.tag===_commFilter;});
-  if(!posts.length){out.innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F4AC;</div><div class='empty-text'>"+(STRINGS[lang].commEmptyText||plL("Aucune discussion.","No discussions yet.","Nenhuma discussão ainda."))+"</div></div>";return;}
-  var rr=await db.from("community_replies").select("*").eq("company_id",dbCoId).in("post_id",posts.map(function(p){return p.id;})).order("created_at",{ascending:true});
-  var rep={};if(rr.data)rr.data.forEach(function(x){if(!rep[x.post_id])rep[x.post_id]=[];rep[x.post_id].push(x);});
-  var locale=lang===1?"en-US":lang===2?"pt-BR":"fr-FR";
-  var member=isSiteMember(proj);
+  var all=commGet(site);
+  var posts=all.filter(function(p){return _commFilter==="all"||p.tag===_commFilter;});
+  if(!posts.length){out.innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F4AC;</div><div class='empty-text'>"+plL("Aucune discussion. Lancez la première !","No discussions yet. Start the first one!","Nenhuma discussão ainda. Comece a primeira!")+"</div></div>";return;}
+  var mine=(me&&me.name?me.name.toLowerCase():"");
   out.innerHTML=posts.map(function(p){
-    var replies=rep[p.id]||[];
-    var rHTML=replies.map(function(rp){return "<div class='reply-item'><div class='reply-av'>"+escapeHTML(rp.author_name.substring(0,2).toUpperCase())+"</div><div><div class='reply-author'>"+escapeHTML(rp.author_name)+"</div><div class='reply-txt'>"+highlightMentions(rp.content,members)+"</div></div></div>";}).join("");
+    var isAuthor=(p.author||"").toLowerCase()===mine;
+    var editingThis=_commEdit&&_commEdit.kind==="post"&&_commEdit.pid===p.id;
+    var rHTML=(p.replies||[]).map(function(rp){
+      var rAuthor=(rp.author||"").toLowerCase()===mine;
+      var rEditing=_commEdit&&_commEdit.kind==="reply"&&_commEdit.pid===p.id&&_commEdit.rid===rp.id;
+      var body=rEditing
+        ?"<textarea class='pc-edit-area' id='edit-"+p.id+"-"+rp.id+"'>"+escapeHTML(rp.content)+"</textarea><div class='pc-edit-btns'><button class='pc-edit-save' onclick=\"saveEditReply('"+p.id+"','"+rp.id+"')\">"+plL("Enregistrer","Save","Salvar")+"</button><button class='pc-edit-cancel' onclick=\"cancelCommEdit()\">"+plL("Annuler","Cancel","Cancelar")+"</button></div>"
+        :"<div class='reply-txt'>"+highlightMentions(rp.content,members)+(rp.edited?"<span class='reply-edited'>("+plL("modifié","edited","editado")+")</span>":"")+"</div>";
+      var acts=rAuthor&&!rEditing?"<span class='pc-acts'><button class='pc-act' title='"+plL("Modifier","Edit","Editar")+"' onclick=\"startEditReply('"+p.id+"','"+rp.id+"')\">✏️</button><button class='pc-act del' title='"+plL("Supprimer","Delete","Excluir")+"' onclick=\"deleteReply('"+p.id+"','"+rp.id+"')\">🗑️</button></span>":"";
+      return "<div class='reply-item'><div class='reply-av'>"+escapeHTML((rp.author||"?").substring(0,2).toUpperCase())+"</div><div style='flex:1;min-width:0'><div style='display:flex;align-items:center'><div class='reply-author'>"+escapeHTML(rp.author||"")+"</div>"+acts+"</div>"+body+"</div></div>";
+    }).join("");
     var card="<div class='post-card'>";
     card+="<div class='post-card-header'>";
-    card+="<div class='post-av'>"+escapeHTML(p.author_name.substring(0,2).toUpperCase())+"</div>";
-    card+="<div><div class='post-author'>"+escapeHTML(p.author_name)+"</div>";
-    card+="<div class='post-meta'>"+new Date(p.created_at).toLocaleDateString(locale)+"</div></div>";
-    card+="<span class='post-tag "+(COMM_TAG_CLASS[p.tag]||"tag-info")+"'>"+escapeHTML(commTagLabel(p.tag))+"</span>";
-    card+="</div><div class='post-body'>"+highlightMentions(p.content,members)+"</div>";
-    if(rHTML)card+="<div class='reply-list'>"+rHTML+"</div>";
-    if(member){
-      card+="<div class='reply-box'><div class='mention-box' style='flex:1'><input class='reply-input' placeholder='"+plL("Votre réponse…","Your reply…","Sua resposta…")+"' id='ri-"+p.id+"' autocomplete='off' oninput=\"mentionOnInput('ri-"+p.id+"','rim-"+p.id+"')\" onkeydown=\"mentionOnKey(event,'ri-"+p.id+"','rim-"+p.id+"')\"><div class='mention-menu' id='rim-"+p.id+"'></div></div>";
-      card+="<button class='btn-reply' onclick=\"submitReply('"+p.id+"')\">"+plL("Répondre","Reply","Responder")+"</button></div>";
+    card+="<div class='post-av'>"+escapeHTML((p.author||"?").substring(0,2).toUpperCase())+"</div>";
+    card+="<div style='flex:1;min-width:0'><div class='post-author'>"+escapeHTML(p.author||"")+"</div>";
+    card+="<div class='post-meta'>"+fmtCommDate(p.ts)+"</div></div>";
+    card+="<span class='post-tag pc-tagwrap "+(COMM_TAG_CLASS[p.tag]||"tag-info")+"'>"+escapeHTML(commTagLabel(p.tag))+"</span>";
+    if(isAuthor&&!editingThis)card+="<span class='pc-acts'><button class='pc-act' title='"+plL("Modifier","Edit","Editar")+"' onclick=\"startEditPost('"+p.id+"')\">✏️</button><button class='pc-act del' title='"+plL("Supprimer","Delete","Excluir")+"' onclick=\"deletePost('"+p.id+"')\">🗑️</button></span>";
+    card+="</div>";
+    if(editingThis){
+      card+="<textarea class='pc-edit-area' id='edit-"+p.id+"'>"+escapeHTML(p.content)+"</textarea><div class='pc-edit-btns'><button class='pc-edit-save' onclick=\"saveEditPost('"+p.id+"')\">"+plL("Enregistrer","Save","Salvar")+"</button><button class='pc-edit-cancel' onclick=\"cancelCommEdit()\">"+plL("Annuler","Cancel","Cancelar")+"</button></div>";
+    }else{
+      card+="<div class='post-body'>"+highlightMentions(p.content,members)+(p.edited?"<span class='post-edited'>("+plL("modifié","edited","editado")+")</span>":"")+"</div>";
     }
+    if(rHTML)card+="<div class='reply-list'>"+rHTML+"</div>";
+    card+="<div class='reply-box'><div class='mention-box' style='flex:1'><input class='reply-input' placeholder='"+plL("Votre réponse…","Your reply…","Sua resposta…")+"' id='ri-"+p.id+"' autocomplete='off' oninput=\"mentionOnInput('ri-"+p.id+"','rim-"+p.id+"')\" onkeydown=\"mentionReplyKey(event,'"+p.id+"')\"><div class='mention-menu' id='rim-"+p.id+"'></div></div>";
+    card+="<button class='btn-reply' type='button' onclick=\"submitReply('"+p.id+"')\">"+plL("Répondre","Reply","Responder")+"</button></div>";
     card+="</div>";
     return card;
   }).join("");
 }
+// Enter submits a reply (unless the mention menu is guiding selection)
+function mentionReplyKey(e,pid){
+  var menu=document.getElementById("rim-"+pid);
+  if(menu&&menu.classList.contains("show")){mentionOnKey(e,"ri-"+pid,"rim-"+pid);return;}
+  if(e.key==="Enter"){e.preventDefault();submitReply(pid);}
+}
 
-async function submitPost(){
+function submitPost(){
   var proj=activeCommProject();
   if(!isSiteMember(proj)){toast(plL("Vous n'êtes pas assigné à ce chantier","You are not assigned to this site","Você não está atribuído a este canteiro"));return;}
   var content=document.getElementById("post-input").value.trim();
   if(!content){toast(STRINGS[lang].toastNoPost||plL("Écrivez quelque chose","Write something first","Escreva algo primeiro"));return;}
   var tag=document.getElementById("post-tag").value;
   var site=document.getElementById("site-sel").value;
-  if(!dbOk){toast(STRINGS[lang].toastNoDB||plL("Connexion requise","Connection required","Conexão necessária"));return;}
   var mentions=parseMentions(content,siteMembersOf(proj));
-  var r=await db.from("community_posts").insert({company_id:dbCoId,author_name:me.name,project:site,content:content,tag:tag}).select();
-  if(r.error){console.error(r.error);toast("❌ "+r.error.message);return;}
-  if(r.data&&r.data[0])storeMentions("post",r.data[0].id,mentions);
+  var post={id:commUID("p"),dbId:null,author:me.name,tag:tag,content:content,ts:Date.now(),edited:false,mentions:mentions,replies:[]};
+  var arr=commGet(site);arr.unshift(post);commSetSite(site,arr); // persist locally first
+  // best-effort mirror to Supabase (does not block persistence)
+  if(dbOk&&dbCoId){try{db.from("community_posts").insert({company_id:dbCoId,author_name:me.name,project:site,content:content,tag:tag}).select().then(function(r){if(r&&r.data&&r.data[0]){post.dbId=r.data[0].id;commSetSite(site,commGet(site));}},function(){});}catch(e){}}
   document.getElementById("post-input").value="";
   var c=document.getElementById("comm-composer");if(c)c.classList.remove("show");
-  toast(STRINGS[lang].toastPosted||plL("Publication envoyée !","Post published!","Publicação enviada!"));
+  toast(plL("Publication envoyée !","Post published!","Publicação enviada!"));
   loadPosts();
 }
 
-async function submitReply(postId){
+function submitReply(postId){
   var proj=activeCommProject();
   if(!isSiteMember(proj)){toast(plL("Vous n'êtes pas assigné à ce chantier","You are not assigned to this site","Você não está atribuído a este canteiro"));return;}
   var inp=document.getElementById("ri-"+postId);
   if(!inp||!inp.value.trim())return;
   var content=inp.value.trim();
+  var site=document.getElementById("site-sel").value;
   var mentions=parseMentions(content,siteMembersOf(proj));
-  var r=await db.from("community_replies").insert({company_id:dbCoId,post_id:postId,author_name:me.name,content:content}).select();
-  if(r.error){console.error(r.error);toast("❌ "+r.error.message);return;}
-  if(r.data&&r.data[0])storeMentions("reply",r.data[0].id,mentions);
+  var arr=commGet(site);
+  var post=arr.find(function(p){return p.id===postId;});
+  if(!post){toast("❌");return;}
+  var reply={id:commUID("r"),dbId:null,author:me.name,content:content,ts:Date.now(),edited:false,mentions:mentions};
+  post.replies=post.replies||[];post.replies.push(reply);
+  commSetSite(site,arr);
+  if(dbOk&&dbCoId){try{db.from("community_replies").insert({company_id:dbCoId,post_id:post.dbId||postId,author_name:me.name,content:content}).select().then(function(r){if(r&&r.data&&r.data[0]){reply.dbId=r.data[0].id;commSetSite(site,commGet(site));}},function(){});}catch(e){}}
   inp.value="";
-  toast(STRINGS[lang].toastReplied||plL("Réponse envoyée !","Reply sent!","Resposta enviada!"));
+  toast(plL("Réponse envoyée !","Reply sent!","Resposta enviada!"));
   loadPosts();
+}
+
+// -- edit / delete --
+function startEditPost(pid){_commEdit={kind:"post",pid:pid};loadPosts();setTimeout(function(){var t=document.getElementById("edit-"+pid);if(t){t.focus();t.setSelectionRange(t.value.length,t.value.length);}},40);}
+function startEditReply(pid,rid){_commEdit={kind:"reply",pid:pid,rid:rid};loadPosts();setTimeout(function(){var t=document.getElementById("edit-"+pid+"-"+rid);if(t){t.focus();t.setSelectionRange(t.value.length,t.value.length);}},40);}
+function cancelCommEdit(){_commEdit=null;loadPosts();}
+function saveEditPost(pid){
+  var site=document.getElementById("site-sel").value;
+  var t=document.getElementById("edit-"+pid);if(!t)return;
+  var val=t.value.trim();if(!val){toast(plL("Le message est vide","Message is empty","A mensagem está vazia"));return;}
+  var arr=commGet(site);var post=arr.find(function(p){return p.id===pid;});if(!post)return;
+  post.content=val;post.edited=true;post.mentions=parseMentions(val,siteMembersOf(projByName(site)));
+  commSetSite(site,arr);_commEdit=null;
+  if(dbOk&&dbCoId&&post.dbId){try{db.from("community_posts").update({content:val}).eq("id",post.dbId).then(function(){},function(){});}catch(e){}}
+  toast(plL("Message modifié","Post updated","Publicação atualizada"));loadPosts();
+}
+function deletePost(pid){
+  if(!confirm(plL("Supprimer ce message ?","Delete this post?","Excluir esta publicação?")))return;
+  var site=document.getElementById("site-sel").value;
+  var arr=commGet(site);var post=arr.find(function(p){return p.id===pid;});
+  var arr2=arr.filter(function(p){return p.id!==pid;});commSetSite(site,arr2);
+  if(dbOk&&dbCoId&&post&&post.dbId){try{db.from("community_posts").delete().eq("id",post.dbId).then(function(){},function(){});}catch(e){}}
+  toast(plL("Message supprimé","Post deleted","Publicação excluída"));loadPosts();
+}
+function saveEditReply(pid,rid){
+  var site=document.getElementById("site-sel").value;
+  var t=document.getElementById("edit-"+pid+"-"+rid);if(!t)return;
+  var val=t.value.trim();if(!val){toast(plL("La réponse est vide","Reply is empty","A resposta está vazia"));return;}
+  var arr=commGet(site);var post=arr.find(function(p){return p.id===pid;});if(!post)return;
+  var reply=(post.replies||[]).find(function(r){return r.id===rid;});if(!reply)return;
+  reply.content=val;reply.edited=true;reply.mentions=parseMentions(val,siteMembersOf(projByName(site)));
+  commSetSite(site,arr);_commEdit=null;
+  if(dbOk&&dbCoId&&reply.dbId){try{db.from("community_replies").update({content:val}).eq("id",reply.dbId).then(function(){},function(){});}catch(e){}}
+  toast(plL("Réponse modifiée","Reply updated","Resposta atualizada"));loadPosts();
+}
+function deleteReply(pid,rid){
+  if(!confirm(plL("Supprimer cette réponse ?","Delete this reply?","Excluir esta resposta?")))return;
+  var site=document.getElementById("site-sel").value;
+  var arr=commGet(site);var post=arr.find(function(p){return p.id===pid;});if(!post)return;
+  var reply=(post.replies||[]).find(function(r){return r.id===rid;});
+  post.replies=(post.replies||[]).filter(function(r){return r.id!==rid;});
+  commSetSite(site,arr);
+  if(dbOk&&dbCoId&&reply&&reply.dbId){try{db.from("community_replies").delete().eq("id",reply.dbId).then(function(){},function(){});}catch(e){}}
+  toast(plL("Réponse supprimée","Reply deleted","Resposta excluída"));loadPosts();
 }
 
 // -- CHAT MEDIA --
