@@ -515,14 +515,60 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
 .file-folder-icon{font-size:32px;margin-bottom:10px;}
 .file-folder-name{font-size:13px;font-weight:600;color:var(--white);margin-bottom:4px;}
 .file-folder-count{font-size:11px;color:var(--text3);}
-.proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;}
-.proj-card{background:var(--navy2);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;cursor:pointer;transition:border-color 0.2s,transform 0.15s;}
+/* ── Projects header / toolbar ── */
+.proj-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap;}
+.proj-head-title{font-family:var(--font-d);font-size:30px;font-weight:800;color:var(--white);line-height:1.1;margin-bottom:6px;}
+.proj-head-counts{font-size:13px;color:var(--text2);}
+.proj-new-btn{background:#3B82F6;color:#fff;border:none;border-radius:9px;padding:11px 18px;font-family:var(--font-b);font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:background 0.14s,transform 0.12s;white-space:nowrap;}
+.proj-new-btn:hover{background:#2563EB;transform:translateY(-1px);}
+.proj-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:20px;flex-wrap:wrap;}
+.proj-pills{display:flex;gap:8px;flex-wrap:wrap;}
+.proj-pill{background:var(--navy2);border:1px solid var(--border);border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:500;color:var(--text2);cursor:pointer;transition:all 0.12s;font-family:var(--font-b);}
+.proj-pill:hover{border-color:var(--border2);color:var(--text);}
+.proj-pill.active{background:var(--blue-light);border-color:rgba(59,130,246,0.4);color:var(--blue);}
+.proj-tools{display:flex;align-items:center;gap:12px;}
+.proj-sort{background:none;border:none;color:var(--text2);font-size:12.5px;font-family:var(--font-b);cursor:pointer;outline:none;padding:6px 4px;}
+.proj-sort option{background:var(--navy2);color:var(--text);}
+.proj-view-toggle{display:flex;background:var(--navy2);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.proj-view-btn{background:none;border:none;padding:6px 11px;font-size:13px;color:var(--text3);cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all 0.12s;}
+.proj-view-btn.active{background:var(--navy3);color:var(--white);}
+/* ── Project cards ── */
+.proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+.proj-grid.list-view{grid-template-columns:1fr;}
+.proj-card{background:var(--navy2);border:1px solid var(--border);border-radius:14px;overflow:hidden;position:relative;cursor:pointer;transition:border-color 0.2s,transform 0.15s;display:flex;flex-direction:column;}
 .proj-card:hover{border-color:var(--blue);transform:translateY(-2px);}
-.proj-card-name{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--white);margin-bottom:4px;}
-.proj-card-meta{font-size:12px;color:var(--text3);margin-bottom:12px;}
+.proj-card-preview{position:relative;height:150px;background-color:var(--navy3);background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,0.035) 0,rgba(255,255,255,0.035) 1px,transparent 1px,transparent 11px);background-size:cover;background-position:center;}
+.proj-card-pill{position:absolute;top:12px;left:12px;display:inline-flex;align-items:center;gap:6px;background:rgba(11,15,25,0.72);backdrop-filter:blur(4px);border:1px solid var(--border2);border-radius:999px;padding:4px 10px;font-size:10.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--white);}
+.proj-card-pill .pill-dot{width:7px;height:7px;border-radius:50%;}
+.proj-card-actions{position:absolute;top:10px;right:10px;display:flex;gap:6px;opacity:0;transition:opacity 0.15s;}
+.proj-card:hover .proj-card-actions{opacity:1;}
+.proj-card-act{width:28px;height:28px;border-radius:7px;background:rgba(11,15,25,0.72);backdrop-filter:blur(4px);border:1px solid var(--border2);color:var(--text2);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all 0.12s;}
+.proj-card-act:hover{color:var(--white);border-color:var(--blue);}
+.proj-card-act.del:hover{color:var(--red);border-color:var(--red);}
+.proj-card-body{padding:16px 17px 4px;flex:1;}
+.proj-card-name{font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--white);margin-bottom:4px;line-height:1.25;}
+.proj-card-meta{font-size:12.5px;color:var(--text3);}
+.proj-card-footer{display:flex;align-items:center;gap:18px;padding:13px 17px 15px;font-size:12.5px;}
+.proj-metric{display:inline-flex;align-items:baseline;gap:5px;color:var(--text2);}
+.proj-metric b{font-weight:700;color:var(--text);}
+.proj-metric.crit b{color:var(--red);}
+.proj-metric.crit.zero b{color:var(--text3);}
+.proj-metric.crit.zero{color:var(--text3);}
+.proj-metric.high b{color:var(--orange);}
 .proj-card-count{font-size:11px;color:var(--blue);}
 .proj-del{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;transition:color 0.12s;}
 .proj-del:hover{color:var(--red);}
+/* ── New project modal ── */
+.pm-section{padding:16px 22px;border-bottom:1px solid var(--border);}
+.pm-section:last-of-type{border-bottom:none;}
+.pm-section-title{font-family:var(--font-d);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--blue);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.pm-section-title .pm-num{width:20px;height:20px;border-radius:50%;background:var(--blue-light);border:1px solid rgba(59,130,246,0.35);color:var(--blue);font-size:10px;display:inline-flex;align-items:center;justify-content:center;}
+.pm-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.pm-tags{display:flex;flex-wrap:wrap;gap:6px;background:var(--navy3);border:1px solid var(--border2);border-radius:8px;padding:7px 9px;min-height:42px;align-items:center;cursor:text;}
+.pm-tag{display:inline-flex;align-items:center;gap:6px;background:var(--blue-light);border:1px solid rgba(59,130,246,0.3);color:var(--blue);border-radius:6px;padding:3px 9px;font-size:12px;}
+.pm-tag button{background:none;border:none;color:var(--blue);cursor:pointer;font-size:13px;line-height:1;padding:0;}
+.pm-tags input{flex:1;min-width:120px;background:none;border:none;outline:none;color:var(--text);font-family:var(--font-b);font-size:13px;}
+@media(max-width:768px){.pm-grid3{grid-template-columns:1fr;}.proj-head-title{font-size:24px;}}
 .proj-add-box{background:var(--navy2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:24px;}
 .proj-add-row{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;}
 .community-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;}
@@ -1844,16 +1890,33 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
           <div id="posts-out"><div class="empty-state"><div class="empty-icon">&#x1F4AC;</div><div class="empty-text"><span id="comm-empty" id="comm-empty-text">...</span></div></div></div>
         </div>
         <div id="tab-6" class="tab">
-          <div class="section-header" style="margin-bottom:20px"><div class="section-title" id="proj-section-title">Mes projets &amp; chantiers</div></div>
-          <div class="proj-add-box">
-            <div style="font-family:var(--font-d);font-size:14px;font-weight:600;color:var(--white);margin-bottom:14px" id="proj-add-title">Ajouter un chantier</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;">
-              <div class="form-g" style="margin:0"><label class="form-l" id="proj-lbl-name">Nom du chantier</label><input class="form-i" id="proj-name" placeholder="Ex: Tour Horizon..."></div>
-              <div class="form-g" style="margin:0"><label class="form-l" id="proj-lbl-loc">Localisation</label><input class="form-i" id="proj-loc" placeholder="Ex: Paris..."></div>
-              <div class="form-g" style="margin:0"><label class="form-l" id="proj-lbl-owner">Maître d’œuvre</label><input class="form-i" id="proj-owner" placeholder="Ex : Ing. Jean Dupont..."></div>
-              <button class="btn-save" style="margin:0;padding:10px 20px;width:auto" onclick="addProject()" id="proj-btn-add">+ Ajouter</button>
+          <div class="proj-head">
+            <div>
+              <div class="proj-head-title" id="proj-head-title">Projetos</div>
+              <div class="proj-head-counts" id="proj-counts">—</div>
+            </div>
+            <button class="proj-new-btn" onclick="openProjectModal()"><i class="ti ti-plus"></i><span id="proj-new-lbl">Novo projeto</span></button>
+          </div>
+          <div class="proj-toolbar">
+            <div class="proj-pills" id="proj-pills">
+              <button class="proj-pill active" data-filter="active" onclick="setProjFilter('active',this)">Active · <span data-count="active">0</span></button>
+              <button class="proj-pill" data-filter="completed" onclick="setProjFilter('completed',this)">Completed · <span data-count="completed">0</span></button>
+              <button class="proj-pill" data-filter="paused" onclick="setProjFilter('paused',this)">Paused · <span data-count="paused">0</span></button>
+            </div>
+            <div class="proj-tools">
+              <select class="proj-sort" id="proj-sort" onchange="renderProjects()">
+                <option value="active" id="proj-sort-active">Sort: Most active</option>
+                <option value="recent" id="proj-sort-recent">Sort: Most recent</option>
+                <option value="name" id="proj-sort-name">Sort: Name (A–Z)</option>
+              </select>
+              <div class="proj-view-toggle">
+                <button class="proj-view-btn active" data-view="grid" onclick="setProjView('grid',this)"><i class="ti ti-layout-grid"></i>Grid</button>
+                <button class="proj-view-btn" data-view="list" onclick="setProjView('list',this)"><i class="ti ti-list"></i>List</button>
+              </div>
             </div>
           </div>
+          <!-- hidden legacy inputs kept for backward compatibility -->
+          <input type="hidden" id="proj-name"><input type="hidden" id="proj-loc"><input type="hidden" id="proj-owner">
           <div id="proj-out"><div class="empty-state"><div class="empty-icon">&#x1F3D7;&#xFE0F;</div><div class="empty-text" id="proj-empty-text">...</div></div></div>
         </div>
         <!-- DOCUMENTS -->
@@ -4376,25 +4439,80 @@ async function fileStorage(e){
   }catch(ex){console.error("storage",ex);}
 }
 
+// ── Extended project metadata (persisted locally; core fields stay in Supabase) ──
+function plL(fr,en,pt){return lang===0?fr:lang===2?pt:en;}
+function pmAllMeta(){try{return JSON.parse(localStorage.getItem("pillier-proj-meta")||"{}");}catch(e){return {};}}
+function pmGetMeta(id){var m=pmAllMeta();return m[String(id)]||{};}
+function pmSetMeta(id,obj){var m=pmAllMeta();m[String(id)]=Object.assign(m[String(id)]||{},obj);localStorage.setItem("pillier-proj-meta",JSON.stringify(m));}
+function pmDelMeta(id){var m=pmAllMeta();delete m[String(id)];localStorage.setItem("pillier-proj-meta",JSON.stringify(m));}
+function pmMerge(p){var meta=pmGetMeta(p.id);return Object.assign({type:"Residencial",status:"active",phase:"Fundações",team:[]},meta,p,{_meta:meta});}
+function projSubtitle(p){
+  var m=p._meta||{};
+  var parts=[];
+  if(m.address)parts.push(m.address);
+  var cityStr=[m.city,m.state].filter(Boolean).join(", ");
+  if(cityStr)parts.push(cityStr+(m.country?", "+m.country:""));
+  else if(m.country)parts.push(m.country);
+  var sub=parts.join(" · ");
+  return sub||p.location||"—";
+}
+function projMetrics(p){
+  var open=entries.filter(function(e){return e.project===p.name&&e.status!=="resolved";});
+  return {
+    open:open.length,
+    critical:open.filter(function(e){return e.sev==="critical";}).length,
+    high:open.filter(function(e){return e.sev==="high";}).length,
+    people:(p._meta&&p._meta.team&&p._meta.team.length)?p._meta.team.length:(p.owner?1:0)
+  };
+}
+function projStatusBucket(p){
+  var s=(p._meta&&p._meta.status)||p.status||"active";
+  if(s==="completed")return "completed";
+  if(s==="paused")return "paused";
+  if(s==="planning")return "active"; // planning counts as in-progress
+  return "active";
+}
+var PROJ_STATUS_META={
+  active:{dot:"#4ade80",label:function(){return "ACTIVE";}},
+  planning:{dot:"#60a5fa",label:function(){return "PLANNING";}},
+  paused:{dot:"#fbbf24",label:function(){return "PAUSED";}},
+  completed:{dot:"#9ca3af",label:function(){return "COMPLETED";}}
+};
+
 async function loadProjects(){
   if(!dbOk||!dbCoId)return;
   var r=await db.from("projects").select("*").eq("company_id",dbCoId).order("created_at",{ascending:false});
-  if(r.data){projects=r.data;renderProjects();updateProjectDropdowns();}
+  if(r.data){projects=r.data.map(pmMerge);renderProjects();updateProjectDropdowns();}
 }
 
+// Legacy quick-add (kept for any external callers)
 async function addProject(){
-  var name=document.getElementById("proj-name").value.trim();
-  var loc=document.getElementById("proj-loc").value.trim();
-  var owner=document.getElementById("proj-owner").value.trim();
+  var name=(document.getElementById("proj-name").value||"").trim();
+  var loc=(document.getElementById("proj-loc").value||"").trim();
+  var owner=(document.getElementById("proj-owner").value||"").trim();
   if(!name){toast(STRINGS[lang].toastNoTitle||"Ajoutez un nom de chantier");return;}
-  if(dbOk){
-    var r=await db.from("projects").insert({company_id:dbCoId,name:name,location:loc||"",owner:owner||""}).select();
-    if(r.data&&r.data[0])projects.unshift(r.data[0]);
-  }else{projects.unshift({id:Date.now(),name:name,location:loc||"",owner:owner||""});}
+  await createProject({name:name,location:loc,owner:owner});
   document.getElementById("proj-name").value="";
   document.getElementById("proj-loc").value="";
   document.getElementById("proj-owner").value="";
-  renderProjects();updateProjectDropdowns();toast(STRINGS[lang].toastAddProj||"Chantier ajouté !");
+}
+
+// Central creator used by both the modal and the legacy add
+async function createProject(data){
+  var name=data.name,loc=data.location||"",owner=data.owner||"";
+  var meta={type:data.type||"Residencial",address:data.address||"",city:data.city||"",state:data.state||"",country:data.country||"",contract:data.contract||"",startDate:data.startDate||"",endDate:data.endDate||"",lead:owner,structural:data.structural||"",architect:data.architect||"",team:data.team||[],status:data.status||"active",phase:data.phase||"Fundações"};
+  var newProj;
+  if(dbOk){
+    var r=await db.from("projects").insert({company_id:dbCoId,name:name,location:loc,owner:owner}).select();
+    if(r.error){console.error("addProject ERROR:",r.error);toast("❌ "+r.error.message);return;}
+    newProj=r.data&&r.data[0]?r.data[0]:{id:Date.now(),name:name,location:loc,owner:owner};
+  }else{
+    newProj={id:Date.now(),name:name,location:loc,owner:owner};
+  }
+  pmSetMeta(newProj.id,meta);
+  projects.unshift(pmMerge(newProj));
+  renderProjects();updateProjectDropdowns();
+  toast(STRINGS[lang].toastAddProj||plL("Chantier ajouté !","Project added!","Projeto adicionado!"));
 }
 
 async function deleteProject(id){
@@ -4403,6 +4521,7 @@ async function deleteProject(id){
     var r=await db.from("projects").delete().eq("id",id);
     if(r.error){console.error("Delete project failed:",r.error);toast(STRINGS[lang].toastErrDel||"Erreur lors de la suppression");return;}
   }
+  pmDelMeta(id);
   projects=projects.filter(function(p){return String(p.id)!==String(id);});
   renderProjects();updateProjectDropdowns();toast(STRINGS[lang].toastDelProj||"Chantier supprimé");
 }
@@ -4413,19 +4532,194 @@ function openProject(name){
   renderKB();
   showTab(3,document.querySelectorAll(".sidebar-link")[3]);
 }
+
+var _projFilter="active",_projView="grid";
+function setProjFilter(f,btn){
+  _projFilter=f;
+  var pills=document.querySelectorAll("#proj-pills .proj-pill");
+  pills.forEach(function(b){b.classList.toggle("active",b.getAttribute("data-filter")===f);});
+  renderProjects();
+}
+function setProjView(v,btn){
+  _projView=v;
+  document.querySelectorAll(".proj-view-btn").forEach(function(b){b.classList.toggle("active",b.getAttribute("data-view")===v);});
+  renderProjects();
+}
+
+function renderProjLang(){
+  var set=function(id,txt){var el=document.getElementById(id);if(el)el.textContent=txt;};
+  set("proj-head-title",plL("Projets","Projects","Projetos"));
+  set("proj-new-lbl",plL("Nouveau projet","New project","Novo projeto"));
+  set("proj-sort-active",plL("Tri : Plus actifs","Sort: Most active","Ordenar: Mais ativos"));
+  set("proj-sort-recent",plL("Tri : Plus récents","Sort: Most recent","Ordenar: Mais recentes"));
+  set("proj-sort-name",plL("Tri : Nom (A–Z)","Sort: Name (A–Z)","Ordenar: Nome (A–Z)"));
+}
 function renderProjects(){
+  renderProjLang();
+  var merged=projects.map(function(p){return p._meta?p:pmMerge(p);});
+  // Live status counts
+  var counts={active:0,completed:0,paused:0};
+  merged.forEach(function(p){counts[projStatusBucket(p)]++;});
+  var countsEl=document.getElementById("proj-counts");
+  if(countsEl)countsEl.textContent=counts.active+" "+plL("actifs","active","ativos")+" · "+counts.completed+" "+plL("terminés","completed","concluídos")+" · "+counts.paused+" "+plL("en pause","paused","pausados");
+  ["active","completed","paused"].forEach(function(k){
+    var s=document.querySelector('#proj-pills [data-count="'+k+'"]');if(s)s.textContent=counts[k];
+  });
   var w=document.getElementById("proj-out");
-  if(!projects.length){w.innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F3D7;&#xFE0F;</div><div class='empty-text' id='proj-empty-text'>"+(STRINGS[lang].projEmptyText||"Aucun chantier.")+"</div></div>";return;}
-  var html="<div class='proj-grid'>";
-  projects.forEach(function(p){
-    var count=entries.filter(function(e){return e.project===p.name;}).length;
-    var safeName=p.name.replace(/'/g,"\\'").replace(/"/g,"&quot;");
-    var delBtn="<button class='proj-del' onclick=\"event.stopPropagation();deleteProject('"+String(p.id)+"')\">&#x1F5D1;</button>";
-    var ownerBadge=p.owner?"<div style='display:inline-flex;align-items:center;gap:5px;background:var(--blue-light);border:1px solid rgba(30,111,255,0.2);border-radius:5px;padding:3px 8px;font-size:11px;color:var(--blue);margin-top:6px;margin-bottom:6px'><i class='ti ti-hard-hat'></i>"+p.owner+"</div>":"";
-    html+="<div class='proj-card' onclick=\"openProject('"+safeName+"')\" style='cursor:pointer'>"+delBtn+"<div class='proj-card-name'>"+p.name+"</div><div class='proj-card-meta'>"+(p.location||"")+"</div>"+ownerBadge+"<div class='proj-card-count'>"+count+" incident(s)</div></div>";
+  if(!merged.length){w.innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F3D7;&#xFE0F;</div><div class='empty-text' id='proj-empty-text'>"+(STRINGS[lang].projEmptyText||"Aucun chantier.")+"</div></div>";return;}
+  // Filter
+  var list=merged.filter(function(p){return projStatusBucket(p)===_projFilter;});
+  // Sort
+  var sortBy=(document.getElementById("proj-sort")||{}).value||"active";
+  list.sort(function(a,b){
+    if(sortBy==="name")return a.name.localeCompare(b.name);
+    if(sortBy==="recent")return String(b.id).localeCompare(String(a.id));
+    return projMetrics(b).open-projMetrics(a).open; // most active
+  });
+  if(!list.length){
+    w.innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F5C2;&#xFE0F;</div><div class='empty-text'>"+plL("Aucun projet dans cette vue.","No projects in this view.","Nenhum projeto nesta visão.")+"</div></div>";
+    return;
+  }
+  var html="<div class='proj-grid"+(_projView==="list"?" list-view":"")+"'>";
+  list.forEach(function(p){
+    var m=projMetrics(p);
+    var st=(p._meta&&p._meta.status)||p.status||"active";
+    var stm=PROJ_STATUS_META[st]||PROJ_STATUS_META.active;
+    var safeName=String(p.name).replace(/'/g,"\\'").replace(/"/g,"&quot;");
+    var cover=(p._meta&&p._meta.cover)?"style=\"background-image:url('"+p._meta.cover+"')\"":"";
+    var critCls=m.critical>0?"crit":"crit zero";
+    var critHtml="<span class='proj-metric "+critCls+"'><b>"+m.critical+"</b> "+plL("critique","critical","critical")+"</span>";
+    if(m.critical===0&&m.high>0)critHtml="<span class='proj-metric high'><b>"+m.high+"</b> high</span>";
+    html+="<div class='proj-card' onclick=\"openProject('"+safeName+"')\">"
+      +"<div class='proj-card-preview' "+cover+">"
+      +"<div class='proj-card-pill'><span class='pill-dot' style='background:"+stm.dot+"'></span>"+stm.label()+"</div>"
+      +"<div class='proj-card-actions'>"
+      +"<button class='proj-card-act' title='"+plL("Modifier","Edit","Editar")+"' onclick=\"event.stopPropagation();openProjectModal('"+String(p.id)+"')\"><i class='ti ti-pencil'></i></button>"
+      +"<button class='proj-card-act del' title='"+plL("Supprimer","Delete","Excluir")+"' onclick=\"event.stopPropagation();deleteProject('"+String(p.id)+"')\"><i class='ti ti-trash'></i></button>"
+      +"</div></div>"
+      +"<div class='proj-card-body'>"
+      +"<div class='proj-card-name'>"+p.name+"</div>"
+      +"<div class='proj-card-meta'>"+projSubtitle(p)+"</div></div>"
+      +"<div class='proj-card-footer'>"
+      +critHtml
+      +"<span class='proj-metric'><b>"+m.open+"</b> "+plL("ouverts","open","abertos")+"</span>"
+      +"<span class='proj-metric'><b>"+m.people+"</b> "+plL("pers.","people","pessoas")+"</span>"
+      +"</div></div>";
   });
   html+="</div>";
   w.innerHTML=html;
+}
+
+// ── New / Edit project modal ──
+var _pmTeam=[],_pmEditId=null;
+function pmRenderTeam(){
+  var box=document.getElementById("pm-team-tags");if(!box)return;
+  var inp=document.getElementById("pm-team-input");
+  Array.prototype.slice.call(box.querySelectorAll(".pm-tag")).forEach(function(t){t.remove();});
+  _pmTeam.forEach(function(name,i){
+    var el=document.createElement("span");el.className="pm-tag";
+    el.innerHTML=(name.replace(/</g,"&lt;"))+" <button onclick=\"pmRemoveTeam("+i+")\">✕</button>";
+    box.insertBefore(el,inp);
+  });
+}
+function pmRemoveTeam(i){_pmTeam.splice(i,1);pmRenderTeam();}
+function pmTeamKey(e){
+  if(e.key==="Enter"||e.key===","){
+    e.preventDefault();
+    var v=e.target.value.trim().replace(/,$/,"");
+    if(v){_pmTeam.push(v);e.target.value="";pmRenderTeam();}
+  }else if(e.key==="Backspace"&&!e.target.value&&_pmTeam.length){
+    _pmTeam.pop();pmRenderTeam();
+  }
+}
+function pmLangLabels(){
+  var set=function(id,txt){var el=document.getElementById(id);if(el)el.textContent=txt;};
+  var ph=function(id,txt){var el=document.getElementById(id);if(el)el.placeholder=txt;};
+  set("pm-s1",plL("Informations du projet","Project information","Informações do projeto"));
+  set("pm-s2",plL("Responsables techniques","Technical leads","Responsáveis técnicos"));
+  set("pm-s3",plL("Statut & phase","Status & phase","Status & fase"));
+  set("pm-l-name",plL("Nom du chantier","Project / site name","Nome da obra / canteiro"));
+  set("pm-l-type",plL("Type de projet","Project type","Tipo de projeto"));
+  set("pm-l-contract",plL("N° contrat / centre de coût","Contract / cost center","Nº contrato / centro de custo"));
+  set("pm-l-address",plL("Adresse / Quartier","Address / District","Endereço / Bairro"));
+  set("pm-l-city",plL("Ville","City","Cidade"));
+  set("pm-l-state",plL("Région","State","Estado"));
+  set("pm-l-country",plL("Pays","Country","País"));
+  set("pm-l-start",plL("Date de début","Start date","Data de início"));
+  set("pm-l-end",plL("Date de fin prévue","Target completion","Previsão de conclusão"));
+  set("pm-l-lead",plL("Ingénieur résident / resp. technique","Lead site engineer","Engenheiro residente / responsável técnico"));
+  set("pm-l-struct",plL("Ingénieur structure","Structural engineer","Engenheiro calculista / estrutural"));
+  set("pm-l-arch",plL("Architecte responsable","Architectural lead","Arquiteto responsável"));
+  set("pm-l-team",plL("Équipe du chantier","Site team members","Equipe do canteiro"));
+  set("pm-l-status",plL("Statut initial","Initial status","Status inicial"));
+  set("pm-l-phase",plL("Phase actuelle","Current phase","Fase atual"));
+  set("pm-cancel",plL("Annuler","Cancel","Cancelar"));
+  ph("pm-contract",plL("Optionnel","Optional","Opcional"));
+  ph("pm-team-input",plL("Tapez un nom puis Entrée","Type a name and Enter","Digite um nome e Enter"));
+}
+function openProjectModal(id){
+  pmLangLabels();
+  _pmEditId=id||null;_pmTeam=[];
+  var g=function(x){return document.getElementById(x);};
+  var isEdit=!!id;
+  g("pm-title").textContent=isEdit?plL("Modifier le projet","Edit project","Editar projeto"):plL("Nouveau projet","New project","Novo projeto");
+  g("pm-submit").textContent=isEdit?plL("Enregistrer","Save","Salvar"):plL("Créer le projet","Create project","Criar projeto");
+  if(isEdit){
+    var p=pmMerge(projects.filter(function(x){return String(x.id)===String(id);})[0]||{});
+    var m=p._meta||{};
+    g("pm-name").value=p.name||"";
+    g("pm-type").value=m.type||"Residencial";
+    g("pm-contract").value=m.contract||"";
+    g("pm-address").value=m.address||p.location||"";
+    g("pm-city").value=m.city||"";
+    g("pm-state").value=m.state||"";
+    g("pm-country").value=m.country||"BR";
+    g("pm-start").value=m.startDate||"";
+    g("pm-end").value=m.endDate||"";
+    g("pm-lead").value=m.lead||p.owner||"";
+    g("pm-struct").value=m.structural||"";
+    g("pm-arch").value=m.architect||"";
+    _pmTeam=(m.team||[]).slice();
+    g("pm-status").value=m.status||"active";
+    g("pm-phase").value=m.phase||"Fundações";
+  }else{
+    ["pm-name","pm-contract","pm-address","pm-city","pm-state","pm-start","pm-end","pm-lead","pm-struct","pm-arch"].forEach(function(x){g(x).value="";});
+    g("pm-type").value="Residencial";g("pm-country").value="BR";g("pm-status").value="active";g("pm-phase").value="Fundações";
+  }
+  g("pm-team-input").value="";pmRenderTeam();
+  document.getElementById("proj-modal-overlay").classList.add("show");
+  setTimeout(function(){g("pm-name").focus();},60);
+}
+function closeProjectModal(){document.getElementById("proj-modal-overlay").classList.remove("show");}
+async function submitProjectModal(){
+  var g=function(x){return document.getElementById(x).value.trim();};
+  var name=g("pm-name");
+  if(!name){toast(STRINGS[lang].toastNoTitle||plL("Ajoutez un nom","Add a name","Adicione um nome"));document.getElementById("pm-name").focus();return;}
+  var pending=document.getElementById("pm-team-input").value.trim();
+  if(pending){_pmTeam.push(pending);}
+  var city=g("pm-city"),state=g("pm-state"),country=g("pm-country");
+  var locParts=[g("pm-address"),[city,state].filter(Boolean).join(", "),country].filter(Boolean);
+  var data={
+    name:name,location:[g("pm-address"),city,state,country].filter(Boolean).join(", "),
+    type:g("pm-type"),contract:g("pm-contract"),
+    address:g("pm-address"),city:city,state:state,country:country,
+    startDate:g("pm-start"),endDate:g("pm-end"),
+    owner:g("pm-lead"),structural:g("pm-struct"),architect:g("pm-arch"),
+    team:_pmTeam.slice(),status:g("pm-status"),phase:g("pm-phase")
+  };
+  if(_pmEditId){
+    var id=_pmEditId;
+    var meta={type:data.type,address:data.address,city:data.city,state:data.state,country:data.country,contract:data.contract,startDate:data.startDate,endDate:data.endDate,lead:data.owner,structural:data.structural,architect:data.architect,team:data.team,status:data.status,phase:data.phase,cover:pmGetMeta(id).cover};
+    if(dbOk){var r=await db.from("projects").update({name:data.name,location:data.location,owner:data.owner}).eq("id",id);if(r&&r.error){console.error(r.error);toast("❌ "+r.error.message);return;}}
+    pmSetMeta(id,meta);
+    var idx=projects.findIndex(function(x){return String(x.id)===String(id);});
+    if(idx>=0)projects[idx]=pmMerge(Object.assign({},projects[idx],{name:data.name,location:data.location,owner:data.owner}));
+    renderProjects();updateProjectDropdowns();
+    toast(plL("Projet mis à jour","Project updated","Projeto atualizado"));
+  }else{
+    await createProject(data);
+  }
+  closeProjectModal();
 }
 
 function updateProjectDropdowns(){
@@ -6086,6 +6380,7 @@ function closeProfilePanel(e){
 }
 
 document.addEventListener("keydown",function(e){
+  if(e.key==="Escape"&&document.getElementById("proj-modal-overlay").classList.contains("show")){closeProjectModal();return;}
   if(document.getElementById("doc-viewer-overlay").classList.contains("show")){
     if(e.key==="Escape")closeDocViewer({target:document.getElementById("doc-viewer-overlay")});
     if(e.key==="ArrowRight")viewerChangePage(1);
@@ -6619,6 +6914,88 @@ function sanitizeProject(proj){
       <button class="inc-modal-btn imb-edit" id="imd-btn-edit" onclick="closeIncModal();editEntry(window._incModalId)">✏️ <span id="imd-lbl-edit">Modifier</span></button>
       <button class="inc-modal-btn imb-resolve" id="imd-btn-resolve" onclick="resolveEntry(window._incModalId);closeIncModal()">✅ <span id="imd-lbl-resolve">Résoudre</span></button>
       <button class="inc-modal-btn imb-delete" id="imd-btn-delete" onclick="closeIncModal();deleteEntry(window._incModalId)">🗑 <span id="imd-lbl-delete">Supprimer</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ── New / Edit Project modal ── -->
+<div class="inc-modal-overlay" id="proj-modal-overlay" onclick="if(event.target===this)closeProjectModal()">
+  <div class="inc-modal" style="max-width:640px">
+    <div class="inc-modal-header" style="padding-bottom:14px;border-bottom:1px solid var(--border)">
+      <div class="inc-modal-title" id="pm-title">Novo projeto</div>
+      <button class="inc-modal-close" onclick="closeProjectModal()">✕</button>
+    </div>
+
+    <!-- 1. Basic info -->
+    <div class="pm-section">
+      <div class="pm-section-title"><span class="pm-num">1</span><span id="pm-s1">Informações do projeto</span></div>
+      <div class="form-g"><label class="form-l" id="pm-l-name">Nome da obra / canteiro</label><input class="form-i" id="pm-name" placeholder="Ex: Torre Norte SP"></div>
+      <div class="form-2col">
+        <div class="form-g"><label class="form-l" id="pm-l-type">Tipo de projeto</label>
+          <select class="form-s" id="pm-type">
+            <option value="Residencial">Residencial</option>
+            <option value="Comercial">Comercial</option>
+            <option value="Industrial">Industrial</option>
+            <option value="Infraestrutura">Infraestrutura</option>
+            <option value="Reforma">Reforma</option>
+          </select>
+        </div>
+        <div class="form-g"><label class="form-l" id="pm-l-contract">Nº contrato / centro de custo</label><input class="form-i" id="pm-contract" placeholder="Opcional"></div>
+      </div>
+      <div class="form-g"><label class="form-l" id="pm-l-address">Endereço / Bairro</label><input class="form-i" id="pm-address" placeholder="Ex: Santo Amaro"></div>
+      <div class="pm-grid3">
+        <div class="form-g"><label class="form-l" id="pm-l-city">Cidade</label><input class="form-i" id="pm-city" placeholder="Ex: São Paulo"></div>
+        <div class="form-g"><label class="form-l" id="pm-l-state">Estado</label><input class="form-i" id="pm-state" placeholder="Ex: SP"></div>
+        <div class="form-g"><label class="form-l" id="pm-l-country">País</label><input class="form-i" id="pm-country" placeholder="Ex: BR" value="BR"></div>
+      </div>
+      <div class="form-2col">
+        <div class="form-g"><label class="form-l" id="pm-l-start">Data de início</label><input class="form-i" id="pm-start" type="date"></div>
+        <div class="form-g"><label class="form-l" id="pm-l-end">Previsão de conclusão</label><input class="form-i" id="pm-end" type="date"></div>
+      </div>
+    </div>
+
+    <!-- 2. Technical leads -->
+    <div class="pm-section">
+      <div class="pm-section-title"><span class="pm-num">2</span><span id="pm-s2">Responsáveis técnicos</span></div>
+      <div class="form-2col">
+        <div class="form-g"><label class="form-l" id="pm-l-lead">Engenheiro residente / responsável técnico</label><input class="form-i" id="pm-lead" placeholder="Ex: Eng. João Silva"></div>
+        <div class="form-g"><label class="form-l" id="pm-l-struct">Engenheiro calculista / estrutural</label><input class="form-i" id="pm-struct" placeholder="Ex: Eng. Maria Costa"></div>
+      </div>
+      <div class="form-g"><label class="form-l" id="pm-l-arch">Arquiteto responsável</label><input class="form-i" id="pm-arch" placeholder="Ex: Arq. Ana Souza"></div>
+      <div class="form-g"><label class="form-l" id="pm-l-team">Equipe do canteiro</label>
+        <div class="pm-tags" id="pm-team-tags" onclick="document.getElementById('pm-team-input').focus()">
+          <input id="pm-team-input" placeholder="Digite um nome e Enter" onkeydown="pmTeamKey(event)">
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Status & phase -->
+    <div class="pm-section">
+      <div class="pm-section-title"><span class="pm-num">3</span><span id="pm-s3">Status &amp; fase</span></div>
+      <div class="form-2col">
+        <div class="form-g"><label class="form-l" id="pm-l-status">Status inicial</label>
+          <select class="form-s" id="pm-status">
+            <option value="active">Active</option>
+            <option value="planning">Planning</option>
+            <option value="paused">Paused</option>
+          </select>
+        </div>
+        <div class="form-g"><label class="form-l" id="pm-l-phase">Fase atual</label>
+          <select class="form-s" id="pm-phase">
+            <option value="Fundações">Fundações</option>
+            <option value="Estrutura">Estrutura</option>
+            <option value="Alvenaria">Alvenaria</option>
+            <option value="Instalações">Instalações</option>
+            <option value="Acabamento">Acabamento</option>
+            <option value="Entrega">Entrega</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="inc-modal-footer">
+      <button class="inc-modal-btn imb-delete" style="flex:0 0 auto;padding:9px 18px" onclick="closeProjectModal()" id="pm-cancel">Cancelar</button>
+      <button class="inc-modal-btn imb-edit" onclick="submitProjectModal()" id="pm-submit">Criar projeto</button>
     </div>
   </div>
 </div>
