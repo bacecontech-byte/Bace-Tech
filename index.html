@@ -397,6 +397,24 @@ body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-heig
 .dash-alert{display:flex;align-items:center;gap:10px;background:rgba(226,75,74,0.08);border:0.5px solid rgba(226,75,74,0.25);border-radius:8px;padding:9px 14px;margin-bottom:20px;font-size:12px;color:#f87171;line-height:1.5;}
 .dash-alert i{font-size:16px;flex-shrink:0;}
 .dash-alert b{font-weight:600;}
+/* Capture — active voice recorder */
+.rec-mic-btn{width:52px;height:52px;border-radius:50%;background:#ef4444;border:none;color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 0 0 5px rgba(239,68,68,0.18);animation:recPulse 1.6s ease-in-out infinite;}
+@keyframes recPulse{0%,100%{box-shadow:0 0 0 4px rgba(239,68,68,0.22);}50%{box-shadow:0 0 0 10px rgba(239,68,68,0.05);}}
+.rec-wave{display:flex;align-items:flex-end;gap:4px;height:28px;}
+.rec-wave span{display:block;width:8px;border-radius:3px;background:#60a5fa;animation:recBar 0.9s ease-in-out infinite;}
+.rec-wave span.dim{background:#2f3b52;}
+@keyframes recBar{0%,100%{height:7px;}50%{height:26px;}}
+/* Capture — category chips */
+.cap-chip{padding:9px 16px;border-radius:999px;border:1px solid var(--border2);background:var(--navy2);color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-b);transition:all 0.12s;display:inline-flex;align-items:center;gap:6px;}
+.cap-chip:hover{border-color:rgba(96,165,250,0.4);color:var(--text);}
+.cap-chip.active{border-color:#60a5fa;background:rgba(96,165,250,0.12);color:#60a5fa;}
+.cap-chip.active::before{content:"\25C6";font-size:9px;}
+/* Capture — severity gradient slider */
+.sev-slider{--thumb:#ef4444;-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:5px;background:linear-gradient(90deg,#22c55e 0%,#eab308 42%,#f97316 72%,#ef4444 100%);outline:none;cursor:pointer;}
+.sev-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--thumb);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.45);}
+.sev-slider::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--thumb);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.45);}
+.sev-scale{display:flex;justify-content:space-between;margin-top:8px;font-size:11px;font-weight:600;letter-spacing:0.5px;}
+.sev-scale span{color:var(--text3);transition:color 0.12s;}
 .dash-alert-none{display:none;}
 .dash-two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
 .dash-card{background:var(--navy2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
@@ -1536,9 +1554,30 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
       </div>
       <div class="app-content">
         <div id="tab-0" class="tab active">
+          <!-- Dashboard header: search + critical triage banner + greeting -->
+          <div style="margin-bottom:18px;">
+            <div style="display:flex;align-items:center;gap:10px;background:var(--navy2);border:1px solid var(--border2);border-radius:12px;padding:12px 16px;">
+              <i class="ti ti-search" style="font-size:18px;color:var(--text3);flex-shrink:0;"></i>
+              <input id="dash-search-input" type="text" placeholder="Search captures, projects, docs…" onkeydown="dashSearch(event)" style="flex:1;background:none;border:none;outline:none;color:var(--text);font-size:14px;font-family:inherit;">
+              <span style="font-size:11px;color:var(--text3);border:1px solid var(--border2);border-radius:6px;padding:2px 7px;font-family:var(--font-b);flex-shrink:0;">⌘K</span>
+            </div>
+          </div>
+          <!-- Critical triage banner: shown only when there are open criticals -->
+          <div id="dash-crit-alert" style="display:none;align-items:center;gap:14px;background:rgba(226,75,74,0.08);border:1px solid rgba(226,75,74,0.25);border-radius:14px;padding:16px 18px;margin-bottom:22px;cursor:pointer;" onclick="showTab(3,document.querySelectorAll('.sidebar-link')[3])">
+            <div style="width:44px;height:44px;border-radius:11px;background:rgba(226,75,74,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-alert-triangle" style="font-size:22px;color:#f87171;"></i></div>
+            <div style="flex:1;min-width:0;">
+              <div id="dash-crit-title" style="font-size:15px;font-weight:700;color:#f87171;margin-bottom:2px;"></div>
+              <div id="dash-crit-detail" style="font-size:13px;color:rgba(248,113,113,0.85);line-height:1.4;"></div>
+            </div>
+          </div>
+          <!-- Greeting -->
+          <div style="margin-bottom:24px;">
+            <div id="dash-greeting" style="font-family:var(--font-d);font-size:34px;font-weight:800;color:var(--white);letter-spacing:-0.5px;line-height:1.1;"></div>
+            <div id="dash-greeting-sub" style="font-size:15px;color:var(--text2);margin-top:6px;"></div>
+          </div>
           <!-- Usage widget (Phase 1) -->
           <div id="usage-widget-dashboard" style="margin-bottom:20px;padding:18px;background:var(--navy2);border:1px solid var(--border);border-radius:12px;"></div>
-          <!-- Alert bar: hidden when no criticals -->
+          <!-- Legacy alert bar (superseded by #dash-crit-alert above; kept hidden) -->
           <div class="dash-alert" id="dash-alert" style="display:none;">
             <i class="ti ti-alert-triangle"></i>
             <span id="dash-alert-text"></span>
@@ -1613,7 +1652,17 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
                   <button class="btn-decline" onclick="declineAI()"><i class="ti ti-x"></i> <span id="lbl-decline">Refuser</span></button>
                 </div>
               </div>
-              <button class="voice-btn" id="voice-btn" onclick="toggleVoice()"><div class="upload-icon" id="voice-icon">&#x1F399;&#xFE0F;</div><div class="upload-text" id="ut-voice">Appuyer pour enregistrer</div></button>
+              <div id="voice-recorder">
+                <button class="voice-btn" id="voice-btn" onclick="toggleVoice()"><div class="upload-icon" id="voice-icon">&#x1F399;&#xFE0F;</div><div class="upload-text" id="ut-voice">Appuyer pour enregistrer</div></button>
+                <div id="voice-recording" style="display:none;align-items:center;gap:16px;background:var(--navy2);border:1px solid var(--border2);border-radius:16px;padding:14px 18px;">
+                  <button onclick="toggleVoice()" class="rec-mic-btn" title="Stop"><i class="ti ti-microphone"></i></button>
+                  <div style="display:flex;flex-direction:column;gap:9px;flex:1;min-width:0;">
+                    <div style="font-size:15px;font-weight:700;color:var(--white);" id="rec-timer-label">Recording — 00:00</div>
+                    <div class="rec-wave" id="rec-wave"></div>
+                  </div>
+                  <button onclick="toggleVoice()" style="display:flex;align-items:center;gap:8px;background:none;border:none;color:var(--text2);font-size:13px;font-weight:700;letter-spacing:1.5px;cursor:pointer;flex-shrink:0;">STOP<span style="width:11px;height:11px;background:var(--text2);border-radius:2px;display:inline-block;"></span></button>
+                </div>
+              </div>
               <div class="ai-solution-box" id="ai-voice">
                 <div class="ai-solution-header">
                   <div class="ai-solution-tag">Pillier IA</div>
@@ -1638,9 +1687,16 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
               <div class="form-g"><label class="form-l" id="lbl-title">Titre</label><input class="form-i" id="c-title" placeholder="Ex: Fissure mur..."></div>
               <div class="form-2col">
                 <div class="form-g"><label class="form-l"><span id="lbl-proj">Projet</span></label><select class="form-s" id="c-proj"><option><span id="lbl-no-proj">Aucun projet</span></option></select></div>
-                <div class="form-g"><label class="form-l" id="lbl-sev">Sévérité</label><select class="form-s" id="c-sev"><option value="low" id="sev-low">Faible</option><option value="medium" id="sev-med">Moyen</option><option value="high" id="sev-high">Élevé</option><option value="critical" id="sev-crit">Critique</option></select></div>
+                <div class="form-g"><label class="form-l" id="lbl-sev">Sévérité</label>
+                  <input type="range" min="0" max="3" step="1" value="1" id="c-sev-slider" class="sev-slider" oninput="onSevSlider(this.value)" style="margin-top:10px;">
+                  <div class="sev-scale"><span id="sev-lbl-0">Faible</span><span id="sev-lbl-1">Moyen</span><span id="sev-lbl-2">Élevé</span><span id="sev-lbl-3">Critique</span></div>
+                  <select class="form-s" id="c-sev" style="display:none;"><option value="low" id="sev-low">Faible</option><option value="medium" id="sev-med">Moyen</option><option value="high" id="sev-high">Élevé</option><option value="critical" id="sev-crit">Critique</option></select>
+                </div>
               </div>
-              <div class="form-g"><label class="form-l" id="lbl-cat">Catégorie</label><select class="form-s" id="c-cat"><option id="cat-0" value="Structure">Structure</option><option id="cat-1" value="Électricité">Électricité</option><option id="cat-2" value="Plomberie">Plomberie</option><option id="cat-3" value="Sécurité">Sécurité</option><option id="cat-4" value="Équipement">Équipement</option><option id="cat-5" value="Documentation">Documentation</option></select></div>
+              <div class="form-g"><label class="form-l" id="lbl-cat">Catégorie</label>
+                <div id="c-cat-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px;"></div>
+                <select class="form-s" id="c-cat" style="display:none;"><option id="cat-0" value="Structure">Structure</option><option id="cat-1" value="Électricité">Électricité</option><option id="cat-2" value="Plomberie">Plomberie</option><option id="cat-3" value="Sécurité">Sécurité</option><option id="cat-4" value="Équipement">Équipement</option><option id="cat-5" value="Documentation">Documentation</option></select>
+              </div>
               <div class="form-g"><label class="form-l" id="lbl-desc">Description</label><textarea class="form-t" id="c-desc" placeholder="Décrivez l'incident..."></textarea></div>
               <div class="form-g"><label class="form-l" id="lbl-action">Action recommandée</label><textarea class="form-t" id="c-action" style="min-height:60px" placeholder="Que faire ?"></textarea></div>
               <button class="btn-save" onclick="saveEntry()" id="btn-save">Enregistrer &amp; Classer</button>
@@ -3457,6 +3513,8 @@ function applyLang(){
   // Sync Resources page translations to main app language
   try{translateResources(lang===0?'fr':lang===2?'pt':'en');}catch(e){}
   try{renderUsageWidgets();}catch(e){}
+  try{renderDashHeader();}catch(e){}
+  try{var _dsi=document.getElementById("dash-search-input");if(_dsi)_dsi.placeholder=(lang===1?"Search captures, projects, docs…":lang===2?"Buscar capturas, projetos, documentos…":"Rechercher captures, projets, documents…");}catch(e){}
   try{_pillierReRenderTurnstile();}catch(e){}
 
   // Translate consent notices (login + signup)
@@ -3570,6 +3628,11 @@ function applyLang(){
   // Translate capture form severity options
   var sevOpts=[["sev-low","sevLowOpt"],["sev-med","sevMedOpt"],["sev-high","sevHighOpt"],["sev-crit","sevCritOpt"]];
   sevOpts.forEach(function(pair){var el=document.getElementById(pair[0]);if(el&&S[pair[1]])el.textContent=S[pair[1]];});
+  // Capture category chips + severity slider scale labels (EN/FR/PT)
+  var sevScale=[["sev-lbl-0","sevLowOpt"],["sev-lbl-1","sevMedOpt"],["sev-lbl-2","sevHighOpt"],["sev-lbl-3","sevCritOpt"]];
+  sevScale.forEach(function(pair){var el=document.getElementById(pair[0]);if(el&&S[pair[1]])el.textContent=S[pair[1]];});
+  try{renderCatChips();}catch(e){}
+  try{syncSevSlider();}catch(e){}
   var kbAll=document.getElementById("kbf-all");if(kbAll&&S.kbAll)kbAll.textContent=S.kbAll;
   var kbSearch=document.getElementById("kb-search-input");if(kbSearch&&S.kbSearchPlaceholder)kbSearch.placeholder=S.kbSearchPlaceholder;
   [["cs-0","chatSugg0"],["cs-1","chatSugg1"],["cs-2","chatSugg2"],["cs-3","chatSugg3"]].forEach(function(pair){var el=document.getElementById(pair[0]);if(el&&S[pair[1]])el.textContent=S[pair[1]];});
@@ -4515,17 +4578,55 @@ async function toggleVoice(){
       mr=new MediaRecorder(stream);chunks=[];
       mr.ondataavailable=function(e){chunks.push(e.data);};
       mr.onstop=processVoice;mr.start();isRec=true;
-      document.getElementById("voice-btn").classList.add("recording");
-      document.getElementById("voice-icon").textContent="Stop";
-      document.getElementById("ut-voice").textContent=STRINGS[lang].utVoiceRec||"Gravando... Toque para parar";
+      // Swap idle button for the active recording UI (mic + timer + waveform + STOP)
+      var vb=document.getElementById("voice-btn");if(vb)vb.style.display="none";
+      var vr=document.getElementById("voice-recording");if(vr)vr.style.display="flex";
+      _startRecTimer();
     }catch(e){console.error("Capture mic error:",e);toast((STRINGS[lang].toastMicError||"Microphone non disponible")+": "+(e.name||e.message||"unknown"));}
   }else{
     mr.stop();isRec=false;
-    document.getElementById("voice-btn").classList.remove("recording");
-    document.getElementById("voice-icon").innerHTML="&#x1F399;&#xFE0F;";
-    document.getElementById("ut-voice").textContent=STRINGS[lang].utVoice||"Appuyer pour enregistrer";
+    _stopRecTimer();
+    var vr2=document.getElementById("voice-recording");if(vr2)vr2.style.display="none";
+    var vb2=document.getElementById("voice-btn");if(vb2)vb2.style.display="";
   }
 }
+// --- Active recording UI helpers (timer + animated waveform) ---
+var _recTimer=null,_recStart=0;
+function _recLabel(){return lang===1?"Recording":lang===2?"Gravando":"Enregistrement";}
+function _recFmt(s){var m=Math.floor(s/60),ss=s%60;return (m<10?"0":"")+m+":"+(ss<10?"0":"")+ss;}
+function _updateRecTimer(){var el=document.getElementById("rec-timer-label");if(!el)return;var s=Math.max(0,Math.floor((Date.now()-_recStart)/1000));el.textContent=_recLabel()+" — "+_recFmt(s);}
+function _buildWave(){var w=document.getElementById("rec-wave");if(!w)return;var n=15,html="";for(var i=0;i<n;i++){var dim=(i%5===4)?"dim":"";var delay=(i*0.08).toFixed(2);var dur=(0.7+((i*37)%50)/100).toFixed(2);html+='<span class="'+dim+'" style="animation-delay:'+delay+'s;animation-duration:'+dur+'s;"></span>';}w.innerHTML=html;}
+function _startRecTimer(){_recStart=Date.now();_buildWave();_updateRecTimer();if(_recTimer)clearInterval(_recTimer);_recTimer=setInterval(_updateRecTimer,500);}
+function _stopRecTimer(){if(_recTimer){clearInterval(_recTimer);_recTimer=null;}}
+
+// --- Capture category chips (source of truth stays the hidden #c-cat select) ---
+function renderCatChips(){
+  var wrap=document.getElementById("c-cat-chips");var sel=document.getElementById("c-cat");
+  if(!wrap||!sel)return;
+  var labels=(STRINGS[lang]&&STRINGS[lang].cats)||[];
+  wrap.innerHTML="";
+  Array.prototype.forEach.call(sel.options,function(opt,i){
+    var b=document.createElement("button");
+    b.type="button";
+    b.className="cap-chip"+(opt.value===sel.value?" active":"");
+    b.textContent=labels[i]||opt.textContent;
+    b.setAttribute("data-val",opt.value);
+    b.onclick=function(){setCapCat(opt.value);};
+    wrap.appendChild(b);
+  });
+}
+function setCapCat(v){var sel=document.getElementById("c-cat");if(sel)sel.value=v;syncCatChips();}
+function syncCatChips(){var wrap=document.getElementById("c-cat-chips");var sel=document.getElementById("c-cat");if(!wrap||!sel)return;Array.prototype.forEach.call(wrap.children,function(b){b.classList.toggle("active",b.getAttribute("data-val")===sel.value);});}
+
+// --- Capture severity gradient slider (source of truth stays the hidden #c-sev select) ---
+var _sevVals=["low","medium","high","critical"];
+var _sevColors=["#22c55e","#eab308","#f97316","#ef4444"];
+function onSevSlider(v){var i=parseInt(v,10);if(isNaN(i))i=1;var sel=document.getElementById("c-sev");if(sel)sel.value=_sevVals[i];_applySevUI(i);}
+function _applySevUI(i){
+  var sl=document.getElementById("c-sev-slider");if(sl){sl.value=i;sl.style.setProperty("--thumb",_sevColors[i]);}
+  for(var j=0;j<4;j++){var el=document.getElementById("sev-lbl-"+j);if(el){el.style.color=(j===i)?_sevColors[i]:"var(--text3)";el.style.fontWeight=(j===i)?"800":"600";}}
+}
+function syncSevSlider(){var sel=document.getElementById("c-sev");if(!sel)return;var i=_sevVals.indexOf(sel.value);if(i<0)i=1;_applySevUI(i);}
 
 async function processVoice(){
   var proj=document.getElementById("c-proj").value||"the site";
@@ -4576,6 +4677,9 @@ function applyAIFields(p){
       else sevEl.value="low";
     }
   }
+  // Reflect AI-applied category/severity in the chip + slider UI
+  try{syncCatChips();}catch(e){}
+  try{syncSevSlider();}catch(e){}
 }
 function acceptAI(){
   var p=window._lastAI||{};
@@ -4770,16 +4874,11 @@ function renderDash(){
   document.getElementById("kv-res").textContent=resolved.length;
   document.getElementById("kv-crit").textContent=criticals.length;
   document.getElementById("kv-cats").textContent=new Set(entries.map(function(e){return e.cat;})).size;
-  // Alert bar
+  // Legacy alert bar superseded by the dashboard header banner — keep hidden
   var alertEl=document.getElementById("dash-alert");
-  var alertText=document.getElementById("dash-alert-text");
-  if(alertEl){
-    if(criticals.length>0){
-      var msg=lang===1?criticals.length+" critical incident(s) open — action required":lang===2?criticals.length+" incidente(s) crítico(s) aberto(s) — ação necessária":criticals.length+" incident(s) critique(s) ouvert(s) — action requise";
-      if(alertText)alertText.innerHTML="<b>"+msg+"</b>";
-      alertEl.style.display="flex";
-    }else{alertEl.style.display="none";}
-  }
+  if(alertEl)alertEl.style.display="none";
+  // Dashboard header (greeting + critical triage banner)
+  try{renderDashHeader();}catch(e){}
   // Bell dot
   var bellDot=document.getElementById("bell-dot");
   if(bellDot)bellDot.style.display=criticals.length>0?"block":"none";
@@ -4812,6 +4911,54 @@ function renderDash(){
     return "<div class='inc-item' onclick=\"openIncModal('"+String(e.id)+"')\" style='cursor:pointer;'><div class='inc-sev' style='background:"+sc+"'></div><div class='inc-body'><div class='inc-name'>"+e.title+"</div><div class='inc-meta2'>"+catLabel(e.cat||"")+" · "+(e.date||"")+"</div></div>"+pill+"</div>";
   }).join("");
   generateInsights();
+}
+
+// Dashboard header: time-based greeting + critical triage banner (EN/FR/PT)
+function renderDashHeader(){
+  var gEl=document.getElementById("dash-greeting");
+  var sub=document.getElementById("dash-greeting-sub");
+  var h=new Date().getHours();
+  var greet=h<12?(lang===1?"Good morning":lang===2?"Bom dia":"Bonjour")
+           :h<18?(lang===1?"Good afternoon":lang===2?"Boa tarde":"Bon après-midi")
+                 :(lang===1?"Good evening":lang===2?"Boa noite":"Bonsoir");
+  var first=((me&&me.name)||"").trim().split(/\s+/)[0]||"";
+  if(gEl)gEl.textContent=greet+(first?", "+first:"")+".";
+  // Captures this week (fall back to total when dates are unparseable)
+  var now=Date.now(),wk=0,parsedAny=false;
+  (entries||[]).forEach(function(e){var d=Date.parse(e.created_at||e.createdAt||e.date||"");if(!isNaN(d)){parsedAny=true;if(now-d<=6048e5)wk++;}});
+  if(!parsedAny)wk=(entries||[]).length;
+  var proj=(projects||[]).length;
+  if(sub){
+    sub.textContent=lang===1?("You've got "+proj+" project"+(proj===1?"":"s")+" running and "+wk+" capture"+(wk===1?"":"s")+" this week.")
+      :lang===2?("Você tem "+proj+" projeto"+(proj===1?"":"s")+" em andamento e "+wk+" captura"+(wk===1?"":"s")+" esta semana.")
+      :("Vous avez "+proj+" projet"+(proj===1?"":"s")+" en cours et "+wk+" capture"+(wk===1?"":"s")+" cette semaine.");
+  }
+  // Critical triage banner
+  var criticals=(entries||[]).filter(function(e){return e.sev==="critical"&&e.status!=="resolved";});
+  var box=document.getElementById("dash-crit-alert");
+  var t=document.getElementById("dash-crit-title");
+  var d2=document.getElementById("dash-crit-detail");
+  if(box){
+    if(criticals.length>0){
+      var n=criticals.length;
+      if(t)t.textContent=lang===1?(n+" critical incident"+(n===1?"":"s")+" need"+(n===1?"s":"")+" triage")
+        :lang===2?(n+" incidente"+(n===1?"":"s")+" crítico"+(n===1?"":"s")+" precisa"+(n===1?"":"m")+" de triagem")
+        :(n+" incident"+(n===1?"":"s")+" critique"+(n===1?"":"s")+" à trier");
+      var titles=criticals.slice(0,2).map(function(e){return e.title;}).filter(Boolean).join(" · ");
+      var tail=lang===1?" — flagged recently":lang===2?" — sinalizados recentemente":" — signalés récemment";
+      if(d2)d2.textContent=titles?(titles+tail):"";
+      box.style.display="flex";
+    }else{box.style.display="none";}
+  }
+}
+
+// Dashboard search bar → route the query into the Knowledge Base (tab 3)
+function dashSearch(ev){
+  if(ev.key!=="Enter")return;
+  var q=(ev.target.value||"").trim();
+  try{showTab(3,document.querySelectorAll(".sidebar-link")[3]);}catch(e){}
+  var kb=document.getElementById("kb-search-input");
+  if(kb){kb.value=q;if(typeof filterKBSearch==="function")filterKBSearch(q);}
 }
 
 var _insightsGenerated=false;
