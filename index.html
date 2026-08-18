@@ -4485,7 +4485,7 @@ async function callAI(parts){
     parts.forEach(function(p){if(p.text)txt+=p.text+"\n";if(p.img)img=p.img;});
     var msgs=img?[{role:"user",content:[{type:"image_url",image_url:{url:img}},{type:"text",text:txt.trim()}]}]:[{role:"user",content:txt.trim()}];
     var apiEndpoint=img?"/api/gemini":"/api/groq";
-    var apiBody=img?{messages:msgs,max_tokens:2048}:{model:"llama-3.3-70b-versatile",messages:msgs,max_tokens:1024};
+    var apiBody=img?{messages:msgs,max_tokens:2048}:{model:"llama-3.1-8b-instant",messages:msgs,max_tokens:1024};
     var res=await fetch(apiEndpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(apiBody)});
     var data=await res.json();
     showLoad(false);
@@ -5076,7 +5076,7 @@ async function generateInsights(){
       summary+="Crit/High open:"+critOpen.length+"\n";
       entries.slice(0,8).forEach(function(e){summary+="["+e.sev+"/"+e.status+"] "+e.title+" ("+e.cat+","+e.project+")\n";});
       var langName=lang===0?"French":lang===1?"English":"Portuguese";
-      var resp=await fetch("/api/groq",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:[{role:"user",content:"You are Pillier IA, construction AI. Give exactly 2-3 short actionable insights in "+langName+". One sentence each with emoji prefix. Mention project names, categories, numbers. No headers.\n\n"+summary}],model:"llama-3.3-70b-versatile",temperature:0.3,max_tokens:200})});
+      var resp=await fetch("/api/groq",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:[{role:"user",content:"You are Pillier IA, construction AI. Give exactly 2-3 short actionable insights in "+langName+". One sentence each with emoji prefix. Mention project names, categories, numbers. No headers.\n\n"+summary}],model:"llama-3.1-8b-instant",temperature:0.3,max_tokens:200})});
       if(resp.ok){var data=await resp.json();var t=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||"";if(t.trim().length>10){textEl.innerHTML=t.trim().replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");}}
     }catch(e){plog("AI insights: local fallback",e);}
   }
@@ -5314,7 +5314,7 @@ async function sendChat(){
   var sysPrompt=_sp[lang===1?"en":lang===2?"pt":"fr"];
   var messages=[{role:"system",content:sysPrompt}].concat(chatHistory.slice(-10));
   try{
-    var chatModel="llama-3.3-70b-versatile";
+    var chatModel="llama-3.1-8b-instant";
     var lastMsg=messages[messages.length-1];
     if(attachment&&(attachment.type==="photo-camera"||attachment.type==="photo-gallery"||attachment.type==="video")){
       chatModel="gemini-photo";
@@ -5554,7 +5554,7 @@ async function processDoc(file,proj){
 
       var finalSummary="";
       try{
-        var combineRes=await fetch("/api/groq",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"llama-3.3-70b-versatile",messages:[{role:"user",content:combinePrompt}],max_tokens:4096})});
+        var combineRes=await fetch("/api/groq",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"llama-3.1-8b-instant",messages:[{role:"user",content:combinePrompt}],max_tokens:4096})});
         var combineData=await combineRes.json();
         finalSummary=combineData.choices&&combineData.choices[0]&&combineData.choices[0].message.content?combineData.choices[0].message.content:"";
       }catch(combineErr){
