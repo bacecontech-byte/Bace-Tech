@@ -605,6 +605,30 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
 .reply-input:focus{border-color:var(--blue);}
 .btn-reply{background:var(--navy3);border:1px solid var(--border2);color:var(--blue);border-radius:7px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;}
 .btn-reply:hover{background:var(--blue);color:white;border-color:var(--blue);}
+/* ── Community redesign ── */
+.comm-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap;}
+.comm-head-title{font-family:var(--font-d);font-size:26px;font-weight:800;color:var(--white);letter-spacing:-0.5px;line-height:1.1;}
+.comm-head-sub{font-size:13px;color:var(--text2);margin-top:6px;max-width:520px;}
+.comm-head-actions{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.btn-newpost{display:inline-flex;align-items:center;gap:6px;background:#3B82F6;color:#fff;border:none;border-radius:9px;padding:10px 16px;font-family:var(--font-d);font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;white-space:nowrap;}
+.btn-newpost:hover{background:#2563eb;}
+.comm-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;}
+.comm-pill{background:var(--navy2);border:1px solid var(--border2);color:var(--text2);border-radius:999px;padding:7px 15px;font-size:13px;font-weight:600;cursor:pointer;transition:all .12s;font-family:var(--font-b);}
+.comm-pill:hover{color:var(--white);border-color:var(--blue);}
+.comm-pill.active{background:var(--blue-light);border-color:var(--blue);color:var(--blue);}
+.comm-composer{display:none;}
+.comm-composer.show{display:block;}
+.comm-not-member{background:var(--navy2);border:1px dashed var(--border2);border-radius:12px;padding:20px;text-align:center;font-size:13px;color:var(--text2);margin-bottom:20px;}
+.mention-chip{color:var(--blue);background:var(--blue-light);border-radius:4px;padding:1px 4px;font-weight:600;}
+.mention-box{position:relative;}
+.mention-menu{position:absolute;z-index:50;left:0;right:0;max-height:210px;overflow-y:auto;background:var(--navy2);border:1px solid var(--border2);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,0.4);padding:4px;display:none;}
+.mention-menu.show{display:block;}
+.mention-opt{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;}
+.mention-opt.active,.mention-opt:hover{background:var(--blue-light);}
+.mention-opt-av{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:var(--font-d);flex-shrink:0;}
+.mention-opt-name{font-size:13px;color:var(--white);font-weight:600;}
+.mention-opt-role{font-size:11px;color:var(--text3);}
+.mention-empty{padding:10px;font-size:12px;color:var(--text3);text-align:center;}
 .chat-wrap{display:flex;flex-direction:row;gap:20px;height:calc(100vh - 110px);position:relative;}
 .chat-sidebar{width:260px;flex-shrink:0;display:flex;flex-direction:column;background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:12px;overflow-y:auto;}
 .chat-sidebar-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:0 4px;}
@@ -1871,20 +1895,34 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
           </div>
         </div>
         <div id="tab-5" class="tab">
-          <div class="community-top">
-            <div><div style="font-family:var(--font-d);font-size:18px;font-weight:700;color:var(--white);margin-bottom:4px" id="comm-title">Communauté du chantier</div><div style="font-size:13px;color:var(--text2)" id="comm-sub">Posez vos problèmes, partagez vos solutions</div></div>
-            <select class="site-selector" id="site-sel" onchange="loadPosts()"><option>Aucun projet</option></select>
+          <div class="comm-head">
+            <div>
+              <div class="comm-head-title" id="comm-title">Community</div>
+              <div class="comm-head-sub" id="comm-sub">Learn and share with your team on this construction site.</div>
+            </div>
+            <div class="comm-head-actions">
+              <select class="site-selector" id="site-sel" onchange="onSiteChange()"><option>Aucun projet</option></select>
+              <button class="btn-newpost" onclick="toggleComposer()"><span id="comm-newpost-lbl">+ New post</span></button>
+            </div>
           </div>
-          <div class="post-box">
-            <textarea class="post-input" id="post-input" placeholder="Décrivez votre problème..." data-i18n-placeholder="postPlaceholder"></textarea>
+          <div class="comm-pills" id="comm-pills">
+            <button class="comm-pill active" data-tag="all" onclick="setCommFilter('all',this)">All</button>
+            <button class="comm-pill" data-tag="question" onclick="setCommFilter('question',this)">Ask a question</button>
+            <button class="comm-pill" data-tag="regulation" onclick="setCommFilter('regulation',this)">Regulation update</button>
+            <button class="comm-pill" data-tag="showtell" onclick="setCommFilter('showtell',this)">Show &amp; tell</button>
+          </div>
+          <div class="post-box comm-composer" id="comm-composer">
+            <div class="mention-box">
+              <textarea class="post-input" id="post-input" placeholder="Share something with your site team… type @ to mention" data-i18n-placeholder="postPlaceholder" oninput="mentionOnInput('post-input','post-mention-menu')" onkeydown="mentionOnKey(event,'post-input','post-mention-menu')"></textarea>
+              <div class="mention-menu" id="post-mention-menu"></div>
+            </div>
             <div class="post-actions">
               <select class="post-tag-sel" id="post-tag">
-                <option value="problem" id="tag-problem">Problème</option>
-                <option value="question" id="tag-question">Question</option>
-                <option value="info">Info</option>
-                <option value="solved" id="tag-solved">Résolu</option>
+                <option value="question" id="tag-question">Ask a question</option>
+                <option value="regulation" id="tag-regulation">Regulation update</option>
+                <option value="showtell" id="tag-showtell">Show &amp; tell</option>
               </select>
-              <button class="btn-post" onclick="submitPost()"><span id="lbl-publish">Publier</span></button>
+              <button class="btn-post" onclick="submitPost()"><span id="lbl-publish">Publish</span></button>
             </div>
           </div>
           <div id="posts-out"><div class="empty-state"><div class="empty-icon">&#x1F4AC;</div><div class="empty-text"><span id="comm-empty" id="comm-empty-text">...</span></div></div></div>
@@ -3799,6 +3837,7 @@ function applyLang(){
   if(vc&&S.docViewerClose)vc.textContent=S.docViewerClose;
   // Update login screen language
   applyAuthLang();
+  try{applyCommunityI18n();}catch(e){}
 }
 
 function toggleNotifPanel(){
@@ -4724,7 +4763,9 @@ async function submitProjectModal(){
 
 function updateProjectDropdowns(){
   var opts=projects.length?projects.map(function(p){return "<option>"+p.name+"</option>";}).join(""):"<option id='lbl-no-proj'>"+(STRINGS[lang].lblNoProj||"Aucun projet")+"</option>";
-  ["c-proj","site-sel"].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts;});
+  var cp=document.getElementById("c-proj");if(cp)cp.innerHTML=opts;
+  updateSiteSelector();
+  updateComposerAccess();
 }
 
 function startRealtime(){
@@ -4755,12 +4796,28 @@ function startRealtime(){
     .on("postgres_changes",{event:"INSERT",schema:"public",table:"community_posts",filter:"company_id=eq."+dbCoId},function(payload){
       var d=payload.new;
       if(d.author_name===me.name)return;
-      addNotif("<strong>"+(d.author_name||"Equipe")+"</strong> "+(STRINGS[lang].notifPosted||"postou em")+": "+d.project);
+      if(!isSiteMember(projByName(d.project)))return; // scoped: only sites I belong to
+      if(commMentionsMe(d.content)){
+        addNotif("<strong>"+escapeHTML(d.author_name||"Equipe")+"</strong> "+plL("vous a mentionné dans","mentioned you in","mencionou você em")+": "+escapeHTML(d.project));
+      }else{
+        addNotif("<strong>"+escapeHTML(d.author_name||"Equipe")+"</strong> "+(STRINGS[lang].notifPosted||plL("a publié dans","posted in","publicou em"))+": "+escapeHTML(d.project));
+      }
       var site=document.getElementById("site-sel").value;
       if(d.project===site)loadPosts();
     })
-    .on("postgres_changes",{event:"INSERT",schema:"public",table:"community_replies",filter:"company_id=eq."+dbCoId},function(){loadPosts();})
+    .on("postgres_changes",{event:"INSERT",schema:"public",table:"community_replies",filter:"company_id=eq."+dbCoId},function(payload){
+      var d=payload.new;
+      if(d&&d.author_name!==me.name&&commMentionsMe(d.content)){
+        addNotif("<strong>"+escapeHTML(d.author_name||"Equipe")+"</strong> "+plL("vous a mentionné dans une réponse","mentioned you in a reply","mencionou você em uma resposta"));
+      }
+      loadPosts();
+    })
     .subscribe();
+}
+// True when the given community text @mentions the current user
+function commMentionsMe(content){
+  if(!content||!me||!me.name)return false;
+  return content.toLowerCase().indexOf("@"+me.name.trim().toLowerCase())>=0;
 }
 
 var PROMPT_PHOTO="You are a senior civil engineer and construction site expert. Analyze this construction site image and respond ONLY in {LANG} using EXACTLY this format with no markdown, no asterisks, no bold:\nTitre: [short precise title of the problem]\nCategorie: [ONE of: Structure / Electricite / Plomberie / Securite / Equipement / Documentation]\nSeverite: [ONE of: Faible / Moyen / Eleve / Critique]\nDescription: [2-4 sentences describing exactly what you see in the image - visible damage, materials affected, location, extent of the problem]\nCause: [2-3 sentences explaining the probable technical root cause based on engineering principles]\nSolution: [Numbered list of minimum 3 concrete action steps to fix this problem, based on engineering standards. Be specific and practical.]\nNormes: [List the exact applicable standards: BRAZIL use ABNT NBR (NBR 6118 for concrete structures, NBR 5410 for electrical, NBR 5626 for plumbing, NBR 8160 for sewage, NBR 14432 for fire, NBR 9050 for accessibility, NR-18 for site safety, NR-35 for work at height) | FRANCE use DTU and NF EN Eurocodes | EUROPE use EN Eurocodes. Always cite at least one standard relevant to the problem category.]\nSite: {PROJECT}";
@@ -5422,58 +5479,231 @@ function renderKB(){
   }).join("");
 }
 
+/* ───────────── COMMUNITY: site-scoped access + @mentions ───────────── */
+var _commFilter="all";
+var COMM_TAG_CLASS={question:"tag-question",regulation:"tag-info",showtell:"tag-solved",problem:"tag-problem",info:"tag-info",solved:"tag-solved"};
+function commTagLabel(id){
+  switch(id){
+    case "question":return plL("Poser une question","Ask a question","Fazer uma pergunta");
+    case "regulation":return plL("Mise à jour réglementaire","Regulation update","Atualização normativa");
+    case "showtell":return plL("Montrer & partager","Show & tell","Mostrar & compartilhar");
+    // legacy tags
+    case "problem":return plL("Problème","Problem","Problema");
+    case "solved":return plL("Résolu","Solved","Resolvido");
+    default:return plL("Info","Info","Info");
+  }
+}
+// -- Site membership --
+function projByName(name){return projects.find(function(p){return p.name===name;});}
+function siteMembersOf(proj){
+  if(!proj)return [];
+  var m=proj._meta||{};
+  var names=[];
+  [proj.owner,m.lead,m.structural,m.architect].forEach(function(n){if(n&&String(n).trim())names.push(String(n).trim());});
+  (m.team||[]).forEach(function(n){if(n&&String(n).trim())names.push(String(n).trim());});
+  var seen={},out=[];
+  names.forEach(function(n){var k=n.toLowerCase();if(!seen[k]){seen[k]=1;out.push(n);}});
+  return out;
+}
+function isSiteMember(proj){
+  if(!proj)return false;
+  var mem=siteMembersOf(proj);
+  if(!mem.length)return true; // open / legacy site with no roster defined
+  if(!me||!me.name)return false;
+  var mine=me.name.trim().toLowerCase();
+  return mem.some(function(n){return n.toLowerCase()===mine;});
+}
+function communitySites(){return projects.filter(isSiteMember);}
+function activeCommProject(){var el=document.getElementById("site-sel");return el?projByName(el.value):null;}
+function updateSiteSelector(){
+  var el=document.getElementById("site-sel");if(!el)return;
+  var prev=el.value;
+  var sites=communitySites();
+  if(!sites.length){el.innerHTML="<option>"+plL("Aucun chantier","No site","Nenhum canteiro")+"</option>";return;}
+  el.innerHTML=sites.map(function(p){return "<option>"+escapeHTML(p.name)+"</option>";}).join("");
+  if(prev&&sites.some(function(p){return p.name===prev;}))el.value=prev;
+}
+// -- Composer / filter / header --
+function updateComposerAccess(){
+  var proj=activeCommProject();
+  var member=isSiteMember(proj);
+  var btn=document.querySelector(".btn-newpost");
+  if(btn){btn.style.opacity=member?"1":"0.45";btn.style.pointerEvents=member?"auto":"none";}
+  if(!member){var c=document.getElementById("comm-composer");if(c)c.classList.remove("show");}
+}
+function toggleComposer(){
+  var proj=activeCommProject();
+  if(!isSiteMember(proj)){toast(plL("Vous n'êtes pas assigné à ce chantier","You are not assigned to this site","Você não está atribuído a este canteiro"));return;}
+  var c=document.getElementById("comm-composer");if(!c)return;
+  c.classList.toggle("show");
+  if(c.classList.contains("show"))setTimeout(function(){var t=document.getElementById("post-input");if(t)t.focus();},50);
+}
+function onSiteChange(){updateComposerAccess();loadPosts();}
+function setCommFilter(tag,btn){
+  _commFilter=tag;
+  document.querySelectorAll("#comm-pills .comm-pill").forEach(function(b){b.classList.toggle("active",b===btn);});
+  loadPosts();
+}
+function applyCommunityI18n(){
+  var set=function(id,txt){var el=document.getElementById(id);if(el)el.textContent=txt;};
+  set("comm-title",plL("Communauté","Community","Comunidade"));
+  set("comm-sub",plL("Apprenez et partagez avec votre équipe sur ce chantier.","Learn and share with your team on this construction site.","Aprenda e compartilhe com sua equipe neste canteiro."));
+  set("comm-newpost-lbl",plL("+ Nouveau post","+ New post","+ Novo post"));
+  set("lbl-publish",plL("Publier","Publish","Publicar"));
+  // pills
+  var pl=document.querySelectorAll("#comm-pills .comm-pill");
+  if(pl[0])pl[0].textContent=plL("Tout","All","Tudo");
+  if(pl[1])pl[1].textContent=commTagLabel("question");
+  if(pl[2])pl[2].textContent=commTagLabel("regulation");
+  if(pl[3])pl[3].innerHTML=commTagLabel("showtell").replace(/&/g,"&amp;");
+  // composer tag options
+  set("tag-question",commTagLabel("question"));
+  set("tag-regulation",commTagLabel("regulation"));
+  var st=document.getElementById("tag-showtell");if(st)st.innerHTML=commTagLabel("showtell").replace(/&/g,"&amp;");
+  var pin=document.getElementById("post-input");if(pin)pin.placeholder=plL("Partagez avec votre équipe… tapez @ pour mentionner","Share something with your site team… type @ to mention","Compartilhe com sua equipe… digite @ para mencionar");
+}
+
+/* ---- @mention autocomplete engine ---- */
+var _mentionState={inputId:null,menuId:null,start:0,items:[],active:0};
+function mentionMembers(){
+  var proj=activeCommProject();
+  var mem=siteMembersOf(proj);
+  var mine=(me&&me.name?me.name.trim().toLowerCase():"");
+  return mem.filter(function(n){return n.toLowerCase()!==mine;}); // don't suggest yourself
+}
+function mentionInitials(n){var p=n.trim().split(/\s+/);return ((p[0]||"?")[0]+(p[1]||"")[0]||"").toUpperCase();}
+function mentionClose(menuId){var m=document.getElementById(menuId);if(m)m.classList.remove("show");_mentionState.inputId=null;}
+function mentionOnInput(inputId,menuId){
+  var el=document.getElementById(inputId);if(!el)return;
+  var caret=el.selectionStart;
+  var pre=el.value.slice(0,caret);
+  var at=pre.lastIndexOf("@");
+  if(at<0){mentionClose(menuId);return;}
+  var q=pre.slice(at+1);
+  if(/[\n]/.test(q)){mentionClose(menuId);return;}
+  // require @ at start or preceded by whitespace
+  if(at>0&&!/\s/.test(pre.charAt(at-1))){mentionClose(menuId);return;}
+  var ql=q.toLowerCase();
+  var matches=mentionMembers().filter(function(n){
+    if(!ql)return true;
+    return n.toLowerCase().indexOf(ql)===0||n.toLowerCase().split(/\s+/).some(function(w){return w.indexOf(ql)===0;});
+  }).slice(0,8);
+  if(!matches.length){mentionClose(menuId);return;}
+  _mentionState={inputId:inputId,menuId:menuId,start:at,items:matches,active:0};
+  renderMentionMenu();
+}
+function renderMentionMenu(){
+  var m=document.getElementById(_mentionState.menuId);if(!m)return;
+  m.innerHTML=_mentionState.items.map(function(n,i){
+    return "<div class='mention-opt"+(i===_mentionState.active?" active":"")+"' onmousedown=\"event.preventDefault();mentionPick("+i+")\"><div class='mention-opt-av'>"+escapeHTML(mentionInitials(n))+"</div><div><div class='mention-opt-name'>"+escapeHTML(n)+"</div><div class='mention-opt-role'>"+plL("Membre du chantier","Site member","Membro do canteiro")+"</div></div></div>";
+  }).join("");
+  m.classList.add("show");
+}
+function mentionPick(i){
+  var st=_mentionState;var el=document.getElementById(st.inputId);if(!el)return;
+  var name=st.items[i];if(name==null)return;
+  var caret=el.selectionStart;
+  var before=el.value.slice(0,st.start);
+  var after=el.value.slice(caret);
+  var insert="@"+name+" ";
+  el.value=before+insert+after;
+  var pos=(before+insert).length;
+  el.setSelectionRange(pos,pos);
+  el.focus();
+  mentionClose(st.menuId);
+}
+function mentionOnKey(e,inputId,menuId){
+  var m=document.getElementById(menuId);
+  if(!m||!m.classList.contains("show")||_mentionState.inputId!==inputId)return;
+  if(e.key==="ArrowDown"){e.preventDefault();_mentionState.active=(_mentionState.active+1)%_mentionState.items.length;renderMentionMenu();}
+  else if(e.key==="ArrowUp"){e.preventDefault();_mentionState.active=(_mentionState.active-1+_mentionState.items.length)%_mentionState.items.length;renderMentionMenu();}
+  else if(e.key==="Enter"||e.key==="Tab"){e.preventDefault();mentionPick(_mentionState.active);}
+  else if(e.key==="Escape"){mentionClose(menuId);}
+}
+// Highlight @Name tokens for known site members
+function highlightMentions(raw,members){
+  var esc=escapeHTML(raw||"");
+  if(!members||!members.length)return esc;
+  var names=members.slice().sort(function(a,b){return b.length-a.length;}).map(function(n){return escapeHTML(n).replace(/[.*+?^${}()|[\]\\]/g,"\\$&");});
+  var re=new RegExp("@("+names.join("|")+")","g");
+  return esc.replace(re,function(mt){return "<span class='mention-chip'>"+mt+"</span>";});
+}
+function parseMentions(raw,members){
+  var low=(raw||"").toLowerCase();
+  return (members||[]).filter(function(n){return low.indexOf("@"+n.toLowerCase())>=0;});
+}
+// Persist the mention → member link (notification target lookup)
+function storeMentions(kind,id,names){
+  if(!id||!names||!names.length)return;
+  try{var k="pillier-comm-mentions";var m=JSON.parse(localStorage.getItem(k)||"{}");m[kind+":"+id]=names;localStorage.setItem(k,JSON.stringify(m));}catch(e){}
+}
+
 async function loadPosts(){
   if(!db||!dbCoId)return;
+  updateSiteSelector();
+  updateComposerAccess();
   var site=document.getElementById("site-sel").value;
-  var r=await db.from("community_posts").select("*").eq("company_id",dbCoId).eq("project",site).order("created_at",{ascending:false}).limit(50);
   var out=document.getElementById("posts-out");
-  if(!r.data||!r.data.length){out.innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F4AC;</div><div class='empty-text'>"+( STRINGS[lang].commEmptyText||"Aucune discussion.")+"</div></div>";return;}
-  var rr=await db.from("community_replies").select("*").eq("company_id",dbCoId).in("post_id",r.data.map(function(p){return p.id;})).order("created_at",{ascending:true});
-  var rep={};if(rr.data)rr.data.forEach(function(r){if(!rep[r.post_id])rep[r.post_id]=[];rep[r.post_id].push(r);});
-  var tclass={problem:"tag-problem",question:"tag-question",info:"tag-info",solved:"tag-solved"};
-  var tlabel={problem:"Problème",question:"Question",info:"Info",solved:"Résolu"};
-  out.innerHTML=r.data.map(function(p){
+  var proj=projByName(site);
+  if(!communitySites().length){out.innerHTML="<div class='comm-not-member'>"+plL("Vous n'êtes assigné à aucun chantier pour le moment. Demandez à être ajouté à l'équipe d'un chantier.","You are not assigned to any construction site yet. Ask to be added to a site team.","Você ainda não está atribuído a nenhum canteiro. Peça para ser adicionado à equipe de um canteiro.")+"</div>";return;}
+  var members=siteMembersOf(proj);
+  var r=await db.from("community_posts").select("*").eq("company_id",dbCoId).eq("project",site).order("created_at",{ascending:false}).limit(50);
+  var posts=(r.data||[]).filter(function(p){return _commFilter==="all"||p.tag===_commFilter;});
+  if(!posts.length){out.innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F4AC;</div><div class='empty-text'>"+(STRINGS[lang].commEmptyText||plL("Aucune discussion.","No discussions yet.","Nenhuma discussão ainda."))+"</div></div>";return;}
+  var rr=await db.from("community_replies").select("*").eq("company_id",dbCoId).in("post_id",posts.map(function(p){return p.id;})).order("created_at",{ascending:true});
+  var rep={};if(rr.data)rr.data.forEach(function(x){if(!rep[x.post_id])rep[x.post_id]=[];rep[x.post_id].push(x);});
+  var locale=lang===1?"en-US":lang===2?"pt-BR":"fr-FR";
+  var member=isSiteMember(proj);
+  out.innerHTML=posts.map(function(p){
     var replies=rep[p.id]||[];
-    var rHTML=replies.map(function(rp){return "<div class='reply-item'><div class='reply-av'>"+rp.author_name.substring(0,2).toUpperCase()+"</div><div><div class='reply-author'>"+rp.author_name+"</div><div class='reply-txt'>"+rp.content+"</div></div></div>";}).join("");
-    var delBtn=document.createElement("button");
-    delBtn.setAttribute("onclick","submitReply('"+p.id+"')");
-    delBtn.className="btn-reply";
-    delBtn.textContent="Répondre";
+    var rHTML=replies.map(function(rp){return "<div class='reply-item'><div class='reply-av'>"+escapeHTML(rp.author_name.substring(0,2).toUpperCase())+"</div><div><div class='reply-author'>"+escapeHTML(rp.author_name)+"</div><div class='reply-txt'>"+highlightMentions(rp.content,members)+"</div></div></div>";}).join("");
     var card="<div class='post-card'>";
     card+="<div class='post-card-header'>";
-    card+="<div class='post-av'>"+p.author_name.substring(0,2).toUpperCase()+"</div>";
-    card+="<div><div class='post-author'>"+p.author_name+"</div>";
-    card+="<div class='post-meta'>"+new Date(p.created_at).toLocaleDateString("fr-FR")+"</div></div>";
-    card+="<span class='post-tag "+(tclass[p.tag]||"tag-info")+"'>"+(tlabel[p.tag]||p.tag)+"</span>";
-    card+="</div><div class='post-body'>"+p.content+"</div>";
+    card+="<div class='post-av'>"+escapeHTML(p.author_name.substring(0,2).toUpperCase())+"</div>";
+    card+="<div><div class='post-author'>"+escapeHTML(p.author_name)+"</div>";
+    card+="<div class='post-meta'>"+new Date(p.created_at).toLocaleDateString(locale)+"</div></div>";
+    card+="<span class='post-tag "+(COMM_TAG_CLASS[p.tag]||"tag-info")+"'>"+escapeHTML(commTagLabel(p.tag))+"</span>";
+    card+="</div><div class='post-body'>"+highlightMentions(p.content,members)+"</div>";
     if(rHTML)card+="<div class='reply-list'>"+rHTML+"</div>";
-    card+="<div class='reply-box'><input class='reply-input' placeholder='Votre réponse...' id='ri-"+p.id+"'>";
-    var rb=document.createElement("button");rb.className="btn-reply";rb.setAttribute("onclick","submitReply('"+p.id+"')");rb.textContent="Répondre";
-    card+=rb.outerHTML+"</div></div>";
+    if(member){
+      card+="<div class='reply-box'><div class='mention-box' style='flex:1'><input class='reply-input' placeholder='"+plL("Votre réponse…","Your reply…","Sua resposta…")+"' id='ri-"+p.id+"' autocomplete='off' oninput=\"mentionOnInput('ri-"+p.id+"','rim-"+p.id+"')\" onkeydown=\"mentionOnKey(event,'ri-"+p.id+"','rim-"+p.id+"')\"><div class='mention-menu' id='rim-"+p.id+"'></div></div>";
+      card+="<button class='btn-reply' onclick=\"submitReply('"+p.id+"')\">"+plL("Répondre","Reply","Responder")+"</button></div>";
+    }
+    card+="</div>";
     return card;
   }).join("");
 }
 
 async function submitPost(){
+  var proj=activeCommProject();
+  if(!isSiteMember(proj)){toast(plL("Vous n'êtes pas assigné à ce chantier","You are not assigned to this site","Você não está atribuído a este canteiro"));return;}
   var content=document.getElementById("post-input").value.trim();
-  if(!content){toast(STRINGS[lang].toastNoPost||"Écrivez quelque chose");return;}
+  if(!content){toast(STRINGS[lang].toastNoPost||plL("Écrivez quelque chose","Write something first","Escreva algo primeiro"));return;}
   var tag=document.getElementById("post-tag").value;
   var site=document.getElementById("site-sel").value;
-  if(!dbOk){toast(STRINGS[lang].toastNoDB||"Connexion requise");return;}
-  var r=await db.from("community_posts").insert({company_id:dbCoId,author_name:me.name,project:site,content:content,tag:tag});
-  if(r.error){console.error(r.error);return;}
+  if(!dbOk){toast(STRINGS[lang].toastNoDB||plL("Connexion requise","Connection required","Conexão necessária"));return;}
+  var mentions=parseMentions(content,siteMembersOf(proj));
+  var r=await db.from("community_posts").insert({company_id:dbCoId,author_name:me.name,project:site,content:content,tag:tag}).select();
+  if(r.error){console.error(r.error);toast("❌ "+r.error.message);return;}
+  if(r.data&&r.data[0])storeMentions("post",r.data[0].id,mentions);
   document.getElementById("post-input").value="";
-  toast(STRINGS[lang].toastPosted||"Publication envoyée !");
+  var c=document.getElementById("comm-composer");if(c)c.classList.remove("show");
+  toast(STRINGS[lang].toastPosted||plL("Publication envoyée !","Post published!","Publicação enviada!"));
   loadPosts();
 }
 
 async function submitReply(postId){
+  var proj=activeCommProject();
+  if(!isSiteMember(proj)){toast(plL("Vous n'êtes pas assigné à ce chantier","You are not assigned to this site","Você não está atribuído a este canteiro"));return;}
   var inp=document.getElementById("ri-"+postId);
   if(!inp||!inp.value.trim())return;
-  var r=await db.from("community_replies").insert({company_id:dbCoId,post_id:postId,author_name:me.name,content:inp.value.trim()});
-  if(r.error){console.error(r.error);return;}
+  var content=inp.value.trim();
+  var mentions=parseMentions(content,siteMembersOf(proj));
+  var r=await db.from("community_replies").insert({company_id:dbCoId,post_id:postId,author_name:me.name,content:content}).select();
+  if(r.error){console.error(r.error);toast("❌ "+r.error.message);return;}
+  if(r.data&&r.data[0])storeMentions("reply",r.data[0].id,mentions);
   inp.value="";
-  toast(STRINGS[lang].toastReplied||"Réponse envoyée !");
+  toast(STRINGS[lang].toastReplied||plL("Réponse envoyée !","Reply sent!","Resposta enviada!"));
   loadPosts();
 }
 
