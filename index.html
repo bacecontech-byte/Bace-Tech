@@ -1398,34 +1398,34 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
   <div id="content-panel-3" class="content-panel" style="display:none;padding:60px 40px;">
     <div style="max-width:900px;margin:0 auto;">
       <div style="text-align:center;margin-bottom:40px;">
-        <div style="font-family:var(--font-d);font-size:32px;font-weight:800;color:var(--white);margin-bottom:8px;">Pillier Research</div>
+        <div style="font-family:var(--font-d);font-size:32px;font-weight:800;color:var(--white);margin-bottom:8px;" id="res-header">Pillier Pesquisa</div>
         <div style="font-size:14px;color:var(--text2);" id="res-sub">Relatórios e análises para líderes da construção civil.</div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:32px;" class="res-grid">
         <!-- Report 1 -->
-        <div style="background:var(--navy2);border:1px solid var(--border);border-radius:16px;padding:28px;cursor:pointer;" onclick="document.getElementById('res-lead-form').style.display='block'" onmouseover="this.style.borderColor='rgba(96,165,250,0.3)'" onmouseout="this.style.borderColor='var(--border)'">
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;"><div style="width:44px;height:44px;border-radius:10px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;"><i class="ti ti-file-analytics" style="font-size:20px;color:#60a5fa;"></i></div><div style="font-size:9px;color:#60a5fa;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Field Risk Analysis</div></div>
-          <div style="font-size:16px;font-weight:700;color:var(--white);line-height:1.4;margin-bottom:8px;">The State of On-Site Construction Risk: Why 50% of Field Incidents Go Unmitigated</div>
-          <div style="font-size:12px;color:var(--text3);">PDF · 6 slides · Free download</div>
+        <div style="background:var(--navy2);border:1px solid var(--border);border-radius:16px;padding:28px;cursor:pointer;" onclick="openResForm(1)" onmouseover="this.style.borderColor='rgba(96,165,250,0.3)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;"><div style="width:44px;height:44px;border-radius:10px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;"><i class="ti ti-file-analytics" style="font-size:20px;color:#60a5fa;"></i></div><div style="font-size:9px;color:#60a5fa;font-weight:600;text-transform:uppercase;letter-spacing:1px;" id="res-cat-1">Análise de Risco em Campo</div></div>
+          <div style="font-size:16px;font-weight:700;color:var(--white);line-height:1.4;margin-bottom:8px;" id="rp-title-1">O Estado do Risco em Canteiros de Obra: Por Que 50% dos Incidentes Não São Mitigados</div>
+          <div style="font-size:12px;color:var(--text3);" id="res-meta-1">PDF · 6 páginas · Download gratuito</div>
         </div>
         <!-- Report 2 -->
-        <div style="background:var(--navy2);border:1px solid var(--border);border-radius:16px;padding:28px;cursor:pointer;" onclick="document.getElementById('res-lead-form').style.display='block'" onmouseover="this.style.borderColor='rgba(96,165,250,0.3)'" onmouseout="this.style.borderColor='var(--border)'">
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;"><div style="width:44px;height:44px;border-radius:10px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;"><i class="ti ti-file-report" style="font-size:20px;color:#60a5fa;"></i></div><div style="font-size:9px;color:#60a5fa;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Maturity Model</div></div>
-          <div style="font-size:16px;font-weight:700;color:var(--white);line-height:1.4;margin-bottom:8px;">From Paper to Predictive AI: The ROI of Automated Site Logging</div>
-          <div style="font-size:12px;color:var(--text3);">PDF · 6 slides · Free download</div>
+        <div style="background:var(--navy2);border:1px solid var(--border);border-radius:16px;padding:28px;cursor:pointer;" onclick="openResForm(2)" onmouseover="this.style.borderColor='rgba(96,165,250,0.3)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;"><div style="width:44px;height:44px;border-radius:10px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;"><i class="ti ti-file-report" style="font-size:20px;color:#60a5fa;"></i></div><div style="font-size:9px;color:#60a5fa;font-weight:600;text-transform:uppercase;letter-spacing:1px;" id="rp-cat-2">Modelo de Maturidade</div></div>
+          <div style="font-size:16px;font-weight:700;color:var(--white);line-height:1.4;margin-bottom:8px;" id="rp-title-2">Do Papel à IA Preditiva: O ROI do Registro Automatizado em Canteiros</div>
+          <div style="font-size:12px;color:var(--text3);" id="res-meta-2">PDF · 6 páginas · Download gratuito</div>
         </div>
       </div>
       <!-- Lead form -->
       <div id="res-lead-form" style="display:none;max-width:480px;margin:0 auto;padding:28px;background:var(--navy2);border:1px solid rgba(96,165,250,0.15);border-radius:16px;">
-        <div style="font-size:15px;font-weight:600;color:var(--white);margin-bottom:14px;" id="res-form-title">Download the full report</div>
-        <input placeholder="Name" style="width:100%;background:var(--navy);border:1px solid var(--border2);border-radius:8px;padding:11px 14px;font-size:13px;color:var(--text);margin-bottom:8px;outline:none;font-family:var(--font-b);box-sizing:border-box;" id="res-f-name">
-        <input placeholder="Email" type="email" style="width:100%;background:var(--navy);border:1px solid var(--border2);border-radius:8px;padding:11px 14px;font-size:13px;color:var(--text);margin-bottom:8px;outline:none;font-family:var(--font-b);box-sizing:border-box;" id="res-f-email">
-        <input placeholder="Company" style="width:100%;background:var(--navy);border:1px solid var(--border2);border-radius:8px;padding:11px 14px;font-size:13px;color:var(--text);margin-bottom:12px;outline:none;font-family:var(--font-b);box-sizing:border-box;" id="res-f-company">
+        <div style="font-size:15px;font-weight:600;color:var(--white);margin-bottom:14px;" id="res-form-title">Baixar o relatório completo</div>
+        <input placeholder="Nome" style="width:100%;background:var(--navy);border:1px solid var(--border2);border-radius:8px;padding:11px 14px;font-size:13px;color:var(--text);margin-bottom:8px;outline:none;font-family:var(--font-b);box-sizing:border-box;" id="res-f-name">
+        <input placeholder="E-mail" type="email" style="width:100%;background:var(--navy);border:1px solid var(--border2);border-radius:8px;padding:11px 14px;font-size:13px;color:var(--text);margin-bottom:8px;outline:none;font-family:var(--font-b);box-sizing:border-box;" id="res-f-email">
+        <input placeholder="Empresa" style="width:100%;background:var(--navy);border:1px solid var(--border2);border-radius:8px;padding:11px 14px;font-size:13px;color:var(--text);margin-bottom:12px;outline:none;font-family:var(--font-b);box-sizing:border-box;" id="res-f-company">
         <div style="display:flex;gap:8px;margin-bottom:12px;">
-          <button onclick="setResLang('en')" id="res-lang-en" style="flex:1;padding:9px;border-radius:8px;border:1px solid rgba(96,165,250,0.3);background:rgba(96,165,250,0.1);color:#60a5fa;font-size:12px;font-weight:600;cursor:pointer;">English</button>
-          <button onclick="setResLang('pt')" id="res-lang-pt" style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text2);font-size:12px;cursor:pointer;">Português</button>
+          <button onclick="setResLang('pt')" id="res-lang-pt" style="flex:1;padding:9px;border-radius:8px;border:1px solid rgba(96,165,250,0.3);background:rgba(96,165,250,0.1);color:#60a5fa;font-size:12px;font-weight:600;cursor:pointer;">Português</button>
+          <button onclick="setResLang('en')" id="res-lang-en" style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text2);font-size:12px;cursor:pointer;">English</button>
         </div>
-        <button onclick="downloadResReport()" style="width:100%;padding:12px;border-radius:10px;background:#60a5fa;color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-d);" id="res-dl-btn">Download Report</button>
+        <button onclick="downloadResReport()" style="width:100%;padding:12px;border-radius:10px;background:#60a5fa;color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-d);" id="res-dl-btn">Baixar Relatório</button>
       </div>
     </div>
   </div>
@@ -3182,9 +3182,52 @@ var SOL_CONTENT={
   }
 };
 
-var _resLang='en';
-function setResLang(l){_resLang=l;var en=document.getElementById('res-lang-en');var pt=document.getElementById('res-lang-pt');if(l==='en'){en.style.background='rgba(96,165,250,0.1)';en.style.borderColor='rgba(96,165,250,0.3)';en.style.color='#60a5fa';pt.style.background='none';pt.style.borderColor='var(--border2)';pt.style.color='var(--text2)';}else{pt.style.background='rgba(96,165,250,0.1)';pt.style.borderColor='rgba(96,165,250,0.3)';pt.style.color='#60a5fa';en.style.background='none';en.style.borderColor='var(--border2)';en.style.color='var(--text2)';}}
-function downloadResReport(){var n=document.getElementById('res-f-name').value;var e=document.getElementById('res-f-email').value;if(!n||!e){toast('Please fill in name and email');return;}var url=_resLang==='pt'?'https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/reports/report_01_pt.pdf':'https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/reports/report_01_en.pdf';window.open(url,'_blank');document.getElementById('res-lead-form').innerHTML='<div style="text-align:center;padding:20px;color:#4ade80;font-size:14px;font-weight:500;">✓ Report ready! Check your download.</div>';}
+// Resources download: PT ebooks (PDF) are served from /reports/. English = coming soon.
+var _resLang='pt';
+var _resReportId=1;
+// Local PT ebook files (hosted in the repo, served by Vercel)
+var _resFiles={1:'/reports/Pillier_Riscos_Ebook_PT.pdf',2:'/reports/Pillier_AI_Ebook_PT.pdf'};
+function openResForm(id){
+  _resReportId=id||1;
+  var f=document.getElementById('res-lead-form');
+  if(f){f.style.display='block';try{f.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}
+  setResLang('pt');
+}
+function setResLang(l){
+  _resLang=l;
+  var en=document.getElementById('res-lang-en');var pt=document.getElementById('res-lang-pt');
+  if(pt&&en){
+    if(l==='en'){en.style.background='rgba(96,165,250,0.1)';en.style.borderColor='rgba(96,165,250,0.3)';en.style.color='#60a5fa';en.style.fontWeight='600';pt.style.background='none';pt.style.borderColor='var(--border2)';pt.style.color='var(--text2)';pt.style.fontWeight='500';}
+    else{pt.style.background='rgba(96,165,250,0.1)';pt.style.borderColor='rgba(96,165,250,0.3)';pt.style.color='#60a5fa';pt.style.fontWeight='600';en.style.background='none';en.style.borderColor='var(--border2)';en.style.color='var(--text2)';en.style.fontWeight='500';}
+  }
+  // Download button reflects availability: PT = download, EN = coming soon
+  var btn=document.getElementById('res-dl-btn');
+  if(btn){
+    var ui=(typeof lang!=='undefined')?lang:2;
+    if(l==='en'){btn.textContent=ui===0?'Bientôt disponible':ui===1?'Coming soon':'Em breve';btn.style.opacity='0.7';}
+    else{btn.textContent=ui===0?'Télécharger le Rapport':ui===1?'Download Report':'Baixar Relatório';btn.style.opacity='1';}
+  }
+}
+function downloadResReport(){
+  var ui=(typeof lang!=='undefined')?lang:2;
+  // English version is not available yet — show "coming soon"
+  if(_resLang==='en'){
+    var soon=ui===0?"La version anglaise arrive bientôt.":ui===1?"The English version is coming soon.":"A versão em inglês estará disponível em breve.";
+    document.getElementById('res-lead-form').innerHTML='<div style="text-align:center;padding:20px;color:#60a5fa;font-size:14px;font-weight:500;">🕐 '+soon+'</div>';
+    return;
+  }
+  var n=document.getElementById('res-f-name').value.trim();
+  var e=document.getElementById('res-f-email').value.trim();
+  if(!n||!e){toast(ui===0?'Remplissez nom et e-mail':ui===1?'Please fill in name and email':'Preencha nome e e-mail');return;}
+  var company=(document.getElementById('res-f-company')||{}).value||'';
+  // Best-effort lead capture (never blocks the download)
+  if(typeof dbOk!=='undefined'&&dbOk&&dbCoId){try{db.from('leads').insert({name:n,email:e,company:company,lang:'pt',report_id:_resReportId}).then(function(){}).catch(function(){});}catch(_e){}}
+  // Trigger the download of the local PT ebook
+  var file=_resFiles[_resReportId]||_resFiles[1];
+  try{var a=document.createElement('a');a.href=file;a.download=file.split('/').pop();document.body.appendChild(a);a.click();a.remove();}catch(_e){window.open(file,'_blank');}
+  var ok=ui===0?'Rapport prêt ! Vérifiez vos téléchargements.':ui===1?'Report ready! Check your downloads.':'Relatório pronto! Verifique seus downloads.';
+  document.getElementById('res-lead-form').innerHTML='<div style="text-align:center;padding:20px;color:#4ade80;font-size:14px;font-weight:500;">✓ '+ok+'</div>';
+}
 
 function toggleMobSection(id){var el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'||!el.style.display?'block':'none';}
 function closeAllDropdowns(except){['home-dropdown','solutions-dropdown','pricing-dropdown','resources-dropdown'].forEach(function(id){if(id!==except){var d=document.getElementById(id);if(d)d.style.display='none';}});}
@@ -3204,38 +3247,76 @@ function setMobLeadLang(l){_mobLeadLang=l;var en=document.getElementById('mob-le
 }
 function downloadMobReport(){var name=document.getElementById('mob-lead-name').value;var email=document.getElementById('mob-lead-email').value;var company=document.getElementById('mob-lead-company').value;if(!name||!email){toast('Please fill in name and email');return;}plog('Mobile lead:',{name:name,email:email,company:company,lang:_mobLeadLang});if(dbOk&&dbCoId){db.from('leads').insert({name:name,email:email,company:company,lang:_mobLeadLang,report_id:1}).then(function(){}).catch(function(){});}var rpt='report_01';var url=_mobLeadLang==='pt'?'https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/reports/'+rpt+'_pt.pdf':'https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/reports/'+rpt+'_en.pdf';window.open(url,'_blank');document.getElementById('mob-lead-form').innerHTML='<div style="text-align:center;padding:12px;color:#4ade80;font-size:13px;">✓ Report sent!</div>';}
 
-var _leadLang='en';
+var _leadLang='pt';
 var _leadReportId=1;
-function showLeadForm(id){_leadReportId=id;var f=document.getElementById('lead-form');if(f)f.style.display=f.style.display==='none'?'block':'none';if(f&&f.style.display==='block'){setLeadLang(lang===2?'pt':'en');}}
+function showLeadForm(id){_leadReportId=id;var f=document.getElementById('lead-form');if(f)f.style.display=f.style.display==='none'?'block':'none';if(f&&f.style.display==='block'){setLeadLang('pt');}}
 function _resTx(l){
-  if(l==='pt')return{header:'Pillier Pesquisa',cat1:'ANÁLISE DE RISCO EM CAMPO',t1:'O Estado do Risco em Canteiros de Obra: Por Que 50% dos Incidentes Não São Mitigados',dl:'PDF · 2 páginas · Download gratuito',cat2:'MODELO DE MATURIDADE',t2:'Do Papel à IA Preditiva: O ROI do Registro Automatizado em Canteiros',soon:'PDF · 6 páginas · Download gratuito',formTitle:'Baixar o relatório completo',name:'Nome',email:'E-mail',company:'Empresa',btn:'Baixar Relatório'};
-  if(l==='fr')return{header:'Pillier Recherche',cat1:'ANALYSE DES RISQUES SUR CHANTIER',t1:"L'État des Risques sur les Chantiers : Pourquoi 50% des Incidents ne Sont Pas Traités",dl:'PDF · 2 pages · Téléchargement gratuit',cat2:'MODÈLE DE MATURITÉ',t2:"Du Papier à l'IA Prédictive : Le ROI de l'Enregistrement Automatisé sur Chantier",soon:'PDF · 6 pages · Téléchargement gratuit',formTitle:'Télécharger le rapport complet',name:'Nom',email:'E-mail',company:'Entreprise',btn:'Télécharger le Rapport'};
-  return{header:'Pillier Research',cat1:'FIELD RISK ANALYSIS',t1:'The State of On-Site Construction Risk: Why 50% of Field Incidents Go Unmitigated',dl:'PDF · 2 pages · Free download',cat2:'MATURITY MODEL',t2:'From Paper to Predictive AI: The ROI of Automated Site Logging',soon:'PDF · 6 pages · Free download',formTitle:'Download the full report',name:'Name',email:'Email',company:'Company',btn:'Download Report'};
+  if(l==='pt')return{header:'Pillier Pesquisa',sub:'Relatórios e análises para líderes da construção civil.',cat1:'ANÁLISE DE RISCO EM CAMPO',t1:'O Estado do Risco em Canteiros de Obra: Por Que 50% dos Incidentes Não São Mitigados',dl:'PDF · 6 páginas · Download gratuito',cat2:'MODELO DE MATURIDADE',t2:'Do Papel à IA Preditiva: O ROI do Registro Automatizado em Canteiros',soon:'PDF · 6 páginas · Download gratuito',formTitle:'Baixar o relatório completo',name:'Nome',email:'E-mail',company:'Empresa',btn:'Baixar Relatório'};
+  if(l==='fr')return{header:'Pillier Recherche',sub:'Rapports et analyses pour les leaders de la construction.',cat1:'ANALYSE DES RISQUES SUR CHANTIER',t1:"L'État des Risques sur les Chantiers : Pourquoi 50% des Incidents ne Sont Pas Traités",dl:'PDF · 6 pages · Téléchargement gratuit',cat2:'MODÈLE DE MATURITÉ',t2:"Du Papier à l'IA Prédictive : Le ROI de l'Enregistrement Automatisé sur Chantier",soon:'PDF · 6 pages · Téléchargement gratuit',formTitle:'Télécharger le rapport complet',name:'Nom',email:'E-mail',company:'Entreprise',btn:'Télécharger le Rapport'};
+  return{header:'Pillier Research',sub:'Reports and insights for construction leaders.',cat1:'FIELD RISK ANALYSIS',t1:'The State of On-Site Construction Risk: Why 50% of Field Incidents Go Unmitigated',dl:'PDF · 6 pages · Free download',cat2:'MATURITY MODEL',t2:'From Paper to Predictive AI: The ROI of Automated Site Logging',soon:'PDF · 6 pages · Free download',formTitle:'Download the full report',name:'Name',email:'Email',company:'Company',btn:'Download Report'};
 }
 function translateResources(l){
-  var tx=_resTx(l);var el;
-  el=document.querySelector('#resources-dropdown>div:first-child');if(el)el.textContent=tx.header;
-  el=document.querySelector('#res-card-1 div:nth-child(2)>div:first-child');if(el)el.textContent=tx.cat1;
-  el=document.getElementById('res-title-1');if(el)el.textContent=tx.t1;
-  el=document.querySelector('#res-card-1 div:nth-child(2)>div:last-child');if(el)el.textContent=tx.dl;
-  el=document.getElementById('res-cat-2');if(el)el.textContent=tx.cat2;
-  el=document.getElementById('res-title-2');if(el)el.textContent=tx.t2;
-  el=document.getElementById('res-soon-2');if(el)el.textContent=tx.soon;
-  el=document.getElementById('lead-form-title');if(el)el.textContent=tx.formTitle;
-  el=document.getElementById('lead-name');if(el)el.placeholder=tx.name;
-  el=document.getElementById('lead-email');if(el)el.placeholder=tx.email;
-  el=document.getElementById('lead-company');if(el)el.placeholder=tx.company;
-  el=document.getElementById('lead-btn');if(el)el.textContent=tx.btn;
+  var tx=_resTx(l);
+  var setT=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
+  var setP=function(id,v){var el=document.getElementById(id);if(el)el.placeholder=v;};
+  var setQ=function(sel,v){var el=document.querySelector(sel);if(el)el.textContent=v;};
+  // --- Resources full-page panel (#content-panel-3) ---
+  setT('res-header',tx.header);
+  setT('res-sub',tx.sub);
+  setT('res-cat-1',tx.cat1);
+  setT('rp-title-1',tx.t1);
+  setT('res-meta-1',tx.dl);
+  setT('rp-cat-2',tx.cat2);
+  setT('rp-title-2',tx.t2);
+  setT('res-meta-2',tx.dl);
+  setT('res-form-title',tx.formTitle);
+  setP('res-f-name',tx.name);
+  setP('res-f-email',tx.email);
+  setP('res-f-company',tx.company);
+  if(document.getElementById('res-dl-btn')){try{setResLang(_resLang);}catch(e){}}
+  // --- Resources nav dropdown (#resources-dropdown) ---
+  setQ('#resources-dropdown>div:first-child',tx.header);
+  setQ('#res-card-1 div:nth-child(2)>div:first-child',tx.cat1);
+  setT('res-title-1',tx.t1);
+  setQ('#res-card-1 div:nth-child(2)>div:last-child',tx.dl);
+  setT('res-cat-2',tx.cat2);
+  setT('res-title-2',tx.t2);
+  setT('res-soon-2',tx.dl);
+  setT('lead-form-title',tx.formTitle);
+  setP('lead-name',tx.name);
+  setP('lead-email',tx.email);
+  setP('lead-company',tx.company);
+  if(document.getElementById('lead-btn')){try{setLeadLang(_leadLang);}catch(e){}}
 }
 function setLeadLang(l){
-  // ONLY handles the EN/PT toggle inside the lead form (which PDF to download)
-  // Does NOT re-translate the whole Resources UI — that's controlled by main app language
+  // EN/PT toggle inside the nav-dropdown lead form. PT = download; EN = coming soon.
   _leadLang=l;
   var en=document.getElementById('lead-lang-en');var pt=document.getElementById('lead-lang-pt');
-  if(l==='en'){en.style.background='rgba(96,165,250,0.1)';en.style.borderColor='rgba(96,165,250,0.3)';en.style.color='#60a5fa';en.style.fontWeight='600';pt.style.background='none';pt.style.borderColor='rgba(255,255,255,0.08)';pt.style.color='#8a8a95';pt.style.fontWeight='500';}
-  else{pt.style.background='rgba(96,165,250,0.1)';pt.style.borderColor='rgba(96,165,250,0.3)';pt.style.color='#60a5fa';pt.style.fontWeight='600';en.style.background='none';en.style.borderColor='rgba(255,255,255,0.08)';en.style.color='#8a8a95';en.style.fontWeight='500';}
+  if(en&&pt){
+    if(l==='en'){en.style.background='rgba(96,165,250,0.1)';en.style.borderColor='rgba(96,165,250,0.3)';en.style.color='#60a5fa';en.style.fontWeight='600';pt.style.background='none';pt.style.borderColor='rgba(255,255,255,0.08)';pt.style.color='#8a8a95';pt.style.fontWeight='500';}
+    else{pt.style.background='rgba(96,165,250,0.1)';pt.style.borderColor='rgba(96,165,250,0.3)';pt.style.color='#60a5fa';pt.style.fontWeight='600';en.style.background='none';en.style.borderColor='rgba(255,255,255,0.08)';en.style.color='#8a8a95';en.style.fontWeight='500';}
+  }
+  var btn=document.getElementById('lead-btn');
+  if(btn){var ui=(typeof lang!=='undefined')?lang:2;
+    if(l==='en'){btn.textContent=ui===0?'Bientôt disponible':ui===1?'Coming soon':'Em breve';btn.style.opacity='0.7';}
+    else{btn.textContent=ui===0?'Télécharger le Rapport':ui===1?'Download Report':'Baixar Relatório';btn.style.opacity='1';}
+  }
 }
-function downloadReport(){var name=document.getElementById('lead-name').value;var email=document.getElementById('lead-email').value;var company=document.getElementById('lead-company').value;if(!name||!email){toast('Please fill in name and email');return;}plog('Lead captured:',{name:name,email:email,company:company,lang:_leadLang,report:_leadReportId});if(dbOk&&dbCoId){db.from('leads').insert({name:name,email:email,company:company,lang:_leadLang,report_id:_leadReportId}).then(function(){plog('Lead saved');}).catch(function(){plog('Lead table may not exist yet');});}var rpt=_leadReportId===2?'report_02':'report_01';var url=_leadLang==='pt'?'https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/reports/'+rpt+'_pt.pdf':'https://raw.githubusercontent.com/bacecontech-byte/Bace-Tech/main/reports/'+rpt+'_en.pdf';window.open(url,'_blank');document.getElementById('lead-form').innerHTML='<div style="text-align:center;padding:12px;color:#4ade80;font-size:12px;">✓ Report sent! Check your download.</div>';}
+function downloadReport(){
+  var ui=(typeof lang!=='undefined')?lang:2;
+  if(_leadLang==='en'){
+    var soon=ui===0?"La version anglaise arrive bientôt.":ui===1?"The English version is coming soon.":"A versão em inglês estará disponível em breve.";
+    document.getElementById('lead-form').innerHTML='<div style="text-align:center;padding:12px;color:#60a5fa;font-size:12px;font-weight:500;">🕐 '+soon+'</div>';
+    return;
+  }
+  var name=document.getElementById('lead-name').value.trim();var email=document.getElementById('lead-email').value.trim();var company=document.getElementById('lead-company').value.trim();
+  if(!name||!email){toast(ui===0?'Remplissez nom et e-mail':ui===1?'Please fill in name and email':'Preencha nome e e-mail');return;}
+  if(typeof dbOk!=='undefined'&&dbOk&&dbCoId){try{db.from('leads').insert({name:name,email:email,company:company,lang:'pt',report_id:_leadReportId}).then(function(){}).catch(function(){});}catch(_e){}}
+  var file=(typeof _resFiles!=='undefined'&&_resFiles[_leadReportId])?_resFiles[_leadReportId]:'/reports/Pillier_Riscos_Ebook_PT.pdf';
+  try{var a=document.createElement('a');a.href=file;a.download=file.split('/').pop();document.body.appendChild(a);a.click();a.remove();}catch(_e){window.open(file,'_blank');}
+  var ok=ui===0?'Rapport prêt !':ui===1?'Report ready! Check your downloads.':'Relatório pronto! Verifique seus downloads.';
+  document.getElementById('lead-form').innerHTML='<div style="text-align:center;padding:12px;color:#4ade80;font-size:12px;">✓ '+ok+'</div>';
+}
 
 function translateNav(){
   var t={
