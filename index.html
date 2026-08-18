@@ -559,7 +559,27 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
 .reply-input:focus{border-color:var(--blue);}
 .btn-reply{background:var(--navy3);border:1px solid var(--border2);color:var(--blue);border-radius:7px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;}
 .btn-reply:hover{background:var(--blue);color:white;border-color:var(--blue);}
-.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 110px);}
+.chat-wrap{display:flex;flex-direction:row;gap:20px;height:calc(100vh - 110px);position:relative;}
+.chat-sidebar{width:260px;flex-shrink:0;display:flex;flex-direction:column;background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:12px;overflow-y:auto;}
+.chat-sidebar-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:0 4px;}
+.chat-newbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:var(--navy3);border:1px solid var(--border2);color:var(--text);font-size:13px;font-weight:600;padding:10px;border-radius:10px;cursor:pointer;font-family:inherit;margin-bottom:10px;}
+.chat-newbtn:hover{border-color:var(--blue);color:#fff;}
+.chat-main{flex:1;min-width:0;display:flex;flex-direction:column;}
+.chat-topbar{display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:8px;}
+.chat-menu-btn{display:none;}
+.chat-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:24px;padding:20px;}
+.chat-empty-greet{font-family:var(--font-d);font-size:30px;font-weight:800;color:var(--white);letter-spacing:-0.5px;}
+.chat-empty .chat-suggestions{justify-content:center;max-width:560px;margin-bottom:0;}
+.chat-scrim{display:none;}
+.chat-msg-col,.chat-messages{max-width:760px;margin-left:auto;margin-right:auto;width:100%;}
+@media(max-width:820px){
+  .chat-wrap{gap:0;}
+  .chat-sidebar{position:fixed;left:0;top:0;bottom:0;z-index:220;width:280px;border-radius:0;transform:translateX(-100%);transition:transform 0.2s ease;}
+  .chat-sidebar.open{transform:translateX(0);}
+  .chat-menu-btn{display:flex;}
+  .chat-scrim.open{display:block;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:210;}
+  .chat-empty-greet{font-size:23px;}
+}
 .chat-header{background:var(--navy2);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
 .chat-avatar{width:40px;height:40px;border-radius:0;background:none;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
 .chat-header-name{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--white);}
@@ -1749,37 +1769,40 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
         </div>
         <div id="tab-4" class="tab">
           <div class="chat-wrap">
-            <div class="chat-header">
-              <div class="chat-avatar" style="display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#60a5fa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C9.5 2 7.5 3.5 7 5.5L6 9h12l-1-3.5C16.5 3.5 14.5 2 12 2z"/><path d="M4 9h16v1a2 2 0 01-2 2H6a2 2 0 01-2-2V9z"/><circle cx="12" cy="16" r="4"/><path d="M10 15.5l1 1.5 2.5-2.5" stroke-width="1.2"/></svg></div>
-              <div style="flex:1"><div class="chat-header-name" id="chat-header-name"></div><div class="chat-header-status" id="chat-status">En ligne — Base de connaissances connectée</div></div>
-            </div>
-            <div class="chat-controls">
-              
-              <button class="btn-chat-new" onclick="newChat()"><span>&#x2B;</span> <span id="lbl-new-chat">Nouvelle conversation</span></button>
-              <div style="font-size:11px;color:var(--blue);cursor:pointer;margin-left:auto" onclick="toggleSavedChats()">&#x1F4CB; <span id="lbl-history">Historique</span></div>
-            </div>
-            <div id="saved-chats-panel" style="display:none;margin-bottom:12px;background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:12px;">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <div class="chat-scrim" id="chat-scrim" onclick="closeChatSidebar()"></div>
+            <!-- Permanent left sidebar (Claude-style): logo + New chat + Today/Earlier -->
+            <aside class="chat-sidebar" id="chat-sidebar">
+              <div class="chat-sidebar-head">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#60a5fa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/><path d="M9 19v-5h6v5"/></svg>
                 <span id="hist-logo" style="font-family:var(--font-d);font-weight:800;font-size:15px;color:var(--white);">Pillier IA</span>
-                <button onclick="newChat()" style="margin-left:auto;display:flex;align-items:center;gap:6px;background:var(--navy3);border:1px solid var(--border2);color:var(--text);font-size:12px;font-weight:600;padding:7px 12px;border-radius:9px;cursor:pointer;font-family:inherit;"><i class="ti ti-plus"></i><span id="hist-newchat">New chat</span></button>
               </div>
+              <button class="chat-newbtn" onclick="newChat()"><i class="ti ti-plus"></i> <span id="hist-newchat">New chat</span></button>
               <div id="saved-chats-list" class="chat-saved-list"></div>
-            </div>
-            <div class="chat-suggestions" id="chat-suggs">
-              <div class="chat-sugg" id="cs-0" onclick="sendSugg(this.textContent)">Dernier incident critique ?</div>
-              <div class="chat-sugg" id="cs-1" onclick="sendSugg(this.textContent)">Problèmes non résolus ?</div>
-              <div class="chat-sugg" id="cs-2" onclick="sendSugg(this.textContent)">Résumé par chantier ?</div>
-              <div class="chat-sugg" id="cs-3" onclick="sendSugg(this.textContent)">Incidents cette semaine ?</div>
-            </div>
-            <div class="chat-messages" id="chat-messages"></div>
-            <div class="chat-attachment" id="chat-attachment">
+            </aside>
+            <div class="chat-main">
+              <div class="chat-topbar">
+                <button class="chat-menu-btn chat-icon-btn" onclick="toggleChatSidebar()" title="History"><i class="ti ti-menu-2"></i></button>
+                <div style="font-family:var(--font-d);font-weight:800;font-size:16px;color:var(--white);">Pillier IA</div>
+                <button class="chat-icon-btn" style="margin-left:auto;" onclick="newChat()" title="New chat"><i class="ti ti-plus"></i></button>
+              </div>
+              <!-- Empty-state welcome (shown when no messages) -->
+              <div class="chat-empty" id="chat-empty">
+                <div class="chat-empty-greet" id="chat-empty-greet">Comment puis-je aider ?</div>
+                <div class="chat-suggestions" id="chat-suggs">
+                  <div class="chat-sugg" id="cs-0" onclick="sendSugg(this.textContent)">Dernier incident critique ?</div>
+                  <div class="chat-sugg" id="cs-1" onclick="sendSugg(this.textContent)">Problèmes non résolus ?</div>
+                  <div class="chat-sugg" id="cs-2" onclick="sendSugg(this.textContent)">Résumé par chantier ?</div>
+                  <div class="chat-sugg" id="cs-3" onclick="sendSugg(this.textContent)">Incidents cette semaine ?</div>
+                </div>
+              </div>
+              <div class="chat-messages" id="chat-messages" style="display:none;"></div>
+              <div class="chat-attachment" id="chat-attachment">
               <span>&#x1F4CE;</span>
               <span class="chat-attachment-name" id="chat-attachment-name">fichier.pdf</span>
               <button class="chat-attachment-clear" onclick="clearChatAttachment()">&#x2715;</button>
             </div>
             <!-- Composer (Claude-style): + menu, quick voice, usage pill -->
-            <div style="position:relative;">
+            <div style="position:relative;max-width:760px;width:100%;margin:0 auto;">
               <input type="file" accept="image/*" capture="environment" id="chat-in-cam" onchange="attachChatFile(this,'photo-camera')" style="display:none">
               <input type="file" accept="image/*" id="chat-in-gal" onchange="attachChatFile(this,'photo-gallery')" style="display:none">
               <input type="file" accept=".pdf,.doc,.docx,.xlsx" id="chat-in-doc" onchange="attachChatFile(this,'document')" style="display:none">
@@ -1797,6 +1820,7 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
                 <button type="button" class="chat-icon-btn" id="cmb-voice-btn" onclick="toggleChatVoice()" title="Voice"><i class="ti ti-microphone"></i><span id="cmb-voice" style="display:none"></span></button>
                 <button class="chat-send" id="chat-send" onclick="sendChat()"><i class="ti ti-send"></i></button>
               </div>
+            </div>
             </div>
           </div>
         </div>
@@ -3682,6 +3706,8 @@ function applyLang(){
   var _hl=document.getElementById("hist-logo");if(_hl)_hl.textContent="Pillier IA";
   var _hn=document.getElementById("hist-newchat");if(_hn)_hn.textContent=lang===1?"New chat":lang===2?"Novo chat":"Nouveau chat";
   try{renderChatUsagePill();}catch(e){}
+  try{_setChatGreeting();}catch(e){}
+  try{renderSavedChats();}catch(e){}
   // Chat media buttons
   var cmbMap={"cmb-camera":"cmbCamera","cmb-gallery":"cmbGallery","cmb-doc":"cmbDoc","cmb-video":"cmbVideo","cmb-voice":"cmvVoice"};
   Object.keys(cmbMap).forEach(function(id){var el=document.getElementById(id);if(el&&S[cmbMap[id]])el.textContent=S[cmbMap[id]];});
@@ -5249,6 +5275,7 @@ function mdToHtml(t){
   return t;
 }
 function addMsg(role,text){
+  showChatEmpty(false);
   var wrap=document.getElementById("chat-messages");
   var time=new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
   var div=document.createElement("div");
@@ -5337,16 +5364,25 @@ async function sendChat(){
   btn.disabled=false;
 }
 
-function initChat(){
-  var wrap=document.getElementById("chat-messages");
-  if(wrap&&wrap.children.length===0){var firstName=me.name.split(" ")[0];
-  var S=STRINGS[lang];
-  var welcomeMsg=S.chatWelcome?S.chatWelcome.replace("{name}",firstName).replace("{n}",entries.length)
-    :(lang===1?"Hello "+firstName+"! I am Pillier IA. I have access to "+entries.length+" incident(s) across all your sites. Ask me anything!"
-    :lang===2?"Olá "+firstName+"! Sou a Pillier IA. Tenho acesso a "+entries.length+" incidente(s) em todos os seus canteiros. Faça suas perguntas!"
-    :"Bonjour "+firstName+" ! Je suis Pillier IA. J'ai accès à "+entries.length+" incident(s) sur tous vos chantiers. Posez vos questions !");
-  addMsg("bot",welcomeMsg);}
+function _setChatGreeting(){
+  var el=document.getElementById("chat-empty-greet");if(!el)return;
+  var firstName=(me&&me.name?me.name.split(" ")[0]:"");
+  el.textContent=lang===1?("Hello "+firstName+", how can I help?"):lang===2?("Olá "+firstName+", como posso ajudar?"):("Bonjour "+firstName+", comment puis-je aider ?");
 }
+function showChatEmpty(show){
+  var e=document.getElementById("chat-empty"),m=document.getElementById("chat-messages");
+  if(e)e.style.display=show?"flex":"none";
+  if(m)m.style.display=show?"none":"flex";
+  if(show)_setChatGreeting();
+}
+function initChat(){
+  try{renderSavedChats();}catch(e){}
+  var wrap=document.getElementById("chat-messages");
+  showChatEmpty(!(wrap&&wrap.children.length>0));
+}
+// Chat history sidebar (mobile off-canvas)
+function toggleChatSidebar(){var s=document.getElementById("chat-sidebar"),c=document.getElementById("chat-scrim");if(s)s.classList.toggle("open");if(c)c.classList.toggle("open");}
+function closeChatSidebar(){var s=document.getElementById("chat-sidebar"),c=document.getElementById("chat-scrim");if(s)s.classList.remove("open");if(c)c.classList.remove("open");}
 
 function getTabNames(){var S=STRINGS[lang];return["Dashboard",S.navCap||"Capture",S.navFiles||"My folders",S.navKb||"Knowledge base","Pillier IA",S.navComm||"Community",S.navProj||"My projects",S.navDocs||"Plans & Documents",S.navSettings||"Configurações"];}
 function showTab(i,btn){
@@ -6008,8 +6044,10 @@ function loadChat(id){
   if(!chat)return;
   chatHistory=chat.messages.slice();
   currentChatId=id;
+  try{closeChatSidebar();}catch(e){}
   var wrap=document.getElementById("chat-messages");
   wrap.innerHTML="";
+  showChatEmpty(false);
   document.getElementById("chat-suggs").style.display="none";
   chatHistory.forEach(function(m){
     addMsg(m.role==="user"?"user":"bot",m.content.replace(/\n/g,"<br>"));
