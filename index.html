@@ -4808,6 +4808,18 @@ function updateProjectDropdowns(){
 /* ───────── Topbar site selector (dropdown to pick the active canteiro) ───────── */
 function allSitesLabel(){return plL("Tous les chantiers","All sites","Todos os canteiros");}
 function getActiveSite(){try{return localStorage.getItem("pillier-active-site")||"";}catch(e){return "";}}
+// Entries scoped to the active canteiro ("" = All sites → everything)
+function activeSiteEntries(){var a=getActiveSite();if(!a)return entries;return entries.filter(function(e){return e.project===a;});}
+// Re-render whichever tab is currently visible so it reflects the selected site
+function refreshActiveViews(){
+  try{renderCounts();}catch(e){}
+  var on=function(i){var el=document.getElementById("tab-"+i);return el&&el.classList.contains("active");};
+  try{if(on(0))renderDash();}catch(e){}
+  try{if(on(3))renderKB();}catch(e){}
+  try{if(on(5))loadPosts();}catch(e){}
+  try{if(on(7))loadDocs();}catch(e){}
+  try{renderSiteChip();}catch(e){}
+}
 function setActiveSite(name){
   try{localStorage.setItem("pillier-active-site",name||"");}catch(e){}
   renderSiteChip();
@@ -4817,8 +4829,9 @@ function setActiveSite(name){
     var ss=document.getElementById("site-sel");
     if(ss&&Array.prototype.some.call(ss.options,function(o){return o.value===name;})){ss.value=name;}
   }
-  var t5=document.getElementById("tab-5");if(t5&&t5.classList.contains("active"))loadPosts();
+  refreshActiveViews();
   closeSiteMenu();
+  toast(name?(plL("Chantier : ","Site: ","Canteiro: ")+name):allSitesLabel());
 }
 function renderSiteChip(){
   var lbl=document.getElementById("site-chip-label");if(!lbl)return;
@@ -5367,6 +5380,7 @@ async function toggleStatus(id){
 
 function renderDash(){
   var S=STRINGS[lang];
+  var entries=activeSiteEntries(); // scope the whole dashboard to the selected canteiro
   var criticals=entries.filter(function(e){return e.sev==="critical"&&e.status!=="resolved";});
   var resolved=entries.filter(function(e){return e.status==="resolved";});
   document.getElementById("kv-tot").textContent=entries.length;
@@ -5413,6 +5427,7 @@ function renderDash(){
 
 // Dashboard header: time-based greeting + critical triage banner (EN/FR/PT)
 function renderDashHeader(){
+  var entries=activeSiteEntries(); // greeting + triage banner follow the selected canteiro
   var gEl=document.getElementById("dash-greeting");
   var sub=document.getElementById("dash-greeting-sub");
   var h=new Date().getHours();
@@ -5463,6 +5478,7 @@ var _insightsGenerated=false;
 var _insightsCount=-1;
 var _insightsTimer=null;
 async function generateInsights(){
+  var entries=activeSiteEntries(); // dashboard insights follow the selected canteiro
   var panel=document.getElementById("ai-insights");
   var textEl=document.getElementById("ai-insights-text");
   if(!panel||!textEl||!entries.length){if(panel)panel.style.display="none";return;}
@@ -5518,7 +5534,7 @@ async function generateInsights(){
   },2000);
 }
 
-function renderCounts(){var _nc=function(s){return (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z]/g,"");};CATS.forEach(function(c,i){var n=entries.filter(function(e){return _nc(e.cat)===_nc(c);}).length;var el=document.getElementById("fc-"+i);if(el)el.textContent=n+" "+(STRINGS[lang].folderFiles||"fichier(s)");});}
+function renderCounts(){var entries=activeSiteEntries();var _nc=function(s){return (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z]/g,"");};CATS.forEach(function(c,i){var n=entries.filter(function(e){return _nc(e.cat)===_nc(c);}).length;var el=document.getElementById("fc-"+i);if(el)el.textContent=n+" "+(STRINGS[lang].folderFiles||"fichier(s)");});}
 
 function openFolder(i){kbIdx=i;document.querySelectorAll(".kb-filter").forEach(function(b,j){b.classList.toggle("active",j===i+1);});if(document.querySelector(".kb-filter"))document.querySelector(".kb-filter").classList.remove("active");showTab(3,document.querySelectorAll(".sidebar-link")[3]);renderKB();}
 function filterKB(i,btn){kbIdx=i;document.querySelectorAll(".kb-filter").forEach(function(b){b.classList.remove("active");});btn.classList.add("active");renderKB();}
@@ -5535,6 +5551,7 @@ function filterKBSearch(val){kbSearchQuery=(val||"").toLowerCase().trim();render
 function renderKB(){
   // Always apply sort labels in current language
   var S=STRINGS[lang];
+  var entries=activeSiteEntries(); // scope knowledge base to the selected canteiro
   var ksD=document.getElementById("ks-date");if(ksD&&S.ksDate)ksD.textContent=S.ksDate;
   var ksV=document.getElementById("ks-sev");if(ksV&&S.ksSev)ksV.textContent=S.ksSev;
   var ksT=document.getElementById("ks-title");if(ksT&&S.ksTitle)ksT.textContent=S.ksTitle;
@@ -6333,7 +6350,10 @@ async function processDoc(file,proj){
 }
 
 async function loadDocs(){
-  var proj=document.getElementById("doc-proj-sel")?document.getElementById("doc-proj-sel").value:"";
+  var sel=document.getElementById("doc-proj-sel");
+  var active=getActiveSite();
+  if(active&&sel&&Array.prototype.some.call(sel.options,function(o){return o.value===active;}))sel.value=active;
+  var proj=active||(sel?sel.value:"");
   if(dbOk&&dbCoId){
     var q=db.from("project_documents").select("*").eq("company_id",dbCoId).order("created_at",{ascending:false});
     if(proj&&proj!=="Tous les chantiers")q=q.eq("project",proj);
