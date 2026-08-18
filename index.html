@@ -3679,7 +3679,7 @@ function applyLang(){
   // Chat composer + menu, history sidebar, usage pill (Claude-style)
   var _cpm={"cpm-cam":"cmbCamera","cpm-gal":"cmbGallery","cpm-doc":"cmbDoc","cpm-vid":"cmbVideo"};
   Object.keys(_cpm).forEach(function(id){var el=document.getElementById(id);if(el&&S[_cpm[id]])el.textContent=S[_cpm[id]];});
-  var _hl=document.getElementById("hist-logo");if(_hl)_hl.textContent=lang===1?"Pillier AI":"Pillier IA";
+  var _hl=document.getElementById("hist-logo");if(_hl)_hl.textContent="Pillier IA";
   var _hn=document.getElementById("hist-newchat");if(_hn)_hn.textContent=lang===1?"New chat":lang===2?"Novo chat":"Nouveau chat";
   try{renderChatUsagePill();}catch(e){}
   // Chat media buttons
