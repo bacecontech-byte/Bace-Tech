@@ -1974,8 +1974,8 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
                 <option value="name" id="proj-sort-name">Sort: Name (A–Z)</option>
               </select>
               <div class="proj-view-toggle">
-                <button class="proj-view-btn active" data-view="grid" onclick="setProjView('grid',this)"><i class="ti ti-layout-grid"></i>Grid</button>
-                <button class="proj-view-btn" data-view="list" onclick="setProjView('list',this)"><i class="ti ti-list"></i>List</button>
+                <button class="proj-view-btn active" data-view="grid" onclick="setProjView('grid',this)"><i class="ti ti-layout-grid"></i><span id="proj-view-grid-lbl">Grid</span></button>
+                <button class="proj-view-btn" data-view="list" onclick="setProjView('list',this)"><i class="ti ti-list"></i><span id="proj-view-list-lbl">List</span></button>
               </div>
             </div>
           </div>
@@ -3950,6 +3950,8 @@ function applyLang(){
   // Update login screen language
   applyAuthLang();
   try{applyCommunityI18n();}catch(e){}
+  // Re-render the projects grid so its pills/labels/metrics follow the language
+  try{var t6=document.getElementById("tab-6");if(t6&&t6.classList.contains("active"))renderProjects();else renderProjLang();}catch(e){}
 }
 
 function toggleNotifPanel(){
@@ -4624,10 +4626,10 @@ function projStatusBucket(p){
   return "active";
 }
 var PROJ_STATUS_META={
-  active:{dot:"#4ade80",label:function(){return "ACTIVE";}},
-  planning:{dot:"#60a5fa",label:function(){return "PLANNING";}},
-  paused:{dot:"#fbbf24",label:function(){return "PAUSED";}},
-  completed:{dot:"#9ca3af",label:function(){return "COMPLETED";}}
+  active:{dot:"#4ade80",label:function(){return plL("ACTIF","ACTIVE","ATIVO");}},
+  planning:{dot:"#60a5fa",label:function(){return plL("PLANIFICATION","PLANNING","PLANEJAMENTO");}},
+  paused:{dot:"#fbbf24",label:function(){return plL("EN PAUSE","PAUSED","PAUSADO");}},
+  completed:{dot:"#9ca3af",label:function(){return plL("TERMINÉ","COMPLETED","CONCLUÍDO");}}
 };
 
 function cacheProjects(){try{localStorage.setItem("pillier-projects-cache",JSON.stringify(projects.map(function(p){return {id:p.id,name:p.name,location:p.location||"",owner:p.owner||""};})));}catch(e){}}
@@ -4712,6 +4714,14 @@ function renderProjLang(){
   set("proj-sort-active",plL("Tri : Plus actifs","Sort: Most active","Ordenar: Mais ativos"));
   set("proj-sort-recent",plL("Tri : Plus récents","Sort: Most recent","Ordenar: Mais recentes"));
   set("proj-sort-name",plL("Tri : Nom (A–Z)","Sort: Name (A–Z)","Ordenar: Nome (A–Z)"));
+  set("proj-view-grid-lbl",plL("Grille","Grid","Grade"));
+  set("proj-view-list-lbl",plL("Liste","List","Lista"));
+  // Filter pills (keep the live count span intact)
+  var pillLabels={active:plL("Actifs","Active","Ativos"),completed:plL("Terminés","Completed","Concluídos"),paused:plL("En pause","Paused","Pausados")};
+  ["active","completed","paused"].forEach(function(k){
+    var pill=document.querySelector('#proj-pills [data-filter="'+k+'"]');
+    if(pill){var cnt=(document.querySelector('#proj-pills [data-count="'+k+'"]')||{}).textContent||"0";pill.innerHTML=pillLabels[k]+" · <span data-count=\""+k+"\">"+cnt+"</span>";}
+  });
 }
 function renderProjects(){
   renderProjLang();
@@ -4748,8 +4758,8 @@ function renderProjects(){
     var safeName=String(p.name).replace(/'/g,"\\'").replace(/"/g,"&quot;");
     var cover=(p._meta&&p._meta.cover)?"style=\"background-image:url('"+p._meta.cover+"')\"":"";
     var critCls=m.critical>0?"crit":"crit zero";
-    var critHtml="<span class='proj-metric "+critCls+"'><b>"+m.critical+"</b> "+plL("critique","critical","critical")+"</span>";
-    if(m.critical===0&&m.high>0)critHtml="<span class='proj-metric high'><b>"+m.high+"</b> high</span>";
+    var critHtml="<span class='proj-metric "+critCls+"'><b>"+m.critical+"</b> "+plL("critiques","critical","críticos")+"</span>";
+    if(m.critical===0&&m.high>0)critHtml="<span class='proj-metric high'><b>"+m.high+"</b> "+plL("élevés","high","altos")+"</span>";
     html+="<div class='proj-card' onclick=\"openProject('"+safeName+"')\">"
       +"<div class='proj-card-preview' "+cover+">"
       +"<div class='proj-card-pill'><span class='pill-dot' style='background:"+stm.dot+"'></span>"+stm.label()+"</div>"
