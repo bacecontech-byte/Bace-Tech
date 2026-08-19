@@ -1735,14 +1735,7 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
         </div>
         <div id="tab-2" class="tab">
           <div class="section-header" style="margin-bottom:20px"><div class="section-title" id="folders-title">Dossiers par catégorie</div><div style="font-size:12px;color:var(--text3)" id="lbl-auto-filing">Classement automatique</div></div>
-          <div class="files-grid">
-            <div class="file-folder" onclick="openFolder(0)"><div class="file-folder-icon">&#x1F3D7;&#xFE0F;</div><div class="file-folder-name" id="fn-0">Structure</div><div class="file-folder-count" id="fc-0">0 fichier(s)</div></div>
-            <div class="file-folder" onclick="openFolder(1)"><div class="file-folder-icon">&#x26A1;</div><div class="file-folder-name" id="fn-1">Électricité</div><div class="file-folder-count" id="fc-1">0 fichier(s)</div></div>
-            <div class="file-folder" onclick="openFolder(2)"><div class="file-folder-icon">&#x1F527;</div><div class="file-folder-name" id="fn-2">Plomberie</div><div class="file-folder-count" id="fc-2">0 fichier(s)</div></div>
-            <div class="file-folder" onclick="openFolder(3)"><div class="file-folder-icon">&#x26D1;&#xFE0F;</div><div class="file-folder-name" id="fn-3">Sécurité</div><div class="file-folder-count" id="fc-3">0 fichier(s)</div></div>
-            <div class="file-folder" onclick="openFolder(4)"><div class="file-folder-icon">&#x1F529;</div><div class="file-folder-name" id="fn-4">Équipement</div><div class="file-folder-count" id="fc-4">0 fichier(s)</div></div>
-            <div class="file-folder" onclick="openFolder(5)"><div class="file-folder-icon">&#x1F4C4;</div><div class="file-folder-name" id="fn-5">Documentation</div><div class="file-folder-count" id="fc-5">0 fichier(s)</div></div>
-          </div>
+          <div class="files-grid" id="files-grid"></div>
         </div>
         <div id="tab-3" class="tab">
           <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
@@ -1980,7 +1973,7 @@ body.light-mode .set-toggle{background:rgba(0,0,0,0.18);}
 var SB_URL="https://rzdoeehbpdgjxtfbbmwp.supabase.co";
 var SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6ZG9lZWhicGRnanh0ZmJibXdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNjk0NzksImV4cCI6MjA5Njk0NTQ3OX0.XcysRlpgefqmw_zh7osXwqgL5-G71kFH-Uv-HuINLow";
 var GROQ="server";
-var db=null,lang=0,entries=[],kbIdx=-1,isRec=false,mr=null,chunks=[];
+var db=null,lang=0,entries=[],kbIdx=-1,kbCustomCat="",isRec=false,mr=null,chunks=[];
 var dbCoId=null,dbOk=false,rtChannel=null;
 var me={name:"",co:"",av:"",email:""};
 var notifs=[],notifOpen=false,projects=[],chatHistory=[];
@@ -4754,15 +4747,19 @@ function _stopRecTimer(){if(_recTimer){clearInterval(_recTimer);_recTimer=null;}
 function renderCatChips(){
   var wrap=document.getElementById("c-cat-chips");var sel=document.getElementById("c-cat");
   if(!wrap||!sel)return;
-  var labels=(STRINGS[lang]&&STRINGS[lang].cats)||[];
+  var folders=pillierFolders();
+  // Keep the hidden select in sync with the folder list (incl. custom folders)
+  var curVal=sel.value;
+  sel.innerHTML=folders.map(function(f){return "<option value=\""+(f.value||"").replace(/"/g,"&quot;")+"\">"+f.name+"</option>";}).join("");
+  if(folders.some(function(f){return f.value===curVal;}))sel.value=curVal;
   wrap.innerHTML="";
-  Array.prototype.forEach.call(sel.options,function(opt,i){
+  folders.forEach(function(f){
     var b=document.createElement("button");
     b.type="button";
-    b.className="cap-chip"+(opt.value===sel.value?" active":"");
-    b.textContent=labels[i]||opt.textContent;
-    b.setAttribute("data-val",opt.value);
-    b.onclick=function(){setCapCat(opt.value);};
+    b.className="cap-chip"+(f.value===sel.value?" active":"");
+    b.textContent=f.icon+" "+f.name;
+    b.setAttribute("data-val",f.value);
+    b.onclick=function(){setCapCat(f.value);};
     wrap.appendChild(b);
   });
 }
@@ -4865,6 +4862,8 @@ function declineAI(){
 }
 
 function canonCat(raw){
+  // Preserve a user's custom folder value exactly (don't fold it into a built-in)
+  try{if(raw){var fl=pillierFolders();for(var _i=0;_i<fl.length;_i++){if(!fl[_i].builtin&&fl[_i].value===raw)return raw;}}}catch(_e){}
   var s=(raw||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z]/g,"");
   if(s.match(/struct|estru/))return "Structure";
   if(s.match(/elec|elet/))return "\u00c9lectricit\u00e9";
@@ -5177,17 +5176,130 @@ async function generateInsights(){
   },2000);
 }
 
-function renderCounts(){var _nc=function(s){return (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z]/g,"");};CATS.forEach(function(c,i){var n=entries.filter(function(e){return _nc(e.cat)===_nc(c);}).length;var el=document.getElementById("fc-"+i);if(el)el.textContent=n+" "+(STRINGS[lang].folderFiles||"fichier(s)");});}
+// ── User-manageable category folders (My files) ──────────────────────────
+// The 6 built-ins keep their canonical value so all existing wiring (catLabel,
+// AI auto-filing via canonCat, KB filter) keeps working. Users can rename/
+// re-icon them and add their own custom folders; everything persists locally.
+var BUILTIN_FOLDERS=[
+  {value:"Structure",icon:"🏗️"},
+  {value:"Électricité",icon:"⚡"},
+  {value:"Plomberie",icon:"🔧"},
+  {value:"Sécurité",icon:"⛑️"},
+  {value:"Équipement",icon:"🔩"},
+  {value:"Documentation",icon:"📄"}
+];
+var FOLDER_ICONS=["📁","🏗️","⚡","🔧","⛑️","🔩","📄","🧱","🚧","🪜","🛠️","🚜","🏢","🪟","🚪","🔥","💧","🌡️","📐","📋","🧯","🔌","♻️","📦","🗂️","🖼️"];
+function _foldersStore(){try{return JSON.parse(localStorage.getItem("pillier_folders")||"{}");}catch(e){return {};}}
+function _saveFoldersStore(s){try{localStorage.setItem("pillier_folders",JSON.stringify(s||{}));}catch(e){}}
+// Ordered folder list: built-ins (with any name/icon override) + custom folders
+function pillierFolders(){
+  var s=_foldersStore(); var ov=s.overrides||{}; var custom=s.custom||[];
+  var list=BUILTIN_FOLDERS.map(function(f){
+    var o=ov[f.value]||{};
+    return {value:f.value,icon:o.icon||f.icon,name:o.name||catLabel(f.value),builtin:true};
+  });
+  custom.forEach(function(c){list.push({value:c.value,icon:c.icon||"📁",name:c.name,builtin:false});});
+  return list;
+}
+function _folderCount(f){
+  if(f.builtin){var nv=normCat(f.value);return entries.filter(function(e){return normCat(e.cat)===nv;}).length;}
+  return entries.filter(function(e){return e.cat===f.value;}).length;
+}
+// Render the My-files folder grid (replaces the old static renderCounts)
+function renderCounts(){
+  var grid=document.getElementById("files-grid"); if(!grid)return;
+  var unit=STRINGS[lang].folderFiles||"fichier(s)";
+  var html=pillierFolders().map(function(f){
+    var v=(f.value||"").replace(/'/g,"\\'");
+    var edit="<button onclick=\"event.stopPropagation();openFolderEditor('"+v+"')\" title='"+_t3("Edit","Modifier","Editar")+"' style='position:absolute;top:8px;right:8px;background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;padding:2px;'><i class='ti ti-dots'></i></button>";
+    return "<div class='file-folder' onclick=\"openFolderVal('"+v+"')\" style='position:relative;'>"+edit+"<div class='file-folder-icon'>"+f.icon+"</div><div class='file-folder-name'>"+f.name+"</div><div class='file-folder-count'>"+_folderCount(f)+" "+unit+"</div></div>";
+  }).join("");
+  // "+ create" card
+  html+="<div class='file-folder' onclick='openFolderEditor(null)' style='display:flex;flex-direction:column;align-items:center;justify-content:center;border-style:dashed;'><div class='file-folder-icon'>➕</div><div class='file-folder-name'>"+_t3("New folder","Nouveau dossier","Nova pasta")+"</div></div>";
+  grid.innerHTML=html;
+}
+// Open a folder's files (built-in → KB index; custom → KB by exact value)
+function openFolderVal(value){
+  var bi=CATS.indexOf(value);
+  if(bi>=0){openFolder(bi);return;}
+  kbCustomCat=value; kbIdx=-1;
+  document.querySelectorAll(".kb-filter").forEach(function(b){b.classList.remove("active");});
+  showTab(3,document.querySelectorAll(".sidebar-link")[3]); renderKB();
+}
+// Create / edit a folder (value=null → create)
+function openFolderEditor(value){
+  var editing=value!=null;
+  var folder=null;
+  if(editing){var fl=pillierFolders();for(var i=0;i<fl.length;i++){if(fl[i].value===value){folder=fl[i];break;}}}
+  window._folderEdit={value:value,builtin:folder?folder.builtin:false,icon:folder?folder.icon:"📁"};
+  var ov=document.getElementById("folder-editor-overlay");
+  document.getElementById("fe-title").textContent=editing?_t3("Edit folder","Modifier le dossier","Editar pasta"):_t3("New folder","Nouveau dossier","Nova pasta");
+  document.getElementById("fe-name").value=folder?folder.name:"";
+  document.getElementById("fe-name").placeholder=_t3("Folder name","Nom du dossier","Nome da pasta");
+  document.getElementById("fe-name-label").textContent=_t3("Name","Nom","Nome");
+  document.getElementById("fe-icon-label").textContent=_t3("Icon","Icône","Ícone");
+  document.getElementById("fe-save").textContent=_t3("Save","Enregistrer","Salvar");
+  var del=document.getElementById("fe-delete");
+  del.style.display=(editing&&folder&&!folder.builtin)?"inline-flex":"none";
+  del.textContent=_t3("Delete","Supprimer","Excluir");
+  // icon grid
+  document.getElementById("fe-icons").innerHTML=FOLDER_ICONS.map(function(ic){
+    var on=ic===window._folderEdit.icon;
+    return "<button type='button' onclick=\"pickFolderIcon('"+ic+"')\" style='font-size:20px;padding:6px;border-radius:8px;cursor:pointer;background:"+(on?"rgba(96,165,250,0.15)":"transparent")+";border:1px solid "+(on?"#60a5fa":"var(--border)")+";' data-ic='"+ic+"'>"+ic+"</button>";
+  }).join("");
+  ov.style.display="flex";
+  setTimeout(function(){try{document.getElementById("fe-name").focus();}catch(e){}},50);
+}
+function pickFolderIcon(ic){window._folderEdit.icon=ic;
+  Array.prototype.forEach.call(document.querySelectorAll("#fe-icons button"),function(b){
+    var on=b.getAttribute("data-ic")===ic;b.style.background=on?"rgba(96,165,250,0.15)":"transparent";b.style.borderColor=on?"#60a5fa":"var(--border)";});
+}
+function closeFolderEditor(){var ov=document.getElementById("folder-editor-overlay");if(ov)ov.style.display="none";}
+function saveFolderEditor(){
+  var fe=window._folderEdit||{};
+  var name=(document.getElementById("fe-name").value||"").trim();
+  if(!name){try{toast(_t3("Enter a folder name.","Entrez un nom de dossier.","Digite um nome de pasta."));}catch(e){}return;}
+  var s=_foldersStore(); s.overrides=s.overrides||{}; s.custom=s.custom||[];
+  if(fe.value==null){
+    // new custom folder
+    var val="cust_"+Date.now()+"_"+Math.floor(Math.random()*1000);
+    s.custom.push({value:val,name:name,icon:fe.icon||"📁"});
+  } else if(fe.builtin){
+    s.overrides[fe.value]={name:name,icon:fe.icon};
+  } else {
+    for(var i=0;i<s.custom.length;i++){if(s.custom[i].value===fe.value){s.custom[i].name=name;s.custom[i].icon=fe.icon;break;}}
+  }
+  _saveFoldersStore(s);
+  closeFolderEditor();
+  try{renderCounts();}catch(e){} try{renderCatChips();}catch(e){}
+  try{toast(_t3("Folder saved","Dossier enregistré","Pasta salva"));}catch(e){}
+}
+function deleteFolder(){
+  var fe=window._folderEdit||{};
+  if(fe.value==null||fe.builtin)return;
+  if(!window.confirm(_t3("Delete this folder? Filed items keep their tag but the folder is removed.","Supprimer ce dossier ? Les éléments classés gardent leur étiquette.","Excluir esta pasta? Os itens arquivados mantêm a marcação.")))return;
+  var s=_foldersStore(); s.custom=(s.custom||[]).filter(function(c){return c.value!==fe.value;});
+  _saveFoldersStore(s);
+  closeFolderEditor();
+  try{renderCounts();}catch(e){} try{renderCatChips();}catch(e){}
+}
 
-function openFolder(i){kbIdx=i;document.querySelectorAll(".kb-filter").forEach(function(b,j){b.classList.toggle("active",j===i+1);});if(document.querySelector(".kb-filter"))document.querySelector(".kb-filter").classList.remove("active");showTab(3,document.querySelectorAll(".sidebar-link")[3]);renderKB();}
-function filterKB(i,btn){kbIdx=i;document.querySelectorAll(".kb-filter").forEach(function(b){b.classList.remove("active");});btn.classList.add("active");renderKB();}
+function openFolder(i){kbCustomCat="";kbIdx=i;document.querySelectorAll(".kb-filter").forEach(function(b,j){b.classList.toggle("active",j===i+1);});if(document.querySelector(".kb-filter"))document.querySelector(".kb-filter").classList.remove("active");showTab(3,document.querySelectorAll(".sidebar-link")[3]);renderKB();}
+function filterKB(i,btn){kbCustomCat="";kbIdx=i;document.querySelectorAll(".kb-filter").forEach(function(b){b.classList.remove("active");});btn.classList.add("active");renderKB();}
 var kbSearchQuery="";
 // Returns the translated category label for display
 // Global normCat — used by catLabel, renderKB, and everywhere
 function normCat(s){return (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z]/g,"");}
 function catLabel(cat){
   var i=CATS_NORM.indexOf(normCat(cat));
-  return(STRINGS[lang].cats&&STRINGS[lang].cats[i])||cat;
+  if(i>=0){
+    // Honor a user rename of a built-in folder, else the localized label
+    try{var ov=(_foldersStore().overrides||{})[BUILTIN_FOLDERS[i].value];if(ov&&ov.name)return ov.name;}catch(e){}
+    return(STRINGS[lang].cats&&STRINGS[lang].cats[i])||cat;
+  }
+  // Custom folder? resolve its display name + icon
+  try{var st=_foldersStore();var cu=(st.custom||[]);for(var k=0;k<cu.length;k++){if(cu[k].value===cat)return (cu[k].icon?cu[k].icon+" ":"")+cu[k].name;}}catch(e){}
+  return cat;
 }
 var kbSort="date-desc";
 function filterKBSearch(val){kbSearchQuery=(val||"").toLowerCase().trim();renderKB();}
@@ -5199,7 +5311,7 @@ function renderKB(){
   var ksT=document.getElementById("ks-title");if(ksT&&S.ksTitle)ksT.textContent=S.ksTitle;
   var kbSrch=document.getElementById("kb-search-input");if(kbSrch&&S.kbSearchPlaceholder)kbSrch.placeholder=S.kbSearchPlaceholder;
   // normCat is now global
-  var filtered=kbIdx<0?entries:entries.filter(function(e){return normCat(e.cat)===CATS_NORM[kbIdx];});
+  var filtered=kbCustomCat?entries.filter(function(e){return e.cat===kbCustomCat;}):(kbIdx<0?entries:entries.filter(function(e){return normCat(e.cat)===CATS_NORM[kbIdx];}));
   if(kbSearchQuery){var q=kbSearchQuery;filtered=filtered.filter(function(e){return (e.title||"").toLowerCase().includes(q)||(e.desc||"").toLowerCase().includes(q)||(e.action||"").toLowerCase().includes(q)||(e.cat||"").toLowerCase().includes(q)||(e.project||"").toLowerCase().includes(q);});}
   // Sort
   var sevOrder={critical:0,high:1,medium:2,low:3};
@@ -7136,6 +7248,24 @@ function sanitizeProject(proj){
     <div id="set-team-list"></div>
     <div style="margin-top:20px;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px" id="set-notif-label">Notificações</div>
     <div id="set-notif-list"></div>
+  </div>
+</div>
+
+<!-- Folder editor modal (create / edit a My-files category folder) -->
+<div id="folder-editor-overlay" onclick="if(event.target===this)closeFolderEditor()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;align-items:center;justify-content:center;">
+  <div style="background:var(--navy2);border:1px solid rgba(96,165,250,0.15);border-radius:16px;padding:22px;width:400px;max-width:92vw;box-shadow:0 12px 40px rgba(0,0,0,0.5);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div class="set-h" id="fe-title" style="margin:0;">New folder</div>
+      <button onclick="closeFolderEditor()" style="background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="set-l" id="fe-name-label" style="margin-bottom:6px;">Name</div>
+    <input id="fe-name" type="text" class="form-input" style="width:100%;background:var(--navy3);border:1px solid var(--border2);color:var(--white);border-radius:8px;padding:10px 12px;font-size:14px;font-family:inherit;" placeholder="Folder name">
+    <div class="set-l" id="fe-icon-label" style="margin:16px 0 8px;">Icon</div>
+    <div id="fe-icons" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;"></div>
+    <div style="display:flex;gap:8px;margin-top:20px;">
+      <button id="fe-delete" onclick="deleteFolder()" style="display:none;align-items:center;gap:6px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;background:none;border:1px solid rgba(248,113,113,0.4);color:#f87171;">Delete</button>
+      <button id="fe-save" onclick="saveFolderEditor()" style="flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:none;background:#60a5fa;color:#fff;">Save</button>
+    </div>
   </div>
 </div>
 
