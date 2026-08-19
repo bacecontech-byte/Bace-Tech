@@ -4594,18 +4594,40 @@ async function connectDB(){
   }catch(e){console.error("DB",e);}
 }
 
+// ── Durable local mirror for captures (survives refresh even if the DB write fails) ──
+function entScope(){return (me&&me.email)||String(dbCoId||"")||"local";}
+function entAll(){try{return JSON.parse(localStorage.getItem("pillier-captures-v1")||"{}");}catch(e){return {};}}
+function loadEntriesLocal(){var a=entAll();return a[entScope()]||[];}
+function saveEntriesLocal(){
+  var a=entAll();
+  try{a[entScope()]=entries;localStorage.setItem("pillier-captures-v1",JSON.stringify(a));}
+  catch(e){
+    // storage full (base64 thumbnails) → store metadata without heavy photos
+    try{a[entScope()]=entries.map(function(x){var c=Object.assign({},x);if(c.photo_url&&String(c.photo_url).length>4000){c.photo_url=null;}if(c.photo&&String(c.photo).length>4000){c.photo=null;}return c;});localStorage.setItem("pillier-captures-v1",JSON.stringify(a));}catch(e2){}
+  }
+}
+
 async function loadDB(){
+  var local=loadEntriesLocal();
+  // Show local records immediately so nothing appears to vanish
+  if(local.length&&!entries.length){entries=local.slice();renderDash();renderKB();renderCounts();}
+  if(!dbOk||!dbCoId){entries=local.slice();renderDash();renderKB();renderCounts();return;}
   var r=await db.from("captures").select("*").eq("company_id",dbCoId).order("created_at",{ascending:false}).limit(200);
-  // Always reset entries — even if empty, so stale data never shows
-  entries=r.data?r.data.map(function(d){var aiData={};try{aiData=JSON.parse(d.ai_analysis||"{}");}catch(e){aiData={solution:d.ai_analysis||""};}return{id:d.id,title:d.title,project:d.project||"",cat:canonCat(d.category||"Structure"),sev:d.severity||"medium",desc:d.description||"",action:d.action||"",cause:aiData.cause||"",normes:aiData.normes||"",date:new Date(d.created_at).toLocaleDateString("fr-FR"),status:d.status||"open",author:d.uploaded_by||"",photo_url:d.photo_url||null};}):[]; 
+  var dbEntries=(r&&r.data)?r.data.map(function(d){var aiData={};try{aiData=JSON.parse(d.ai_analysis||"{}");}catch(e){aiData={solution:d.ai_analysis||""};}return{id:d.id,title:d.title,project:d.project||"",cat:canonCat(d.category||"Structure"),sev:d.severity||"medium",desc:d.description||"",action:d.action||"",cause:aiData.cause||"",normes:aiData.normes||"",date:new Date(d.created_at).toLocaleDateString("fr-FR"),status:d.status||"open",author:d.uploaded_by||"",photo_url:d.photo_url||null};}):[];
+  if(r&&r.error){console.error("loadDB:",r.error);}
+  // Merge: keep local records the DB doesn't have yet (unsynced), then DB records
+  var dbIds={};dbEntries.forEach(function(e){dbIds[String(e.id)]=1;});
+  var localOnly=local.filter(function(e){return !dbIds[String(e.id)];});
+  entries=(r&&r.error&&!dbEntries.length)?local.slice():localOnly.concat(dbEntries);
+  saveEntriesLocal();
   renderDash();renderKB();renderCounts();
 }
 
 async function saveDB(e){
   if(!dbOk||!dbCoId)return;
   var r=await db.from("captures").insert({company_id:dbCoId,user_name:me.name,title:e.title,category:e.cat,severity:e.sev,description:e.desc,action:e.action,project:e.project,status:e.status,photo_url:e.photo_url||null,ai_analysis:e.ai||""}).select();
-  if(r.error){console.error("saveDB ERROR:",r.error);toast("❌ DB save failed: "+r.error.message);}
-  else{plog("saveDB OK, id:",r.data&&r.data[0]&&r.data[0].id);if(r.data&&r.data[0]){var idx=entries.findIndex(function(x){return String(x.id)===String(e.id);});if(idx>=0)entries[idx].id=r.data[0].id;}fileStorage(e);incrementPillierUsage("captures");}
+  if(r.error){console.error("saveDB ERROR:",r.error);toast("⚠️ "+plL("Enregistré localement (cloud indisponible)","Saved locally (cloud unavailable)","Salvo localmente (nuvem indisponível)"));}
+  else{plog("saveDB OK, id:",r.data&&r.data[0]&&r.data[0].id);if(r.data&&r.data[0]){var idx=entries.findIndex(function(x){return String(x.id)===String(e.id);});if(idx>=0)entries[idx].id=r.data[0].id;saveEntriesLocal();}fileStorage(e);incrementPillierUsage("captures");}
 }
 
 async function fileStorage(e){
@@ -5489,6 +5511,7 @@ async function saveEntry(){
       existingEntry.cat=canonCat(document.getElementById("c-cat").value);
       existingEntry.sev=document.getElementById("c-sev").value;
       if(dbOk&&dbCoId){db.from("captures").update({title:existingEntry.title,description:existingEntry.desc,action:existingEntry.action,project:existingEntry.project,category:existingEntry.cat,severity:existingEntry.sev}).eq("id",existingEntry.id);}
+      saveEntriesLocal();
       window._editingId=null;
       ["c-title","c-desc","c-action"].forEach(function(id){document.getElementById(id).value="";});
       toast(STRINGS[lang].toastUpdated||"✅ Incident mis à jour");
@@ -5511,10 +5534,12 @@ async function saveEntry(){
     }catch(compErr){console.error("Photo compress error:",compErr);entry.photo_url=null;}
   }
   entries.unshift(entry);
+  saveEntriesLocal(); // persist immediately so it survives refresh regardless of DB
   window._lastPhotoData=null;window._lastPhotoFile=null;
-  ["ai-photo","ai-voice"].forEach(function(id){document.getElementById(id).style.display="none";});
+  ["ai-photo","ai-voice"].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display="none";});
   ["c-title","c-desc","c-action"].forEach(function(id){document.getElementById(id).value="";});
-  toast(STRINGS[lang].toastSaved||"Enregistré et classé !");
+  // Immediate success feedback: filed into its category folder + Knowledge Base
+  toast("✅ "+plL("Classé dans « ","Filed under « ","Arquivado em « ")+catLabel(entry.cat)+" »");
   renderDash();renderKB();renderCounts();
   syncToCloud(entry);
   if(dbOk)await saveDB(entry);
@@ -5552,6 +5577,7 @@ async function deleteEntry(id){
     }
   }
   entries=entries.filter(function(e){return String(e.id)!==String(id);});
+  saveEntriesLocal();
   renderDash();renderKB();renderCounts();
   toast(STRINGS[lang].toastDelIncident||"Incident supprimé");
 }
@@ -5569,6 +5595,7 @@ async function resolveEntry(id){
     if(dbOk&&dbCoId){var r=await db.from("captures").update({status:"resolved"}).eq("id",dbId);if(r.error)console.error("resolve DB error",r.error);}
     toast(STRINGS[lang].toastResolved||"✅ Marqué comme résolu !");
   }
+  saveEntriesLocal();
   renderDash();renderKB();
 }
 
@@ -5605,6 +5632,7 @@ async function toggleStatus(id){
   if(dbOk&&dbCoId){var r=await db.from("captures").update({status:entry.status}).eq("id",dbId);if(r.error)console.error("toggleStatus DB error",r.error);}
   var S=STRINGS[lang];
   toast(entry.status==="resolved"?(S&&S.markedResolved?"&#x2705; "+S.markedResolved:"&#x2705; Marque comme resolu"):"&#x1F504; Reouvert");
+  saveEntriesLocal();
   renderDash();renderKB();
 }
 
