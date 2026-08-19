@@ -653,6 +653,28 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
 .reply-item .pc-acts{opacity:0;transition:opacity .12s;}
 .reply-item:hover .pc-acts{opacity:1;}
 .reply-edited,.post-edited{font-size:10px;color:var(--text3);font-style:italic;margin-left:6px;}
+/* ── Project details (read-only) modal ── */
+.pv-hero{padding:20px 20px 0;}
+.pv-status{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.04em;padding:4px 10px;border-radius:999px;background:var(--navy3);border:1px solid var(--border2);color:var(--text);}
+.pv-status .pill-dot{width:7px;height:7px;border-radius:50%;}
+.pv-name{font-family:var(--font-d);font-size:20px;font-weight:800;color:var(--white);margin:10px 0 4px;}
+.pv-sub{font-size:13px;color:var(--text2);}
+.pv-metrics{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.pv-metric{flex:1;min-width:90px;background:var(--navy3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;text-align:center;}
+.pv-metric b{display:block;font-family:var(--font-d);font-size:18px;color:var(--white);}
+.pv-metric span{font-size:11px;color:var(--text3);}
+.pv-metric.crit b{color:var(--red);}
+.pv-metric.high b{color:var(--orange);}
+.pv-body{padding:16px 20px;display:flex;flex-direction:column;gap:16px;}
+.pv-sec-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
+.pv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;}
+.pv-field{min-width:0;}
+.pv-field .k{font-size:11px;color:var(--text3);margin-bottom:2px;}
+.pv-field .v{font-size:13px;color:var(--white);word-break:break-word;}
+.pv-field.full{grid-column:1/-1;}
+.pv-team{display:flex;flex-wrap:wrap;gap:6px;}
+.pv-chip{display:inline-flex;align-items:center;gap:5px;background:var(--blue-light);border:1px solid rgba(96,165,250,0.25);color:var(--blue);border-radius:6px;padding:3px 9px;font-size:12px;}
+.pv-empty{font-size:12px;color:var(--text3);font-style:italic;}
 .chat-wrap{display:flex;flex-direction:row;gap:20px;height:calc(100vh - 110px);position:relative;}
 .chat-sidebar{width:260px;flex-shrink:0;display:flex;flex-direction:column;background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:12px;overflow-y:auto;}
 .chat-sidebar-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:0 4px;}
@@ -4760,7 +4782,7 @@ function renderProjects(){
     var critCls=m.critical>0?"crit":"crit zero";
     var critHtml="<span class='proj-metric "+critCls+"'><b>"+m.critical+"</b> "+plL("critiques","critical","críticos")+"</span>";
     if(m.critical===0&&m.high>0)critHtml="<span class='proj-metric high'><b>"+m.high+"</b> "+plL("élevés","high","altos")+"</span>";
-    html+="<div class='proj-card' onclick=\"openProject('"+safeName+"')\">"
+    html+="<div class='proj-card' onclick=\"openProjectDetails('"+String(p.id)+"')\">"
       +"<div class='proj-card-preview' "+cover+">"
       +"<div class='proj-card-pill'><span class='pill-dot' style='background:"+stm.dot+"'></span>"+stm.label()+"</div>"
       +"<div class='proj-card-actions'>"
@@ -4861,6 +4883,84 @@ function openProjectModal(id){
   setTimeout(function(){g("pm-name").focus();},60);
 }
 function closeProjectModal(){document.getElementById("proj-modal-overlay").classList.remove("show");}
+
+// ── Read-only project details view (open by clicking a card) ──
+function projTypeLabel(t){
+  var map={
+    Residencial:plL("Résidentiel","Residential","Residencial"),
+    Comercial:plL("Commercial","Commercial","Comercial"),
+    Industrial:plL("Industriel","Industrial","Industrial"),
+    Infraestrutura:plL("Infrastructure","Infrastructure","Infraestrutura"),
+    Reforma:plL("Rénovation","Renovation","Reforma")
+  };
+  return map[t]||t||"—";
+}
+function projPhaseLabel(p){
+  var map={
+    "Fundações":plL("Fondations","Foundations","Fundações"),
+    "Estrutura":plL("Structure","Structure","Estrutura"),
+    "Alvenaria":plL("Maçonnerie","Masonry","Alvenaria"),
+    "Instalações":plL("Installations","Installations","Instalações"),
+    "Acabamento":plL("Finitions","Finishing","Acabamento"),
+    "Entrega":plL("Livraison","Handover","Entrega")
+  };
+  return map[p]||p||"—";
+}
+function projStatusLabelFull(st){
+  return ({active:plL("Actif","Active","Ativo"),planning:plL("Planification","Planning","Planejamento"),paused:plL("En pause","Paused","Pausado"),completed:plL("Terminé","Completed","Concluído")})[st]||st;
+}
+function fmtDateStr(d){if(!d)return "";var t=Date.parse(d);if(isNaN(t))return d;return new Date(t).toLocaleDateString(lang===1?"en-US":lang===2?"pt-BR":"fr-FR");}
+function openProjectDetails(id){
+  var p=projects.find(function(x){return String(x.id)===String(id);});
+  if(!p){toast("❌");return;}
+  p=p._meta?p:pmMerge(p);
+  var m=p._meta||{};
+  var st=(m.status)||p.status||"active";
+  var stm=PROJ_STATUS_META[st]||PROJ_STATUS_META.active;
+  var mt=projMetrics(p);
+  document.getElementById("pv-modal-title").textContent=plL("Détails du projet","Project details","Detalhes do projeto");
+  // hero
+  var critMetric=mt.critical>0
+    ?"<div class='pv-metric crit'><b>"+mt.critical+"</b><span>"+plL("critiques","critical","críticos")+"</span></div>"
+    :(mt.high>0?"<div class='pv-metric high'><b>"+mt.high+"</b><span>"+plL("élevés","high","altos")+"</span></div>"
+                :"<div class='pv-metric'><b>0</b><span>"+plL("critiques","critical","críticos")+"</span></div>");
+  document.getElementById("pv-hero").innerHTML=
+    "<span class='pv-status'><span class='pill-dot' style='background:"+stm.dot+"'></span>"+escapeHTML(projStatusLabelFull(st))+"</span>"
+    +"<div class='pv-name'>"+escapeHTML(p.name)+"</div>"
+    +"<div class='pv-sub'>"+escapeHTML(projSubtitle(p))+"</div>"
+    +"<div class='pv-metrics'>"+critMetric
+    +"<div class='pv-metric'><b>"+mt.open+"</b><span>"+plL("ouverts","open","abertos")+"</span></div>"
+    +"<div class='pv-metric'><b>"+mt.people+"</b><span>"+plL("personnes","people","pessoas")+"</span></div></div>";
+  // helper for a field
+  var F=function(k,v){return "<div class='pv-field'><div class='k'>"+k+"</div><div class='v'>"+(v?escapeHTML(v):"<span class='pv-empty'>—</span>")+"</div></div>";};
+  var Ffull=function(k,v){return "<div class='pv-field full'><div class='k'>"+k+"</div><div class='v'>"+(v?escapeHTML(v):"<span class='pv-empty'>—</span>")+"</div></div>";};
+  var loc=[m.address,[m.city,m.state].filter(Boolean).join(", "),m.country].filter(Boolean).join(" · ");
+  var dates=(m.startDate||m.endDate)?((fmtDateStr(m.startDate)||"—")+" → "+(fmtDateStr(m.endDate)||"—")):"";
+  var team=(m.team||[]);
+  var teamHtml=team.length?"<div class='pv-team'>"+team.map(function(n){return "<span class='pv-chip'><i class='ti ti-user'></i>"+escapeHTML(n)+"</span>";}).join("")+"</div>":"<span class='pv-empty'>"+plL("Aucun membre","No members","Nenhum membro")+"</span>";
+  var body=
+    "<div><div class='pv-sec-title'>"+plL("Informations du projet","Project info","Informações do projeto")+"</div><div class='pv-grid'>"
+      +F(plL("Type","Type","Tipo"),projTypeLabel(m.type))
+      +F(plL("Phase actuelle","Current phase","Fase atual"),projPhaseLabel(m.phase))
+      +Ffull(plL("Localisation","Location","Localização"),loc||p.location)
+      +F(plL("Nº contrat / centre de coûts","Contract / cost center","Nº contrato / centro de custo"),m.contract)
+      +F(plL("Durée","Duration","Duração"),dates)
+    +"</div></div>"
+    +"<div><div class='pv-sec-title'>"+plL("Responsables techniques","Technical leads","Responsáveis técnicos")+"</div><div class='pv-grid'>"
+      +F(plL("Ingénieur résident","Lead / site engineer","Engenheiro residente"),m.lead||p.owner)
+      +F(plL("Ingénieur structure","Structural engineer","Engenheiro estrutural"),m.structural)
+      +F(plL("Architecte responsable","Lead architect","Arquiteto responsável"),m.architect)
+    +"</div><div style='margin-top:12px'><div class='k' style='font-size:11px;color:var(--text3);margin-bottom:6px'>"+plL("Équipe du chantier","Site team","Equipe do canteiro")+"</div>"+teamHtml+"</div></div>";
+  document.getElementById("pv-body").innerHTML=body;
+  // footer actions
+  document.getElementById("pv-close").textContent=plL("Fermer","Close","Fechar");
+  document.getElementById("pv-incidents").textContent=plL("Voir les incidents","View incidents","Ver incidentes");
+  document.getElementById("pv-edit").textContent=plL("Modifier","Edit","Editar");
+  document.getElementById("pv-incidents").onclick=function(){closeProjectDetails();openProject(p.name);};
+  document.getElementById("pv-edit").onclick=function(){closeProjectDetails();openProjectModal(String(p.id));};
+  document.getElementById("proj-view-overlay").classList.add("show");
+}
+function closeProjectDetails(){document.getElementById("proj-view-overlay").classList.remove("show");}
 async function submitProjectModal(){
   var g=function(x){return document.getElementById(x).value.trim();};
   var name=g("pm-name");
@@ -6906,6 +7006,7 @@ function closeProfilePanel(e){
 }
 
 document.addEventListener("keydown",function(e){
+  if(e.key==="Escape"&&document.getElementById("proj-view-overlay")&&document.getElementById("proj-view-overlay").classList.contains("show")){closeProjectDetails();return;}
   if(e.key==="Escape"&&document.getElementById("proj-modal-overlay").classList.contains("show")){closeProjectModal();return;}
   if(document.getElementById("doc-viewer-overlay").classList.contains("show")){
     if(e.key==="Escape")closeDocViewer({target:document.getElementById("doc-viewer-overlay")});
@@ -7655,6 +7756,23 @@ function sanitizeProject(proj){
     <div class="inc-modal-footer">
       <button class="inc-modal-btn imb-delete" style="flex:0 0 auto;padding:9px 18px" onclick="closeProjectModal()" id="pm-cancel">Cancelar</button>
       <button class="inc-modal-btn imb-edit" onclick="submitProjectModal()" id="pm-submit">Criar projeto</button>
+    </div>
+  </div>
+</div>
+
+<!-- Project details (read-only) modal -->
+<div class="inc-modal-overlay" id="proj-view-overlay" onclick="if(event.target===this)closeProjectDetails()">
+  <div class="inc-modal" style="max-width:600px">
+    <div class="inc-modal-header" style="padding:16px 20px 0">
+      <div class="inc-modal-title" id="pv-modal-title" style="font-size:13px;color:var(--text3);font-weight:600">Projeto</div>
+      <button class="inc-modal-close" onclick="closeProjectDetails()">&times;</button>
+    </div>
+    <div class="pv-hero" id="pv-hero"></div>
+    <div class="pv-body" id="pv-body"></div>
+    <div class="inc-modal-footer">
+      <button class="inc-modal-btn imb-delete" style="flex:0 0 auto;padding:9px 16px" onclick="closeProjectDetails()" id="pv-close">Fechar</button>
+      <button class="inc-modal-btn" style="flex:0 0 auto;padding:9px 16px;background:var(--navy3);border:1px solid var(--border2);color:var(--text)" id="pv-incidents">Ver incidentes</button>
+      <button class="inc-modal-btn imb-edit" id="pv-edit">Editar</button>
     </div>
   </div>
 </div>
