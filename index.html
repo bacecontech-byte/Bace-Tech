@@ -6259,12 +6259,25 @@ function cleanTranscript(t){
   t=t.replace(/\s+([.,!?;:])/g,"$1").replace(/\s+/g," ").replace(/^[…,.\s]+/,"").replace(/[…\s]+$/,"").trim();
   return t;
 }
+var vadOwnsStream=true;
 function stopVAD(){
   vadActive=false;
   if(vadRAF){cancelAnimationFrame(vadRAF);vadRAF=null;}
-  try{if(vadStream)vadStream.getTracks().forEach(function(t){t.stop();});}catch(_e){}
+  try{if(vadStream&&vadOwnsStream)vadStream.getTracks().forEach(function(t){t.stop();});}catch(_e){}
   try{if(vadCtx&&vadCtx.state!=="closed")vadCtx.close();}catch(_e){}
   vadStream=null;vadCtx=null;vadAnalyser=null;vadData=null;
+}
+function attachVAD(stream){
+  try{
+    vadStream=stream;vadOwnsStream=false;
+    vadCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(vadCtx.state==="suspended"){try{vadCtx.resume();}catch(_e){}} // iOS needs resume after gesture
+    var src=vadCtx.createMediaStreamSource(stream);
+    vadAnalyser=vadCtx.createAnalyser();vadAnalyser.fftSize=1024;vadAnalyser.smoothingTimeConstant=0.6;
+    src.connect(vadAnalyser);vadData=new Uint8Array(vadAnalyser.fftSize);
+    vadLastVoiceTs=Date.now();vadHadVoice=false;vadActive=true;
+    vadTick();
+  }catch(e){console.warn("attachVAD failed:",e);}
 }
 function vadTick(){
   if(!vadActive||!voiceListening||!vadAnalyser){return;}
@@ -6283,15 +6296,27 @@ function startVAD(){
   if(!(window.AudioContext||window.webkitAudioContext)||!navigator.mediaDevices){return;}
   navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}}).then(function(s){
     if(!voiceListening){s.getTracks().forEach(function(t){t.stop();});return;}
-    vadStream=s;vadCtx=new (window.AudioContext||window.webkitAudioContext)();
-    var src=vadCtx.createMediaStreamSource(s);
-    vadAnalyser=vadCtx.createAnalyser();vadAnalyser.fftSize=1024;vadAnalyser.smoothingTimeConstant=0.6;
-    src.connect(vadAnalyser);vadData=new Uint8Array(vadAnalyser.fftSize);
-    vadLastVoiceTs=Date.now();vadHadVoice=false;vadActive=true;
-    vadTick();
+    vadOwnsStream=true;attachVAD(s);
   }).catch(function(e){console.warn("VAD unavailable, using timer fallback:",e&&e.name);});
 }
 function speechRecCtor(){return window.SpeechRecognition||window.webkitSpeechRecognition||null;}
+// iOS standalone PWAs / in-app webviews expose SpeechRecognition but it silently never works → prefer Whisper there
+function isIOSDevice(){return /iPad|iPhone|iPod/.test(navigator.userAgent||"")||((navigator.platform==="MacIntel")&&navigator.maxTouchPoints>1);}
+function isStandalonePWA(){try{return (window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)||window.navigator.standalone===true;}catch(e){return false;}}
+function speechAvailable(){
+  if(!speechRecCtor())return false;
+  if(isIOSDevice())return false; // iOS Web Speech is unreliable (esp. in-app/PWA) → use Whisper for consistency
+  return true;
+}
+// Pick a MediaRecorder mime the platform actually supports (iOS = mp4/aac, others = webm/opus)
+function pickAudioMime(){
+  var cands=["audio/webm;codecs=opus","audio/webm","audio/mp4","audio/mp4;codecs=mp4a.40.2","audio/aac","audio/ogg;codecs=opus"];
+  if(typeof MediaRecorder!=="undefined"&&MediaRecorder.isTypeSupported){
+    for(var i=0;i<cands.length;i++){try{if(MediaRecorder.isTypeSupported(cands[i]))return cands[i];}catch(e){}}
+  }
+  return ""; // let the browser choose its default
+}
+function mimeToExt(m){m=(m||"").toLowerCase();if(m.indexOf("mp4")>=0)return "mp4";if(m.indexOf("aac")>=0)return "m4a";if(m.indexOf("ogg")>=0)return "ogg";if(m.indexOf("wav")>=0)return "wav";return "webm";}
 function voiceLangHint(){return navigator.language||(lang===1?"en-US":lang===2?"pt-BR":"fr-FR");}
 function ensureVoiceUI(){
   var el=document.getElementById("voice-listening");
@@ -6321,7 +6346,7 @@ function toggleChatVoice(){startVoiceInput();}
 function startVoiceInput(){
   if(voiceListening){stopVoiceInput(true);return;} // second click = finish + send
   var input=document.getElementById("chat-input");
-  var Rec=speechRecCtor();
+  var Rec=speechAvailable()?speechRecCtor():null;
   if(Rec){
     try{
       chatRec=new Rec();
@@ -6377,13 +6402,18 @@ function finishVoice(){
   if(wasListening&&!voiceCancelled&&input&&input.value.trim()){sendChat();}
 }
 // Fallback: MediaRecorder → Groq Whisper (auto language detection) → auto-send
+var chatAudioMime="";
 function startVoiceFallback(){
-  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
-    chatMR=new MediaRecorder(stream);chatChunks=[];voiceMode="record";voiceListening=true;voiceCancelled=false;
-    chatMR.ondataavailable=function(e){chatChunks.push(e.data);};
+  navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}}).then(function(stream){
+    chatAudioMime=pickAudioMime();
+    try{chatMR=chatAudioMime?new MediaRecorder(stream,{mimeType:chatAudioMime}):new MediaRecorder(stream);}
+    catch(e){chatMR=new MediaRecorder(stream);} // some webviews reject the options arg
+    if(!chatAudioMime&&chatMR&&chatMR.mimeType)chatAudioMime=chatMR.mimeType;
+    chatChunks=[];voiceMode="record";voiceListening=true;voiceCancelled=false;
+    chatMR.ondataavailable=function(e){if(e.data&&e.data.size>0)chatChunks.push(e.data);};
     chatMR.onstop=function(){stream.getTracks().forEach(function(t){t.stop();});processChatVoiceAutoSend();};
     chatMR.start();chatVoiceRec=true;showVoiceListening(true);
-    startVAD(); // acoustic silence auto-stops recording after you finish speaking (tolerant of pauses/fillers)
+    attachVAD(stream); // share the SAME mic stream (avoids a 2nd getUserMedia that fails on mobile)
     var vt=document.querySelector("#voice-listening .vl-txt");if(vt)vt.textContent=plL("Parlez… ça s’envoie après un silence","Speak… it sends after a pause","Fale… envia após uma pausa");
     // VAD auto-stops on acoustic silence; the user can also tap the mic / ■ to finish → Whisper auto-detects + auto-sends
   }).catch(function(e){
@@ -6392,17 +6422,19 @@ function startVoiceFallback(){
   });
 }
 async function processChatVoiceAutoSend(){
-  voiceListening=false;showVoiceListening(false);chatVoiceRec=false;voiceMode=null;
+  voiceListening=false;showVoiceListening(false);chatVoiceRec=false;voiceMode=null;stopVAD();
   if(voiceCancelled){return;}
-  var blob=new Blob(chatChunks,{type:"audio/webm"});
+  var mime=chatAudioMime||"audio/webm";
+  var blob=new Blob(chatChunks,{type:mime});
+  if(!blob.size){toast(plL("Aucun son capté","No sound captured","Nenhum som captado"));return;}
   var reader=new FileReader();
   reader.onload=async function(e){
-    var base64=e.target.result.split(",")[1];
+    var base64=(e.target.result.split(",")[1])||"";
     var input=document.getElementById("chat-input");
     toast(plL("Transcription…","Transcribing…","Transcrevendo…"));
     try{
       var r=await fetch("/api/groq",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({action:"transcribe",audioBase64:base64,mimeType:"audio/webm",filename:"note-vocale.webm",model:"whisper-large-v3"})}); // no language → auto-detect
+        body:JSON.stringify({action:"transcribe",audioBase64:base64,mimeType:mime,filename:"note-vocale."+mimeToExt(mime),model:"whisper-large-v3"})}); // no language → auto-detect
       var d=await r.json();
       if(d&&d.error)throw new Error(d.error.message||"transcription failed");
       var text=cleanTranscript(((d&&d.text)||"").trim());
