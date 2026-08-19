@@ -6243,8 +6243,8 @@ function renderChatUsagePill(){var el=document.getElementById("chat-usage-pill")
 /* ───── Seamless voice input: live Web Speech + silence auto-send, Whisper fallback ───── */
 var chatRec=null,voiceListening=false,voiceCancelled=false,voiceMode=null,voiceFinal="",voiceBase="",voiceSilenceTimer=null;
 // Acoustic voice-activity detection (keeps the session alive through pauses/fillers)
-var vadStream=null,vadCtx=null,vadAnalyser=null,vadData=null,vadRAF=null,vadLastVoiceTs=0,vadHadVoice=false,vadActive=false,voiceMaxTimer=null;
-var VAD_SILENCE_MS=1500,VAD_THRESHOLD=0.012;
+var vadStream=null,vadCtx=null,vadAnalyser=null,vadData=null,vadRAF=null,vadInterval=null,vadLastVoiceTs=0,vadHadVoice=false,vadActive=false,voiceMaxTimer=null,vadNoiseFloor=0.02;
+var VAD_SILENCE_MS=1200;
 // Strip excessive filler/hesitation tics before sending to the AI
 function cleanTranscript(t){
   if(!t)return t;
@@ -6263,6 +6263,7 @@ var vadOwnsStream=true;
 function stopVAD(){
   vadActive=false;
   if(vadRAF){cancelAnimationFrame(vadRAF);vadRAF=null;}
+  if(vadInterval){clearInterval(vadInterval);vadInterval=null;}
   try{if(vadStream&&vadOwnsStream)vadStream.getTracks().forEach(function(t){t.stop();});}catch(_e){}
   try{if(vadCtx&&vadCtx.state!=="closed")vadCtx.close();}catch(_e){}
   vadStream=null;vadCtx=null;vadAnalyser=null;vadData=null;
@@ -6271,26 +6272,36 @@ function attachVAD(stream){
   try{
     vadStream=stream;vadOwnsStream=false;
     vadCtx=new (window.AudioContext||window.webkitAudioContext)();
-    if(vadCtx.state==="suspended"){try{vadCtx.resume();}catch(_e){}} // iOS needs resume after gesture
-    var src=vadCtx.createMediaStreamSource(stream);
-    vadAnalyser=vadCtx.createAnalyser();vadAnalyser.fftSize=1024;vadAnalyser.smoothingTimeConstant=0.6;
-    src.connect(vadAnalyser);vadData=new Uint8Array(vadAnalyser.fftSize);
-    vadLastVoiceTs=Date.now();vadHadVoice=false;vadActive=true;
-    vadTick();
+    var begin=function(){
+      try{
+        var src=vadCtx.createMediaStreamSource(stream);
+        vadAnalyser=vadCtx.createAnalyser();vadAnalyser.fftSize=1024;vadAnalyser.smoothingTimeConstant=0.6;
+        src.connect(vadAnalyser);vadData=new Uint8Array(vadAnalyser.fftSize);
+        vadLastVoiceTs=Date.now();vadHadVoice=false;vadNoiseFloor=0.02;vadActive=true;
+        if(vadInterval)clearInterval(vadInterval);
+        vadInterval=setInterval(vadTick,100); // steady poll — reliable timing on mobile (rAF throttles)
+      }catch(e){console.warn("attachVAD begin failed:",e);}
+    };
+    if(vadCtx.state==="suspended"){var p=vadCtx.resume();if(p&&p.then)p.then(begin,begin);else begin();}
+    else begin();
   }catch(e){console.warn("attachVAD failed:",e);}
 }
 function vadTick(){
-  if(!vadActive||!voiceListening||!vadAnalyser){return;}
+  if(!vadActive||!voiceListening||!vadAnalyser)return;
   vadAnalyser.getByteTimeDomainData(vadData);
   var sum=0;for(var i=0;i<vadData.length;i++){var v=(vadData[i]-128)/128;sum+=v*v;}
   var rms=Math.sqrt(sum/vadData.length);
-  if(rms>VAD_THRESHOLD){vadLastVoiceTs=Date.now();vadHadVoice=true;}
+  // Adaptive noise floor: drops fast to the quietest level, rises slowly — so the threshold
+  // tracks the phone's real background level instead of a fixed guess.
+  if(rms<vadNoiseFloor)vadNoiseFloor=rms;else vadNoiseFloor=vadNoiseFloor*0.995+rms*0.005;
+  var speakThresh=Math.max(0.018,vadNoiseFloor*2.2+0.006);
+  if(rms>speakThresh){vadLastVoiceTs=Date.now();vadHadVoice=true;}
   else if(vadHadVoice&&(Date.now()-vadLastVoiceTs)>VAD_SILENCE_MS){
-    // Definitive acoustic silence — only submit if a sentence has actually been captured
-    var readyToSend=(voiceMode==="speech")?(voiceFinal.trim().length>0):(chatChunks&&chatChunks.length>0);
-    if(readyToSend){stopVoiceInput(true);return;}
+    // Speech happened, then a clear pause. For speech mode wait for a finalized phrase;
+    // for record mode we've captured audio, so submit now.
+    if(voiceMode==="speech"&&!voiceFinal.trim())return; // hold until a final result exists
+    stopVoiceInput(true);
   }
-  vadRAF=requestAnimationFrame(vadTick);
 }
 function startVAD(){
   if(!(window.AudioContext||window.webkitAudioContext)||!navigator.mediaDevices){return;}
@@ -6428,7 +6439,7 @@ function startVoiceFallback(){
     chatMR.onstop=function(){stream.getTracks().forEach(function(t){t.stop();});processChatVoiceAutoSend();};
     chatMR.start();chatVoiceRec=true;showVoiceListening(true);
     attachVAD(stream); // share the SAME mic stream (avoids a 2nd getUserMedia that fails on mobile)
-    var vt=document.querySelector("#voice-listening .vl-txt");if(vt)vt.textContent=plL("Parlez, puis touchez ■ pour envoyer","Speak, then tap ■ to send","Fale e toque ■ para enviar");
+    var vt=document.querySelector("#voice-listening .vl-txt");if(vt)vt.textContent=plL("Parlez… envoi auto après une pause (ou ■)","Speak… auto-sends after a pause (or ■)","Fale… envia sozinho após uma pausa (ou ■)");
     // VAD auto-stops on acoustic silence when available; on mobile the ■ / mic tap is the reliable finish → Whisper → auto-send
     if(voiceMaxTimer)clearTimeout(voiceMaxTimer);
     voiceMaxTimer=setTimeout(function(){if(voiceListening&&voiceMode==="record")stopVoiceInput(true);},30000); // safety cap
