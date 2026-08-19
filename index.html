@@ -745,6 +745,18 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
 .typing-dot:nth-child(3){animation-delay:0.4s;}
 @keyframes typing{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-6px);}}
 .chat-input-wrap{background:var(--navy2);border:1px solid var(--border2);border-radius:12px;padding:12px 16px;display:flex;gap:10px;align-items:flex-end;margin-top:16px;}
+/* Live voice listening indicator (waveform) */
+.voice-listening{display:none;align-items:center;gap:12px;background:var(--navy2);border:1px solid var(--blue);border-radius:12px;padding:9px 14px;margin-top:12px;box-shadow:0 0 0 3px var(--blue-light);}
+.voice-listening.show{display:flex;}
+.vl-bars{display:inline-flex;align-items:center;gap:3px;height:22px;flex-shrink:0;}
+.vl-bars i{width:3px;height:6px;background:var(--blue);border-radius:2px;animation:vlbar 1s ease-in-out infinite;}
+.vl-bars i:nth-child(2){animation-delay:.12s}.vl-bars i:nth-child(3){animation-delay:.24s}.vl-bars i:nth-child(4){animation-delay:.36s}.vl-bars i:nth-child(5){animation-delay:.48s}.vl-bars i:nth-child(6){animation-delay:.6s}
+@keyframes vlbar{0%,100%{height:5px}50%{height:20px}}
+.vl-txt{font-size:13px;color:var(--text2);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.vl-stop{background:var(--red);color:#fff;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:11px;line-height:1;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.vl-stop:hover{opacity:.85;}
+.chat-icon-btn.recording{background:var(--red)!important;color:#fff!important;animation:micpulse 1.2s infinite;}
+@keyframes micpulse{0%,100%{box-shadow:0 0 0 0 rgba(248,113,113,0.5)}50%{box-shadow:0 0 0 6px rgba(248,113,113,0)}}
 .chat-input{flex:1;background:none;border:none;outline:none;font-family:var(--font-b);font-size:14px;color:var(--text);resize:none;max-height:120px;min-height:24px;line-height:1.5;}
 .chat-input::placeholder{color:var(--text3);}
 .chat-send{background:var(--blue);border:none;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.12s;}
@@ -6219,60 +6231,116 @@ function toggleChatPlus(e){if(e){e.preventDefault();e.stopPropagation();}var m=d
 function chatPlusPick(k){var m=document.getElementById("chat-plus-menu");if(m)m.style.display="none";var id={cam:"chat-in-cam",gal:"chat-in-gal",doc:"chat-in-doc",vid:"chat-in-vid"}[k];var el=document.getElementById(id);if(el)el.click();}
 document.addEventListener("click",function(e){var m=document.getElementById("chat-plus-menu");if(m&&m.style.display==="block"){var wrap=m.parentNode;if(wrap&&!wrap.contains(e.target))m.style.display="none";}});
 function renderChatUsagePill(){var el=document.getElementById("chat-usage-pill");if(!el)return;try{var plan=(typeof PILLIER_PLANS!=="undefined"&&PILLIER_PLANS[_pUsage.plan])||(typeof PILLIER_PLANS!=="undefined"&&PILLIER_PLANS.free)||{label:"Free",ai_messages:30};var used=(_pUsage&&_pUsage.ai_messages)||0;var lim=plan.ai_messages;el.textContent=(plan.label||"Free")+" · "+used+"/"+(lim>=999999?"∞":lim);}catch(e){el.textContent="Free";}}
-async function toggleChatVoice(){
-  var btn=document.getElementById("cmb-voice-btn");
-  var lbl=document.getElementById("cmb-voice");
-  var S=STRINGS[lang];
-  if(!chatVoiceRec){
+/* ───── Seamless voice input: live Web Speech + silence auto-send, Whisper fallback ───── */
+var chatRec=null,voiceListening=false,voiceCancelled=false,voiceMode=null,voiceFinal="",voiceBase="",voiceSilenceTimer=null;
+function speechRecCtor(){return window.SpeechRecognition||window.webkitSpeechRecognition||null;}
+function voiceLangHint(){return navigator.language||(lang===1?"en-US":lang===2?"pt-BR":"fr-FR");}
+function ensureVoiceUI(){
+  var el=document.getElementById("voice-listening");
+  if(!el){
+    el=document.createElement("div");el.id="voice-listening";el.className="voice-listening";
+    el.innerHTML="<span class='vl-bars'><i></i><i></i><i></i><i></i><i></i><i></i></span><span class='vl-txt'></span><button class='vl-stop' type='button' onclick='stopVoiceInput(true)' title='Stop'>■</button>";
+    var wrap=document.querySelector(".chat-input-wrap");
+    if(wrap&&wrap.parentNode)wrap.parentNode.insertBefore(el,wrap);else document.body.appendChild(el);
+  }
+  return el;
+}
+function showVoiceListening(on){
+  var el=ensureVoiceUI();
+  el.querySelector(".vl-txt").textContent=plL("À l’écoute… parlez, ça s’envoie tout seul","Listening… speak, it sends automatically","Ouvindo… fale, envia sozinho");
+  el.classList.toggle("show",!!on);
+  var btn=document.getElementById("cmb-voice-btn");if(btn)btn.classList.toggle("recording",!!on);
+}
+function resetSilenceTimer(){
+  if(voiceSilenceTimer)clearTimeout(voiceSilenceTimer);
+  voiceSilenceTimer=setTimeout(function(){if(voiceListening)stopVoiceInput(true);},1400);
+}
+// Entry point (mic button)
+function toggleChatVoice(){startVoiceInput();}
+function startVoiceInput(){
+  if(voiceListening){stopVoiceInput(true);return;} // second click = finish + send
+  var input=document.getElementById("chat-input");
+  var Rec=speechRecCtor();
+  if(Rec){
     try{
-      var stream=await navigator.mediaDevices.getUserMedia({audio:true});
-      chatMR=new MediaRecorder(stream);chatChunks=[];
-      chatMR.ondataavailable=function(e){chatChunks.push(e.data);};
-      chatMR.onstop=processChatVoice;
-      chatMR.start();chatVoiceRec=true;
-      btn.classList.add("recording");
-      lbl.textContent=S.cmvStop||"Stop";
-    }catch(e){console.error("Chat mic error:",e);toast((S.toastMicError||"Microphone non disponible")+": "+(e.name||e.message||"unknown"));}
-  } else {
-    chatMR.stop();chatVoiceRec=false;
-    btn.classList.remove("recording");
-    lbl.textContent=S.cmvVoice||"Note vocale";
+      chatRec=new Rec();
+      chatRec.continuous=true;chatRec.interimResults=true;chatRec.maxAlternatives=1;
+      try{chatRec.lang=voiceLangHint();}catch(_e){}
+      voiceMode="speech";voiceListening=true;voiceCancelled=false;voiceFinal="";
+      voiceBase=input.value?input.value.replace(/\s+$/,"")+" ":"";
+      chatRec.onresult=function(ev){
+        var interim="";
+        for(var i=ev.resultIndex;i<ev.results.length;i++){
+          var res=ev.results[i];
+          if(res.isFinal)voiceFinal+=res[0].transcript+" ";else interim+=res[0].transcript;
+        }
+        input.value=(voiceBase+voiceFinal+interim).replace(/\s+/g," ").replace(/^\s/,"");
+        autoResize(input);
+        resetSilenceTimer();
+      };
+      chatRec.onerror=function(e){
+        console.error("speech error",e);
+        if(e.error==="no-speech"){return;} // keep listening
+        if(e.error==="not-allowed"||e.error==="service-not-allowed"){voiceCancelled=true;finishVoice();toast(plL("Micro refusé","Microphone denied","Microfone negado"));return;}
+        // any other error → fall back to recording+Whisper
+        voiceCancelled=true;voiceListening=false;showVoiceListening(false);chatRec=null;startVoiceFallback();
+      };
+      chatRec.onend=function(){finishVoice();};
+      chatRec.start();
+      showVoiceListening(true);resetSilenceTimer();input.focus();
+    }catch(e){console.error("SpeechRecognition start failed:",e);voiceListening=false;startVoiceFallback();}
+  }else{
+    startVoiceFallback();
   }
 }
-
-async function processChatVoice(){
+function stopVoiceInput(autoSend){
+  voiceCancelled=!autoSend;
+  if(voiceSilenceTimer){clearTimeout(voiceSilenceTimer);voiceSilenceTimer=null;}
+  if(voiceMode==="speech"&&chatRec){try{chatRec.stop();}catch(_e){}} // onend → finishVoice
+  else if(voiceMode==="record"&&chatMR){try{chatMR.stop();}catch(_e){}}
+}
+function finishVoice(){
+  var wasListening=voiceListening;
+  voiceListening=false;showVoiceListening(false);chatRec=null;voiceMode=null;
+  if(voiceSilenceTimer){clearTimeout(voiceSilenceTimer);voiceSilenceTimer=null;}
+  var input=document.getElementById("chat-input");
+  if(wasListening&&!voiceCancelled&&input&&input.value.trim()){sendChat();}
+}
+// Fallback: MediaRecorder → Groq Whisper (auto language detection) → auto-send
+function startVoiceFallback(){
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+    chatMR=new MediaRecorder(stream);chatChunks=[];voiceMode="record";voiceListening=true;voiceCancelled=false;
+    chatMR.ondataavailable=function(e){chatChunks.push(e.data);};
+    chatMR.onstop=function(){stream.getTracks().forEach(function(t){t.stop();});processChatVoiceAutoSend();};
+    chatMR.start();chatVoiceRec=true;showVoiceListening(true);
+    var vt=document.querySelector("#voice-listening .vl-txt");if(vt)vt.textContent=plL("Enregistrement… touchez ■ pour finir","Recording… tap ■ to finish","Gravando… toque ■ para finalizar");
+    // Record mode has no live interim results, so the user taps the mic / ■ to finish (then Whisper auto-detects + auto-sends)
+  }).catch(function(e){
+    console.error("Chat mic error:",e);voiceListening=false;showVoiceListening(false);
+    toast((STRINGS[lang].toastMicError||"Microphone non disponible")+": "+(e.name||e.message||"unknown"));
+  });
+}
+async function processChatVoiceAutoSend(){
+  voiceListening=false;showVoiceListening(false);chatVoiceRec=false;voiceMode=null;
+  if(voiceCancelled){return;}
   var blob=new Blob(chatChunks,{type:"audio/webm"});
   var reader=new FileReader();
   reader.onload=async function(e){
     var base64=e.target.result.split(",")[1];
     var input=document.getElementById("chat-input");
-    var lbl=document.getElementById("cmb-voice");
-    // Show transcribing state
-    if(lbl)lbl.textContent=plL("Transcription…","Transcribing…","Transcrevendo…");
-    toast(plL("Transcription de la note vocale…","Transcribing voice note…","Transcrevendo nota de voz…"));
+    toast(plL("Transcription…","Transcribing…","Transcrevendo…"));
     try{
-      var langCode=lang===1?"en":lang===2?"pt":"fr";
-      var r=await fetch("/api/groq",{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({action:"transcribe",audioBase64:base64,mimeType:"audio/webm",filename:"note-vocale.webm",model:"whisper-large-v3-turbo",language:langCode})
-      });
+      var r=await fetch("/api/groq",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({action:"transcribe",audioBase64:base64,mimeType:"audio/webm",filename:"note-vocale.webm",model:"whisper-large-v3"})}); // no language → auto-detect
       var d=await r.json();
-      var text=(d&&(d.text||(d.error&&"")))||"";
-      if(d&&d.error){throw new Error(d.error.message||"transcription failed");}
-      text=(text||"").trim();
-      if(!text){throw new Error("empty transcription");}
-      // Insert transcribed text into the input for review, then the user can send
-      if(input){input.value=input.value?(input.value.trim()+" "+text):text;autoResize(input);input.focus();}
-      if(lbl)lbl.textContent=STRINGS[lang].cmvVoice||"Note vocale";
-      toast(plL("✅ Note vocale transcrite","✅ Voice note transcribed","✅ Nota de voz transcrita"));
+      if(d&&d.error)throw new Error(d.error.message||"transcription failed");
+      var text=((d&&d.text)||"").trim();
+      if(!text)throw new Error("empty transcription");
+      if(input){input.value=input.value?(input.value.replace(/\s+$/,"")+" "+text):text;autoResize(input);}
+      sendChat(); // auto-submit
     }catch(err){
       console.error("transcribe error:",err);
-      if(lbl)lbl.textContent=STRINGS[lang].cmvVoice||"Note vocale";
-      // Fallback: keep the audio as an attachment so nothing is lost
-      chatAttachment={type:"voice",data:base64,name:"note-vocale.webm",mimeType:"audio/webm",dataUrl:e.target.result};
-      var an=document.getElementById("chat-attachment-name");if(an)an.textContent="note-vocale.webm";
-      var ac=document.getElementById("chat-attachment");if(ac)ac.classList.add("show");
-      toast(plL("Transcription indisponible — note vocale jointe","Transcription unavailable — voice note attached","Transcrição indisponível — nota de voz anexada"));
+      toast(plL("Transcription indisponible, réessayez","Transcription unavailable, try again","Transcrição indisponível, tente de novo"));
     }
   };
   reader.readAsDataURL(blob);
@@ -6352,10 +6420,11 @@ async function sendChat(){
   var projList=projects.map(function(p){return p.name+(p.location?" ("+p.location+")":"");}).join(", ")||"Aucun projet";
   var allDocCtx=Object.keys(projectDocs).map(function(p){return getProjectDocContext(p);}).filter(Boolean).join("\n");
   var docCtxStr=allDocCtx?"\n\nINDEXED PROJECT DOCUMENTS (use for precise technical answers):\n"+allDocCtx:"";
+  var _langRule="\\n\\nLANGUAGE: Detect the language of the user's MOST RECENT message and always reply in that exact same language (French, Portuguese, English, Spanish, etc.), regardless of earlier messages. Voice input may be in any language — mirror it.";
   var _style={
-    fr:"\\n\\nSTYLE: Tu es un copilote ingénieur de chantier. Réponds de façon naturelle et conversationnelle, comme un collègue expert — jamais en recopiant des lignes brutes de base de données. Synthétise les données pertinentes en phrases claires. Utilise le markdown quand c'est utile : **gras** pour les points clés, listes à puces pour les étapes, et un tableau markdown UNIQUEMENT si l'utilisateur demande explicitement de lister/comparer plusieurs incidents. Ne montre jamais les identifiants internes ni le format brut « | ID | ... | » sauf demande explicite. Va droit au but.",
-    en:"\\n\\nSTYLE: You are a site-engineer copilot. Answer naturally and conversationally, like an expert colleague — never by echoing raw database rows. Synthesize the relevant data into clear sentences. Use markdown when helpful: **bold** for key points, bullet lists for steps, and a markdown table ONLY when the user explicitly asks to list/compare several incidents. Never show internal IDs or the raw '| ID | ... |' format unless explicitly asked. Get to the point.",
-    pt:"\\n\\nESTILO: Você é um copiloto engenheiro de obra. Responda de forma natural e conversacional, como um colega especialista — nunca copiando linhas brutas do banco de dados. Sintetize os dados relevantes em frases claras. Use markdown quando útil: **negrito** para pontos-chave, listas com marcadores para etapas, e uma tabela markdown SOMENTE quando o usuário pedir explicitamente para listar/comparar vários incidentes. Nunca mostre IDs internos nem o formato bruto « | ID | ... | » a menos que seja explicitamente solicitado. Seja direto."
+    fr:"\\n\\nSTYLE: Tu es un copilote ingénieur de chantier. Réponds de façon naturelle et conversationnelle, comme un collègue expert — jamais en recopiant des lignes brutes de base de données. Synthétise les données pertinentes en phrases claires. Utilise le markdown quand c'est utile : **gras** pour les points clés, listes à puces pour les étapes, et un tableau markdown UNIQUEMENT si l'utilisateur demande explicitement de lister/comparer plusieurs incidents. Ne montre jamais les identifiants internes ni le format brut « | ID | ... | » sauf demande explicite. Va droit au but."+_langRule,
+    en:"\\n\\nSTYLE: You are a site-engineer copilot. Answer naturally and conversationally, like an expert colleague — never by echoing raw database rows. Synthesize the relevant data into clear sentences. Use markdown when helpful: **bold** for key points, bullet lists for steps, and a markdown table ONLY when the user explicitly asks to list/compare several incidents. Never show internal IDs or the raw '| ID | ... |' format unless explicitly asked. Get to the point."+_langRule,
+    pt:"\\n\\nESTILO: Você é um copiloto engenheiro de obra. Responda de forma natural e conversacional, como um colega especialista — nunca copiando linhas brutas do banco de dados. Sintetize os dados relevantes em frases claras. Use markdown quando útil: **negrito** para pontos-chave, listas com marcadores para etapas, e uma tabela markdown SOMENTE quando o usuário pedir explicitamente para listar/comparar vários incidentes. Nunca mostre IDs internos nem o formato bruto « | ID | ... | » a menos que seja explicitamente solicitado. Seja direto."+_langRule
   };
   var _sp={
     fr:"Tu es Pillier IA, assistant expert en génie civil et gestion de chantiers pour "+me.co+". Tu connais les normes BRÉSIL (ABNT NBR 6118, NBR 5410, NBR 5626, NBR 9050, NBR 14432, NBR 8160, NR-18, NR-35, PBQP-H), FRANCE (DTU, Eurocodes, NF EN) et EUROPE (EN Eurocodes). Projets actifs: "+projList+". Base de connaissances ("+entries.length+" incidents):\\n"+kb+docCtxStr+"\\nRéponds en français sauf si l'utilisateur écrit dans une autre langue. Sois concis et pratique. Cite toujours les normes applicables."+_style.fr,
