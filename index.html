@@ -717,6 +717,24 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
 .msg-bubble{padding:12px 16px;border-radius:12px;font-size:13px;line-height:1.6;}
 .msg.bot .msg-bubble{background:var(--navy2);border:1px solid var(--border);color:var(--text);border-bottom-left-radius:4px;}
 .msg.user .msg-bubble{background:var(--blue);color:white;border-bottom-right-radius:4px;}
+/* Markdown rendering inside chat bubbles */
+.msg-bubble .md-p{margin:0 0 8px;}
+.msg-bubble .md-p:last-child{margin-bottom:0;}
+.msg-bubble .md-h{font-weight:700;color:var(--white);margin:10px 0 6px;line-height:1.3;}
+.msg-bubble .md-h1{font-size:16px;}.msg-bubble .md-h2{font-size:15px;}.msg-bubble .md-h3,.msg-bubble .md-h4{font-size:14px;}
+.msg-bubble .md-ul,.msg-bubble .md-ol{margin:4px 0 8px;padding-left:20px;}
+.msg-bubble .md-ul li,.msg-bubble .md-ol li{margin:2px 0;}
+.msg-bubble .md-hr{border:none;border-top:1px solid var(--border);margin:10px 0;}
+.msg-bubble code{background:var(--navy3);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;}
+.msg-bubble .md-pre{background:var(--navy3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;overflow-x:auto;margin:8px 0;}
+.msg-bubble .md-pre code{background:none;border:none;padding:0;font-size:12px;white-space:pre;}
+.msg-bubble .md-tablewrap{overflow-x:auto;margin:8px 0;}
+.msg-bubble .md-table{border-collapse:collapse;width:100%;font-size:12.5px;}
+.msg-bubble .md-table th,.msg-bubble .md-table td{border:1px solid var(--border2);padding:6px 10px;text-align:left;vertical-align:top;}
+.msg-bubble .md-table th{background:var(--navy3);color:var(--white);font-weight:700;white-space:nowrap;}
+.msg-bubble .md-table tbody tr:nth-child(even){background:rgba(255,255,255,0.02);}
+.msg-bubble .md-table a{color:var(--blue);}
+.msg.user .msg-bubble code,.msg.user .msg-bubble .md-pre{background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.25);color:#fff;}
 .msg-time{font-size:10px;color:var(--text3);margin-top:4px;}
 .chat-suggestions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
 .chat-sugg{background:var(--navy2);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:12px;color:var(--text2);cursor:pointer;transition:all 0.12s;white-space:nowrap;}
@@ -6225,17 +6243,37 @@ async function toggleChatVoice(){
 async function processChatVoice(){
   var blob=new Blob(chatChunks,{type:"audio/webm"});
   var reader=new FileReader();
-  reader.onload=function(e){
-    chatAttachment={
-      type:"voice",
-      data:e.target.result.split(",")[1],
-      name:"note-vocale.webm",
-      mimeType:"audio/webm",
-      dataUrl:e.target.result
-    };
-    document.getElementById("chat-attachment-name").textContent="note-vocale.webm";
-    document.getElementById("chat-attachment").classList.add("show");
-    addMsg("user","&#x1F399;&#xFE0F; Note vocale enregistrée");
+  reader.onload=async function(e){
+    var base64=e.target.result.split(",")[1];
+    var input=document.getElementById("chat-input");
+    var lbl=document.getElementById("cmb-voice");
+    // Show transcribing state
+    if(lbl)lbl.textContent=plL("Transcription…","Transcribing…","Transcrevendo…");
+    toast(plL("Transcription de la note vocale…","Transcribing voice note…","Transcrevendo nota de voz…"));
+    try{
+      var langCode=lang===1?"en":lang===2?"pt":"fr";
+      var r=await fetch("/api/groq",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({action:"transcribe",audioBase64:base64,mimeType:"audio/webm",filename:"note-vocale.webm",model:"whisper-large-v3-turbo",language:langCode})
+      });
+      var d=await r.json();
+      var text=(d&&(d.text||(d.error&&"")))||"";
+      if(d&&d.error){throw new Error(d.error.message||"transcription failed");}
+      text=(text||"").trim();
+      if(!text){throw new Error("empty transcription");}
+      // Insert transcribed text into the input for review, then the user can send
+      if(input){input.value=input.value?(input.value.trim()+" "+text):text;autoResize(input);input.focus();}
+      if(lbl)lbl.textContent=STRINGS[lang].cmvVoice||"Note vocale";
+      toast(plL("✅ Note vocale transcrite","✅ Voice note transcribed","✅ Nota de voz transcrita"));
+    }catch(err){
+      console.error("transcribe error:",err);
+      if(lbl)lbl.textContent=STRINGS[lang].cmvVoice||"Note vocale";
+      // Fallback: keep the audio as an attachment so nothing is lost
+      chatAttachment={type:"voice",data:base64,name:"note-vocale.webm",mimeType:"audio/webm",dataUrl:e.target.result};
+      var an=document.getElementById("chat-attachment-name");if(an)an.textContent="note-vocale.webm";
+      var ac=document.getElementById("chat-attachment");if(ac)ac.classList.add("show");
+      toast(plL("Transcription indisponible — note vocale jointe","Transcription unavailable — voice note attached","Transcrição indisponível — nota de voz anexada"));
+    }
   };
   reader.readAsDataURL(blob);
 }
@@ -6243,17 +6281,45 @@ async function processChatVoice(){
 function autoResize(el){el.style.height="auto";el.style.height=Math.min(el.scrollHeight,120)+"px";}
 function chatKeydown(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();}}
 function sendSugg(txt){document.getElementById("chat-suggs").style.display="none";document.getElementById("chat-input").value=txt;sendChat();}
-function mdToHtml(t){
-  t=t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-  t=t.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>");
-  t=t.replace(/\*(.+?)\*/g,"<em>$1</em>");
-  t=t.replace(/^\d+\.\s/gm,function(m){return "<br>"+m;});
-  t=t.replace(/^[\*\-]\s/gm,"<br>• ");
-  t=t.replace(/\n/g,"<br>");
-  t=t.replace(/&lt;br&gt;/g,"<br>");
-  t=t.replace(/(<br>){3,}/g,"<br><br>");
-  return t;
+function mdInline(s){
+  // s is already HTML-escaped
+  s=s.replace(/`([^`]+)`/g,"<code>$1</code>");
+  s=s.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");
+  s=s.replace(/(^|[^*])\*([^*\n]+)\*/g,"$1<em>$2</em>");
+  s=s.replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g,"<a href=\"$2\" target=\"_blank\" rel=\"noopener\">$1</a>");
+  return s;
 }
+// Full markdown → HTML: GFM tables, lists, code blocks, headings, bold/italic
+function renderMarkdown(src){
+  if(src==null)return "";
+  var esc=String(src).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  var lines=esc.split(/\r?\n/),out=[],i=0;
+  var isSep=function(l){return /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?\s*$/.test(l);};
+  var splitRow=function(r){r=r.trim().replace(/^\|/,"").replace(/\|$/,"");return r.split("|").map(function(c){return c.trim();});};
+  var special=function(l,n){return /^\s*```/.test(l)||/^\s*#{1,4}\s+/.test(l)||/^\s*[-*•]\s+/.test(l)||/^\s*\d+\.\s+/.test(l)||/^\s*(-{3,}|\*{3,})\s*$/.test(l)||(l.indexOf("|")>=0&&n!=null&&isSep(n));};
+  while(i<lines.length){
+    var line=lines[i];
+    if(/^\s*```/.test(line)){var code=[];i++;while(i<lines.length&&!/^\s*```/.test(lines[i])){code.push(lines[i]);i++;}i++;out.push("<pre class='md-pre'><code>"+code.join("\n")+"</code></pre>");continue;}
+    if(line.indexOf("|")>=0&&i+1<lines.length&&isSep(lines[i+1])){
+      var header=line,rows=[];i+=2;
+      while(i<lines.length&&lines[i].indexOf("|")>=0&&lines[i].trim()!==""){rows.push(lines[i]);i++;}
+      var th=splitRow(header).map(function(c){return "<th>"+mdInline(c)+"</th>";}).join("");
+      var trs=rows.map(function(r){return "<tr>"+splitRow(r).map(function(c){return "<td>"+mdInline(c)+"</td>";}).join("")+"</tr>";}).join("");
+      out.push("<div class='md-tablewrap'><table class='md-table'><thead><tr>"+th+"</tr></thead><tbody>"+trs+"</tbody></table></div>");continue;
+    }
+    var hm=line.match(/^\s*(#{1,4})\s+(.*)$/);
+    if(hm){out.push("<div class='md-h md-h"+hm[1].length+"'>"+mdInline(hm[2])+"</div>");i++;continue;}
+    if(/^\s*(-{3,}|\*{3,})\s*$/.test(line)){out.push("<hr class='md-hr'>");i++;continue;}
+    if(/^\s*[-*•]\s+/.test(line)){var items=[];while(i<lines.length&&/^\s*[-*•]\s+/.test(lines[i])){items.push(lines[i].replace(/^\s*[-*•]\s+/,""));i++;}out.push("<ul class='md-ul'>"+items.map(function(t){return "<li>"+mdInline(t)+"</li>";}).join("")+"</ul>");continue;}
+    if(/^\s*\d+\.\s+/.test(line)){var oit=[];while(i<lines.length&&/^\s*\d+\.\s+/.test(lines[i])){oit.push(lines[i].replace(/^\s*\d+\.\s+/,""));i++;}out.push("<ol class='md-ol'>"+oit.map(function(t){return "<li>"+mdInline(t)+"</li>";}).join("")+"</ol>");continue;}
+    if(line.trim()===""){i++;continue;}
+    var para=[line];i++;
+    while(i<lines.length&&lines[i].trim()!==""&&!special(lines[i],lines[i+1])){para.push(lines[i]);i++;}
+    out.push("<p class='md-p'>"+para.map(mdInline).join("<br>")+"</p>");
+  }
+  return out.join("");
+}
+function mdToHtml(t){return renderMarkdown(t);}
 function addMsg(role,text){
   showChatEmpty(false);
   var wrap=document.getElementById("chat-messages");
@@ -6286,10 +6352,15 @@ async function sendChat(){
   var projList=projects.map(function(p){return p.name+(p.location?" ("+p.location+")":"");}).join(", ")||"Aucun projet";
   var allDocCtx=Object.keys(projectDocs).map(function(p){return getProjectDocContext(p);}).filter(Boolean).join("\n");
   var docCtxStr=allDocCtx?"\n\nINDEXED PROJECT DOCUMENTS (use for precise technical answers):\n"+allDocCtx:"";
+  var _style={
+    fr:"\\n\\nSTYLE: Tu es un copilote ingénieur de chantier. Réponds de façon naturelle et conversationnelle, comme un collègue expert — jamais en recopiant des lignes brutes de base de données. Synthétise les données pertinentes en phrases claires. Utilise le markdown quand c'est utile : **gras** pour les points clés, listes à puces pour les étapes, et un tableau markdown UNIQUEMENT si l'utilisateur demande explicitement de lister/comparer plusieurs incidents. Ne montre jamais les identifiants internes ni le format brut « | ID | ... | » sauf demande explicite. Va droit au but.",
+    en:"\\n\\nSTYLE: You are a site-engineer copilot. Answer naturally and conversationally, like an expert colleague — never by echoing raw database rows. Synthesize the relevant data into clear sentences. Use markdown when helpful: **bold** for key points, bullet lists for steps, and a markdown table ONLY when the user explicitly asks to list/compare several incidents. Never show internal IDs or the raw '| ID | ... |' format unless explicitly asked. Get to the point.",
+    pt:"\\n\\nESTILO: Você é um copiloto engenheiro de obra. Responda de forma natural e conversacional, como um colega especialista — nunca copiando linhas brutas do banco de dados. Sintetize os dados relevantes em frases claras. Use markdown quando útil: **negrito** para pontos-chave, listas com marcadores para etapas, e uma tabela markdown SOMENTE quando o usuário pedir explicitamente para listar/comparar vários incidentes. Nunca mostre IDs internos nem o formato bruto « | ID | ... | » a menos que seja explicitamente solicitado. Seja direto."
+  };
   var _sp={
-    fr:"Tu es Pillier IA, assistant expert en génie civil et gestion de chantiers pour "+me.co+". Tu connais les normes BRÉSIL (ABNT NBR 6118, NBR 5410, NBR 5626, NBR 9050, NBR 14432, NBR 8160, NR-18, NR-35, PBQP-H), FRANCE (DTU, Eurocodes, NF EN) et EUROPE (EN Eurocodes). Projets actifs: "+projList+". Base de connaissances ("+entries.length+" incidents):\\n"+kb+docCtxStr+"\\nRéponds en français sauf si l'utilisateur écrit dans une autre langue. Sois concis et pratique. Cite toujours les normes applicables.",
-    en:"You are Pillier IA, expert AI assistant in civil engineering and construction site management for "+me.co+". You know BRAZIL (ABNT NBR 6118, NBR 5410, NBR 5626, NBR 9050, NBR 14432, NBR 8160, NR-18, NR-35, PBQP-H), FRANCE (DTU, Eurocodes, NF EN) and EUROPE (EN Eurocodes) construction standards. Active projects: "+projList+". Knowledge base ("+entries.length+" incidents):\\n"+kb+docCtxStr+"\\nRespond in English unless the user writes in another language. Be concise and practical. Always cite applicable norms.",
-    pt:"Você é a Pillier IA, assistente especialista em engenharia civil e gestão de canteiros para "+me.co+". Você conhece as normas do BRASIL (ABNT NBR 6118, NBR 5410, NBR 5626, NBR 9050, NBR 14432, NBR 8160, NR-18, NR-35, PBQP-H), FRANÇA (DTU, Eurocodes, NF EN) e EUROPA (EN Eurocodes). Projetos ativos: "+projList+". Base de conhecimento ("+entries.length+" incidentes):\\n"+kb+docCtxStr+"\\nResponda em português, exceto se o usuário escrever em outro idioma. Seja conciso e prático. Sempre cite as normas aplicáveis."
+    fr:"Tu es Pillier IA, assistant expert en génie civil et gestion de chantiers pour "+me.co+". Tu connais les normes BRÉSIL (ABNT NBR 6118, NBR 5410, NBR 5626, NBR 9050, NBR 14432, NBR 8160, NR-18, NR-35, PBQP-H), FRANCE (DTU, Eurocodes, NF EN) et EUROPE (EN Eurocodes). Projets actifs: "+projList+". Base de connaissances ("+entries.length+" incidents):\\n"+kb+docCtxStr+"\\nRéponds en français sauf si l'utilisateur écrit dans une autre langue. Sois concis et pratique. Cite toujours les normes applicables."+_style.fr,
+    en:"You are Pillier IA, expert AI assistant in civil engineering and construction site management for "+me.co+". You know BRAZIL (ABNT NBR 6118, NBR 5410, NBR 5626, NBR 9050, NBR 14432, NBR 8160, NR-18, NR-35, PBQP-H), FRANCE (DTU, Eurocodes, NF EN) and EUROPE (EN Eurocodes) construction standards. Active projects: "+projList+". Knowledge base ("+entries.length+" incidents):\\n"+kb+docCtxStr+"\\nRespond in English unless the user writes in another language. Be concise and practical. Always cite applicable norms."+_style.en,
+    pt:"Você é a Pillier IA, assistente especialista em engenharia civil e gestão de canteiros para "+me.co+". Você conhece as normas do BRASIL (ABNT NBR 6118, NBR 5410, NBR 5626, NBR 9050, NBR 14432, NBR 8160, NR-18, NR-35, PBQP-H), FRANÇA (DTU, Eurocodes, NF EN) e EUROPA (EN Eurocodes). Projetos ativos: "+projList+". Base de conhecimento ("+entries.length+" incidentes):\\n"+kb+docCtxStr+"\\nResponda em português, exceto se o usuário escrever em outro idioma. Seja conciso e prático. Sempre cite as normas aplicáveis."+_style.pt
   };
   var sysPrompt=_sp[lang===1?"en":lang===2?"pt":"fr"];
   var messages=[{role:"system",content:sysPrompt}].concat(chatHistory.slice(-10));
@@ -6335,7 +6406,7 @@ async function sendChat(){
     var reply=data.choices[0].message.content;
     chatHistory.push({role:"assistant",content:reply});incrementPillierUsage("ai_messages");
     saveChat();
-    addMsg("bot",reply.replace(/\n/g,"<br>"));
+    addMsg("bot",reply);
   }catch(e){
     console.error("sendChat exception:",e);
     removeTyping();

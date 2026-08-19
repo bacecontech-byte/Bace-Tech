@@ -31,7 +31,30 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { model, messages, max_tokens } = req.body || {};
+    const body = req.body || {};
+
+    // --- Speech-to-text (Whisper) branch ---
+    if (body.action === 'transcribe') {
+      const audioBase64 = body.audioBase64;
+      if (!audioBase64) {
+        return res.status(400).json({ error: { message: 'Missing audioBase64 for transcription.' } });
+      }
+      const buf = Buffer.from(audioBase64, 'base64');
+      const form = new FormData();
+      form.append('file', new Blob([buf], { type: body.mimeType || 'audio/webm' }), body.filename || 'audio.webm');
+      form.append('model', body.model || 'whisper-large-v3-turbo');
+      form.append('response_format', 'json');
+      if (body.language) form.append('language', body.language);
+      const wr = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${GROQ_KEY}` },
+        body: form
+      });
+      const wd = await wr.json();
+      return res.status(wr.status).json(wd);
+    }
+
+    const { model, messages, max_tokens } = body;
 
     if (!model || !messages) {
       return res.status(400).json({ error: { message: 'Missing model or messages in request body.' } });
