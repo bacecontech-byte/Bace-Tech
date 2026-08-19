@@ -54,11 +54,18 @@ export default async function handler(req, res) {
       return res.status(wr.status).json(wd);
     }
 
-    const { model, messages, max_tokens } = body;
+    const { model, messages, max_tokens, reasoning_effort, temperature } = body;
 
     if (!model || !messages) {
       return res.status(400).json({ error: { message: 'Missing model or messages in request body.' } });
     }
+
+    const payload = { model, messages, max_tokens: max_tokens || 1024 };
+    // Reasoning models (e.g. openai/gpt-oss-120b) spend tokens on hidden
+    // reasoning first; letting callers request low effort leaves room for the
+    // actual answer instead of an empty content field.
+    if (reasoning_effort) payload.reasoning_effort = reasoning_effort;
+    if (typeof temperature === 'number') payload.temperature = temperature;
 
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -66,7 +73,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${GROQ_KEY}`
       },
-      body: JSON.stringify({ model, messages, max_tokens: max_tokens || 1024 })
+      body: JSON.stringify(payload)
     });
 
     const data = await groqRes.json();

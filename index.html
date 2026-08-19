@@ -6930,13 +6930,17 @@ async function processDoc(file,proj){
 
       var finalSummary="";
       try{
-        var combineRes=await fetch("/api/groq",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"openai/gpt-oss-120b",messages:[{role:"user",content:combinePrompt}],max_tokens:4096})});
+        var combineRes=await fetch("/api/groq",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"openai/gpt-oss-120b",messages:[{role:"user",content:combinePrompt}],max_tokens:8000,reasoning_effort:"low",temperature:0.2})});
         var combineData=await combineRes.json();
-        finalSummary=combineData.choices&&combineData.choices[0]&&combineData.choices[0].message.content?combineData.choices[0].message.content:"";
+        finalSummary=combineData.choices&&combineData.choices[0]&&combineData.choices[0].message&&combineData.choices[0].message.content?combineData.choices[0].message.content:"";
+        // gpt-oss can wrap reasoning in <think>…</think> — strip it
+        finalSummary=finalSummary.replace(/<think>[\s\S]*?<\/think>/gi,"").trim();
       }catch(combineErr){
         console.error("Combine error:",combineErr);
-        finalSummary=allSummaries.join("\n\n");
       }
+      // If the synthesis came back empty (e.g. reasoning ate the token budget),
+      // fall back to the raw per-page analyses so the document is never blank.
+      if(!finalSummary||finalSummary.length<20){finalSummary=allSummaries.join("\n\n");}
 
       // Remove progress bar
       var prog=document.getElementById("doc-progress");if(prog)prog.remove();
