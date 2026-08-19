@@ -40,15 +40,23 @@ export default async function handler(req, res) {
 
   const { action } = req.query;
 
+  // Base URL to build OAuth redirect URIs from. Must match what is registered
+  // in each provider's console. Set CLOUD_REDIRECT_BASE in Vercel (e.g.
+  // https://pillier.com.br); otherwise we derive it from the incoming request.
+  const appBase = (process.env.CLOUD_REDIRECT_BASE
+    || (req.headers.origin)
+    || ('https://' + (req.headers.host || 'pillier.com.br'))).replace(/\/$/, '');
+
   try {
     // ── GET AUTH URL (start OAuth flow) ──
     if (action === "auth-url") {
       const { provider, company_id } = req.body || JSON.parse(await getBody(req));
       const p = PROVIDERS[provider];
       if (!p) return res.status(400).json({ error: "Unknown provider" });
+      if (!p.clientId) return res.status(400).json({ error: provider + " not configured (missing client ID in env)" });
 
       const state = Buffer.from(JSON.stringify({ provider, company_id })).toString("base64");
-      const redirectUri = `https://app.bace-tech.fr/api/cloud-sync?action=callback`;
+      const redirectUri = `${appBase}/api/cloud-sync?action=callback`;
       const params = new URLSearchParams({
         client_id: p.clientId,
         redirect_uri: redirectUri,
@@ -67,7 +75,7 @@ export default async function handler(req, res) {
       const { code, state } = req.query;
       const { provider, company_id } = JSON.parse(Buffer.from(state, "base64").toString());
       const p = PROVIDERS[provider];
-      const redirectUri = `https://app.bace-tech.fr/api/cloud-sync?action=callback`;
+      const redirectUri = `${appBase}/api/cloud-sync?action=callback`;
 
       // Exchange code for tokens
       const tokenRes = await fetch(p.tokenUrl, {
@@ -87,7 +95,7 @@ export default async function handler(req, res) {
       await saveTokens(company_id, provider, tokens);
 
       // Redirect back to app settings
-      return res.redirect(302, "https://app.bace-tech.fr/#cloud-connected=" + provider);
+      return res.redirect(302, appBase + "/#cloud-connected=" + provider);
     }
 
     // ── SAVE CREDENTIALS (S3, GCP, WebDAV — no OAuth) ──
@@ -106,7 +114,7 @@ export default async function handler(req, res) {
 
     // ── SYNC FILE (upload incident to cloud) ──
     if (action === "sync") {
-      const { company_id, provider, project, category, filename, content: fileContent, contentType, photoBase64 } = req.body || JSON.parse(await getBody(req));
+      const { company_id, provider, project, category, section, filename, content: fileContent, contentType, photoBase64 } = req.body || JSON.parse(await getBody(req));
 
       const conn = await getConnection(company_id, provider);
       if (!conn) return res.status(400).json({ error: "Not connected" });
@@ -119,8 +127,12 @@ export default async function handler(req, res) {
         await saveTokens(company_id, provider, tokens);
       }
 
-      // Build folder path
-      const folderPath = sanitize(project) + "/" + sanitize(category);
+      // Build the project folder structure on the company cloud:
+      //   Pillier / <Project> / <Section>
+      // where Section is one of the standard folders (Structure, Incidents,
+      // Reports, Media, Documents). This lands files directly in the right
+      // folder for that specific project.
+      const folderPath = "Pillier/" + sanitize(project) + "/" + sectionFor(category, section);
 
       // Upload based on provider
       let result;
@@ -141,6 +153,53 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
+    // ── APP INTEGRATIONS (Customization) ─────────────────────────────────
+    // Stored in the same cloud_connections table under a provider key
+    // prefixed with "app:" (e.g. app:slack). Config is a webhook URL or API key.
+
+    // Save/update an app integration
+    if (action === "save-integration") {
+      const { company_id, app, config } = req.body || JSON.parse(await getBody(req));
+      if (!company_id || !app) return res.status(400).json({ error: "Missing company_id or app" });
+      await saveTokens(company_id, "app:" + app, { config: config || {}, type: "integration" });
+      return res.status(200).json({ ok: true });
+    }
+
+    // List connected app integrations
+    if (action === "list-integrations") {
+      const { company_id } = req.body || JSON.parse(await getBody(req));
+      const all = await getConnections(company_id);
+      const apps = (all || [])
+        .filter((c) => c.provider && c.provider.indexOf("app:") === 0)
+        .map((c) => ({ app: c.provider.slice(4), updated_at: c.updated_at }));
+      return res.status(200).json({ apps });
+    }
+
+    // Remove an app integration
+    if (action === "delete-integration") {
+      const { company_id, app } = req.body || JSON.parse(await getBody(req));
+      await deleteConnection(company_id, "app:" + app);
+      return res.status(200).json({ ok: true });
+    }
+
+    // Push a message to a connected app's webhook (Slack / Teams / Zapier / generic)
+    if (action === "notify") {
+      const { company_id, app, text, payload } = req.body || JSON.parse(await getBody(req));
+      const conn = await getConnection(company_id, "app:" + app);
+      const url = conn && conn.tokens && conn.tokens.config && conn.tokens.config.webhookUrl;
+      if (!url) return res.status(400).json({ error: "No webhook configured for " + app });
+      let body;
+      if (app === "slack") body = { text: text || "" };
+      else if (app === "teams") body = { text: text || "" };
+      else body = payload || { text: text || "" };
+      try {
+        const wr = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        return res.status(200).json({ ok: wr.ok });
+      } catch (e) {
+        return res.status(200).json({ ok: false, error: e.message });
+      }
+    }
+
     return res.status(400).json({ error: "Unknown action" });
   } catch (err) {
     console.error("cloud-sync error:", err);
@@ -151,6 +210,24 @@ export default async function handler(req, res) {
 // ── Helper functions ─────────────────────────────────────────────────────
 
 function sanitize(s) { return (s || "general").replace(/[^a-zA-Z0-9\-_ ]/g, "").substring(0, 50); }
+
+// Standard project folder structure. Maps an incident category (any language)
+// or an explicit section to one of the fixed top-level folders.
+const CLOUD_SECTIONS = {
+  structure: "Structure", estrutura: "Structure", structurel: "Structure",
+  incident: "Incidents", incidente: "Incidents", incidents: "Incidents",
+  report: "Reports", reports: "Reports", relatorio: "Reports", rapport: "Reports",
+  media: "Media", midia: "Media", photo: "Media", photos: "Media", foto: "Media",
+  document: "Documents", documents: "Documents", documento: "Documents", documentos: "Documents",
+};
+function sectionFor(category, explicit) {
+  if (explicit) {
+    const e = ("" + explicit).toLowerCase();
+    return CLOUD_SECTIONS[e] || sanitize(explicit);
+  }
+  const key = ("" + (category || "")).toLowerCase();
+  return CLOUD_SECTIONS[key] || "Incidents";
+}
 
 function getBody(req) {
   return new Promise((resolve) => {

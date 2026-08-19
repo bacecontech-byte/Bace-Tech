@@ -7587,6 +7587,86 @@ async function connectCloud(provider){
   }
 }
 
+// ── Cloud storage: reflect connection status on the tiles ────────────────
+async function loadCloudStatus(){
+  var el=document.getElementById("cloud-status");
+  if(!dbCoId){if(el)el.innerHTML="";return;}
+  var connected={};
+  try{
+    var r=await fetch("/api/cloud-sync?action=status",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:dbCoId})});
+    var d=await r.json();(d.connections||[]).forEach(function(c){if(c.provider&&c.provider.indexOf("app:")!==0)connected[c.provider]=true;});
+  }catch(e){}
+  var map={google:"cloud-google2",onedrive:"cloud-onedrive2",dropbox:"cloud-dropbox2",s3:"cloud-s32",gcp:"cloud-gcp2",webdav:"cloud-webdav2"};
+  Object.keys(map).forEach(function(p){var b=document.getElementById(map[p]);if(b)b.style.borderColor=connected[p]?"rgba(74,222,128,0.45)":"rgba(255,255,255,0.06)";});
+  if(el){var n=Object.keys(connected).length;el.innerHTML=n?("<div style='font-size:12px;color:#4ade80;display:flex;align-items:center;gap:6px;'><i class='ti ti-circle-check'></i> "+n+" "+_t3("storage connected","stockage(s) connecté(s)","armazenamento(s) conectado(s)")+"</div>"):"";}
+}
+
+// ── Customization: other company apps (webhook / API-key integrations) ───
+var PILLIER_APPS=[
+  {id:"slack",name:"Slack",icon:"ti-brand-slack",color:"#4A154B",kind:"webhook"},
+  {id:"teams",name:"Microsoft Teams",icon:"ti-brand-teams",color:"#6264A7",kind:"webhook"},
+  {id:"whatsapp",name:"WhatsApp Business",icon:"ti-brand-whatsapp",color:"#25D366",kind:"apikey"},
+  {id:"gcal",name:"Google Calendar",icon:"ti-calendar-event",color:"#4285F4",kind:"apikey"},
+  {id:"procore",name:"Procore",icon:"ti-building",color:"#F47E42",kind:"apikey"},
+  {id:"autodesk",name:"Autodesk Construction",icon:"ti-cube",color:"#0696D7",kind:"apikey"},
+  {id:"jira",name:"Jira",icon:"ti-ticket",color:"#0052CC",kind:"apikey"},
+  {id:"zapier",name:"Zapier / Webhook",icon:"ti-webhook",color:"#FF4A00",kind:"webhook"}
+];
+var _connectedApps={};
+async function loadAppIntegrations(){
+  if(!document.getElementById("apps-grid"))return;
+  _connectedApps={};
+  if(dbCoId){try{
+    var r=await fetch("/api/cloud-sync?action=list-integrations",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:dbCoId})});
+    var d=await r.json();(d.apps||[]).forEach(function(a){_connectedApps[a.app]=true;});
+  }catch(e){}}
+  renderAppsGrid();
+}
+function renderAppsGrid(){
+  var grid=document.getElementById("apps-grid");if(!grid)return;
+  grid.innerHTML=PILLIER_APPS.map(function(a){
+    var on=!!_connectedApps[a.id];
+    var right=on?("<span style='margin-left:auto;font-size:9px;font-weight:700;color:#4ade80;background:rgba(74,222,128,0.12);border-radius:20px;padding:2px 7px;'>"+_t3("Connected","Connecté","Conectado")+"</span>"):"<i class='ti ti-plus' style='margin-left:auto;font-size:15px;color:var(--text3);'></i>";
+    return "<button onclick=\"appTileClick('"+a.id+"')\" class='cloud-btn' style='display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid "+(on?"rgba(74,222,128,0.35)":"rgba(255,255,255,0.06)")+";color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;text-align:left;'><i class='ti "+a.icon+"' style='font-size:18px;color:"+a.color+";flex-shrink:0;'></i> "+a.name+right+"</button>";
+  }).join("");
+}
+function appTileClick(id){return _connectedApps[id]?disconnectApp(id):connectApp(id);}
+async function connectApp(id){
+  if(!dbCoId){toast(_t3("Log in first","Connectez-vous d'abord","Faça login primeiro"));return;}
+  var app=PILLIER_APPS.filter(function(a){return a.id===id;})[0];if(!app)return;
+  var config={};
+  if(app.kind==="webhook"){
+    var url=window.prompt(_t3("Paste the incoming webhook URL for "+app.name+":","Collez l'URL du webhook entrant pour "+app.name+" :","Cole a URL do webhook de entrada do "+app.name+":"));
+    if(!url)return;url=(""+url).trim();
+    if(!/^https:\/\//.test(url)){toast(_t3("Enter a valid https URL.","URL https invalide.","Insira uma URL https válida."));return;}
+    config.webhookUrl=url;
+  } else {
+    var key=window.prompt(_t3("Paste your "+app.name+" API key / token:","Collez votre clé API "+app.name+" :","Cole sua chave de API do "+app.name+":"));
+    if(!key)return;config.apiKey=(""+key).trim();
+  }
+  try{
+    var r=await fetch("/api/cloud-sync?action=save-integration",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:dbCoId,app:id,config:config})});
+    var d=await r.json();
+    if(d&&d.ok){_connectedApps[id]=true;renderAppsGrid();toast(app.name+" "+_t3("connected","connecté","conectado"));}
+    else toast(_t3("Could not connect","Échec de la connexion","Não foi possível conectar"));
+  }catch(e){toast("Error: "+e.message);}
+}
+async function disconnectApp(id){
+  if(!dbCoId)return;
+  var app=PILLIER_APPS.filter(function(a){return a.id===id;})[0];
+  if(!window.confirm(_t3("Disconnect "+(app?app.name:"this app")+"?","Déconnecter "+(app?app.name:"")+" ?","Desconectar "+(app?app.name:"")+"?")))return;
+  try{await fetch("/api/cloud-sync?action=delete-integration",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:dbCoId,app:id})});}catch(e){}
+  delete _connectedApps[id];renderAppsGrid();
+}
+// Post a message to every connected webhook app (Slack/Teams/Zapier).
+async function notifyApps(text){
+  if(!dbCoId||!text)return;
+  ["slack","teams","zapier"].forEach(function(id){
+    if(!_connectedApps[id])return;
+    try{fetch("/api/cloud-sync?action=notify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:dbCoId,app:id,text:text})});}catch(e){}
+  });
+}
+
 function showCredentialsForm(provider){
   var labels={
     s3:{title:"AWS S3",fields:[{key:"bucket",label:"Bucket"},{key:"region",label:"Region"},{key:"accessKeyId",label:"Access Key ID"},{key:"secretAccessKey",label:"Secret Access Key"}]},
@@ -7721,10 +7801,12 @@ window.addEventListener("hashchange",function(){
 var _settingsSection="general";
 function setSettingsSection(key){
   _settingsSection=key;
-  ["general","account","privacy","billing","usage","custom"].forEach(function(k){
+  ["general","account","privacy","billing","usage","custom","apps"].forEach(function(k){
     var p=document.getElementById("setp-"+k);if(p)p.style.display=(k===key)?"block":"none";
     var n=document.getElementById("setnav-"+k);if(n)n.classList.toggle("active",k===key);
   });
+  if(key==="custom"){try{loadCloudStatus();}catch(e){}}
+  if(key==="apps"){try{loadAppIntegrations();}catch(e){}}
 }
 function _t3(en,fr,pt){return lang===1?en:lang===0?fr:pt;}
 function openSettingsModal(){
@@ -7738,7 +7820,8 @@ function openSettingsModal(){
   lbl("setnav-privacy-l",_t3("Privacy","Confidentialité","Privacidade"));
   lbl("setnav-billing-l",_t3("Billing","Facturation","Assinatura"));
   lbl("setnav-usage-l",_t3("Usage","Usage","Uso"));
-  lbl("setnav-custom-l",_t3("Customization","Personnalisation","Personalização"));
+  lbl("setnav-custom-l",_t3("Cloud Storage Integrations","Stockage cloud","Armazenamento em nuvem"));
+  lbl("setnav-apps-l",_t3("Customization","Personnalisation","Personalização"));
   // Panel headers + field labels
   lbl("setp-general-h",_t3("Profile","Profil","Perfil"));
   lbl("set-name-label",_t3("Name","Nom","Nome"));
@@ -7757,8 +7840,11 @@ function openSettingsModal(){
   lbl("set-payment-label",_t3("Payment","Paiement","Pagamento"));
   lbl("set-payment-none",_t3("No payment method on file.","Aucun moyen de paiement enregistré.","Nenhum método de pagamento cadastrado."));
   lbl("setp-usage-h",_t3("Usage","Usage","Uso"));
-  lbl("settings-cloud-label2",_t3("Cloud storage","Stockage cloud","Armazenamento em nuvem"));
-  lbl("cloud-desc2",_t3("Connect your company storage to auto-sync incidents.","Connectez le stockage de votre entreprise pour synchroniser les incidents.","Conecte o armazenamento da sua empresa para sincronizar automaticamente os incidentes."));
+  lbl("settings-cloud-label2",_t3("Cloud Storage Integrations","Stockage cloud","Armazenamento em nuvem"));
+  lbl("cloud-desc2",_t3("Connect your company storage. Incidents sync straight into each project's folder structure.","Connectez le stockage de votre entreprise. Les incidents se synchronisent directement dans l'arborescence de chaque projet.","Conecte o armazenamento da sua empresa. Os incidentes vão direto para a estrutura de pastas de cada projeto."));
+  lbl("setp-apps-h",_t3("Customization","Personnalisation","Personalização"));
+  lbl("apps-desc",_t3("Connect the other apps your company uses so Pillier fits into your workflow.","Connectez les autres apps de votre entreprise pour intégrer Pillier à votre flux de travail.","Conecte os outros apps da sua empresa para integrar o Pillier ao seu fluxo de trabalho."));
+  lbl("cloud-structure-legend",_t3("Folder structure created per project:","Arborescence créée par projet :","Estrutura de pastas criada por projeto:"));
   setSettingsSection(_settingsSection||"general");
   try{renderSettingsPlan();}catch(e){}
 }
@@ -7907,7 +7993,9 @@ async function syncAllToCloud(){
     body:JSON.stringify({company_id:dbCoId})
   });
   var d=await r.json();
-  if(!d.connections||!d.connections.length){toast("Nenhum armazenamento conectado");return;}
+  // Only real storage providers — ignore app:* integrations stored in the same table.
+  d.connections=(d.connections||[]).filter(function(c){return c.provider&&c.provider.indexOf("app:")!==0;});
+  if(!d.connections.length){toast("Nenhum armazenamento conectado");return;}
 
   var S=STRINGS[lang];
   toast("⏳ "+(S.syncingAll||"Sincronizando tudo..."));
@@ -7938,6 +8026,7 @@ async function syncAllToCloud(){
             provider:d.connections[c].provider,
             project:e.project||"General",
             category:e.cat||"General",
+            section:"Incidents",
             filename:filename,
             content:report,
             contentType:"text/plain",
@@ -7983,6 +8072,7 @@ async function syncAllToCloud(){
             provider:d.connections[c2].provider,
             project:sanitizeProject(doc.project)||me.co||"General",
             category:"Documentos",
+            section:"Documents",
             filename:docFilename+".txt",
             content:docContent,
             contentType:"text/plain"
@@ -8219,7 +8309,8 @@ function sanitizeProject(proj){
       <button class="set-navbtn" id="setnav-privacy" onclick="setSettingsSection('privacy')"><i class="ti ti-lock"></i><span id="setnav-privacy-l">Privacy</span></button>
       <button class="set-navbtn" id="setnav-billing" onclick="setSettingsSection('billing')"><i class="ti ti-credit-card"></i><span id="setnav-billing-l">Billing</span></button>
       <button class="set-navbtn" id="setnav-usage" onclick="setSettingsSection('usage')"><i class="ti ti-chart-bar"></i><span id="setnav-usage-l">Usage</span></button>
-      <button class="set-navbtn" id="setnav-custom" onclick="setSettingsSection('custom')"><i class="ti ti-adjustments"></i><span id="setnav-custom-l">Customization</span></button>
+      <button class="set-navbtn" id="setnav-custom" onclick="setSettingsSection('custom')"><i class="ti ti-cloud-cog"></i><span id="setnav-custom-l">Cloud Storage Integrations</span></button>
+      <button class="set-navbtn" id="setnav-apps" onclick="setSettingsSection('apps')"><i class="ti ti-adjustments"></i><span id="setnav-apps-l">Customization</span></button>
     </aside>
     <div style="flex:1;min-width:0;position:relative;overflow-y:auto;padding:26px 28px;">
       <button onclick="closeSettingsModal()" style="position:absolute;top:16px;right:18px;background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;z-index:2;"><i class="ti ti-x"></i></button>
@@ -8270,9 +8361,25 @@ function sanitizeProject(proj){
           <button onclick="connectCloud('gcp')" class="cloud-btn" id="cloud-gcp2" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;"><i class="ti ti-cloud" style="font-size:18px;color:#4285f4;"></i> GCP Storage</button>
           <button onclick="connectCloud('webdav')" class="cloud-btn" id="cloud-webdav2" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;"><i class="ti ti-server" style="font-size:18px;color:#8b5cf6;"></i> On-premise</button>
         </div>
+        <div id="cloud-status" style="margin-top:12px;"></div>
+        <div style="margin-top:14px;padding:12px 14px;background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.14);border-radius:10px;">
+          <div id="cloud-structure-legend" style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Folder structure created per project:</div>
+          <div style="font-size:12px;color:var(--text);line-height:1.9;font-family:var(--font-b);">
+            <div>📁 Pillier</div>
+            <div style="padding-left:14px;">└ 📁 &lt;Project&gt;</div>
+            <div style="padding-left:30px;color:var(--text2);">├ 📁 Structure &nbsp; ├ 📁 Incidents &nbsp; ├ 📁 Reports</div>
+            <div style="padding-left:30px;color:var(--text2);">├ 📁 Media &nbsp;&nbsp;&nbsp;&nbsp; └ 📁 Documents</div>
+          </div>
+        </div>
         <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
           <button onclick="syncAllToCloud();closeSettingsModal()" style="width:100%;padding:10px;background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.2);border-radius:8px;color:#60a5fa;font-size:12px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="ti ti-refresh" style="font-size:16px;"></i> <span id="sync-all-label">Sincronizar tudo agora</span></button>
         </div>
+      </div>
+      <!-- CUSTOMIZATION (app integrations) -->
+      <div class="set-panel" id="setp-apps" style="display:none">
+        <div class="set-h" id="setp-apps-h">Customization</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:14px" id="apps-desc">Connect the other apps your company uses so Pillier fits into your workflow.</div>
+        <div id="apps-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
       </div>
     </div>
   </div>
