@@ -6242,6 +6242,55 @@ document.addEventListener("click",function(e){var m=document.getElementById("cha
 function renderChatUsagePill(){var el=document.getElementById("chat-usage-pill");if(!el)return;try{var plan=(typeof PILLIER_PLANS!=="undefined"&&PILLIER_PLANS[_pUsage.plan])||(typeof PILLIER_PLANS!=="undefined"&&PILLIER_PLANS.free)||{label:"Free",ai_messages:30};var used=(_pUsage&&_pUsage.ai_messages)||0;var lim=plan.ai_messages;el.textContent=(plan.label||"Free")+" · "+used+"/"+(lim>=999999?"∞":lim);}catch(e){el.textContent="Free";}}
 /* ───── Seamless voice input: live Web Speech + silence auto-send, Whisper fallback ───── */
 var chatRec=null,voiceListening=false,voiceCancelled=false,voiceMode=null,voiceFinal="",voiceBase="",voiceSilenceTimer=null;
+// Acoustic voice-activity detection (keeps the session alive through pauses/fillers)
+var vadStream=null,vadCtx=null,vadAnalyser=null,vadData=null,vadRAF=null,vadLastVoiceTs=0,vadHadVoice=false,vadActive=false;
+var VAD_SILENCE_MS=1500,VAD_THRESHOLD=0.012;
+// Strip excessive filler/hesitation tics before sending to the AI
+function cleanTranscript(t){
+  if(!t)return t;
+  t=String(t).replace(/\s+/g," ").trim();
+  // Pure interjections (never real words) → strip anywhere. Token-based to stay safe with accents.
+  var interj=/^(?:[eé]{2,}|a+h+|o+h+|u+h+|h+u?m+|heu+|euh+|erm+|hein)$/i;
+  var strip=/^[.,…!?;:'"«»()\-]+|[.,…!?;:'"«»()\-]+$/g;
+  t=t.split(" ").filter(function(w){var bare=w.replace(strip,"");return bare===""||!interj.test(bare);}).join(" ");
+  // Word-fillers (can be real words) → strip only when trailing (hesitation), possibly repeated
+  var trail=/(?:\s|^)(?:então|entao|tipo|ben|bah|enfin|donc|eh|then)[.,…\s]*$/i;
+  var prev;do{prev=t;t=t.replace(trail,"");}while(t!==prev&&t.length);
+  t=t.replace(/\s+([.,!?;:])/g,"$1").replace(/\s+/g," ").replace(/^[…,.\s]+/,"").replace(/[…\s]+$/,"").trim();
+  return t;
+}
+function stopVAD(){
+  vadActive=false;
+  if(vadRAF){cancelAnimationFrame(vadRAF);vadRAF=null;}
+  try{if(vadStream)vadStream.getTracks().forEach(function(t){t.stop();});}catch(_e){}
+  try{if(vadCtx&&vadCtx.state!=="closed")vadCtx.close();}catch(_e){}
+  vadStream=null;vadCtx=null;vadAnalyser=null;vadData=null;
+}
+function vadTick(){
+  if(!vadActive||!voiceListening||!vadAnalyser){return;}
+  vadAnalyser.getByteTimeDomainData(vadData);
+  var sum=0;for(var i=0;i<vadData.length;i++){var v=(vadData[i]-128)/128;sum+=v*v;}
+  var rms=Math.sqrt(sum/vadData.length);
+  if(rms>VAD_THRESHOLD){vadLastVoiceTs=Date.now();vadHadVoice=true;}
+  else if(vadHadVoice&&(Date.now()-vadLastVoiceTs)>VAD_SILENCE_MS){
+    // Definitive acoustic silence — only submit if a sentence has actually been captured
+    var readyToSend=(voiceMode==="speech")?(voiceFinal.trim().length>0):(chatChunks&&chatChunks.length>0);
+    if(readyToSend){stopVoiceInput(true);return;}
+  }
+  vadRAF=requestAnimationFrame(vadTick);
+}
+function startVAD(){
+  if(!(window.AudioContext||window.webkitAudioContext)||!navigator.mediaDevices){return;}
+  navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}}).then(function(s){
+    if(!voiceListening){s.getTracks().forEach(function(t){t.stop();});return;}
+    vadStream=s;vadCtx=new (window.AudioContext||window.webkitAudioContext)();
+    var src=vadCtx.createMediaStreamSource(s);
+    vadAnalyser=vadCtx.createAnalyser();vadAnalyser.fftSize=1024;vadAnalyser.smoothingTimeConstant=0.6;
+    src.connect(vadAnalyser);vadData=new Uint8Array(vadAnalyser.fftSize);
+    vadLastVoiceTs=Date.now();vadHadVoice=false;vadActive=true;
+    vadTick();
+  }).catch(function(e){console.warn("VAD unavailable, using timer fallback:",e&&e.name);});
+}
 function speechRecCtor(){return window.SpeechRecognition||window.webkitSpeechRecognition||null;}
 function voiceLangHint(){return navigator.language||(lang===1?"en-US":lang===2?"pt-BR":"fr-FR");}
 function ensureVoiceUI(){
@@ -6261,8 +6310,11 @@ function showVoiceListening(on){
   var btn=document.getElementById("cmb-voice-btn");if(btn)btn.classList.toggle("recording",!!on);
 }
 function resetSilenceTimer(){
+  // Backup only: when acoustic VAD is running it decides when to submit (so pauses/fillers
+  // don't cut you off). Without VAD, fall back to a generous 8s no-activity cap.
+  if(vadActive)return;
   if(voiceSilenceTimer)clearTimeout(voiceSilenceTimer);
-  voiceSilenceTimer=setTimeout(function(){if(voiceListening)stopVoiceInput(true);},1400);
+  voiceSilenceTimer=setTimeout(function(){if(voiceListening&&voiceFinal.trim())stopVoiceInput(true);},8000);
 }
 // Entry point (mic button)
 function toggleChatVoice(){startVoiceInput();}
@@ -6296,6 +6348,7 @@ function startVoiceInput(){
       };
       chatRec.onend=function(){finishVoice();};
       chatRec.start();
+      startVAD(); // acoustic silence detection tolerant of pauses/fillers
       showVoiceListening(true);resetSilenceTimer();input.focus();
     }catch(e){console.error("SpeechRecognition start failed:",e);voiceListening=false;startVoiceFallback();}
   }else{
@@ -6305,14 +6358,22 @@ function startVoiceInput(){
 function stopVoiceInput(autoSend){
   voiceCancelled=!autoSend;
   if(voiceSilenceTimer){clearTimeout(voiceSilenceTimer);voiceSilenceTimer=null;}
+  stopVAD();
   if(voiceMode==="speech"&&chatRec){try{chatRec.stop();}catch(_e){}} // onend → finishVoice
   else if(voiceMode==="record"&&chatMR){try{chatMR.stop();}catch(_e){}}
 }
 function finishVoice(){
   var wasListening=voiceListening;
-  voiceListening=false;showVoiceListening(false);chatRec=null;voiceMode=null;
+  voiceListening=false;showVoiceListening(false);chatRec=null;
+  stopVAD();
   if(voiceSilenceTimer){clearTimeout(voiceSilenceTimer);voiceSilenceTimer=null;}
   var input=document.getElementById("chat-input");
+  if(voiceMode==="speech"&&input){ // normalize the recognized text (drop trailing "euh…", "então…", etc.)
+    var cleaned=cleanTranscript(voiceFinal);
+    input.value=(voiceBase+cleaned).replace(/\s+/g," ").trim();
+    autoResize(input);
+  }
+  voiceMode=null;
   if(wasListening&&!voiceCancelled&&input&&input.value.trim()){sendChat();}
 }
 // Fallback: MediaRecorder → Groq Whisper (auto language detection) → auto-send
@@ -6322,8 +6383,9 @@ function startVoiceFallback(){
     chatMR.ondataavailable=function(e){chatChunks.push(e.data);};
     chatMR.onstop=function(){stream.getTracks().forEach(function(t){t.stop();});processChatVoiceAutoSend();};
     chatMR.start();chatVoiceRec=true;showVoiceListening(true);
-    var vt=document.querySelector("#voice-listening .vl-txt");if(vt)vt.textContent=plL("Enregistrement… touchez ■ pour finir","Recording… tap ■ to finish","Gravando… toque ■ para finalizar");
-    // Record mode has no live interim results, so the user taps the mic / ■ to finish (then Whisper auto-detects + auto-sends)
+    startVAD(); // acoustic silence auto-stops recording after you finish speaking (tolerant of pauses/fillers)
+    var vt=document.querySelector("#voice-listening .vl-txt");if(vt)vt.textContent=plL("Parlez… ça s’envoie après un silence","Speak… it sends after a pause","Fale… envia após uma pausa");
+    // VAD auto-stops on acoustic silence; the user can also tap the mic / ■ to finish → Whisper auto-detects + auto-sends
   }).catch(function(e){
     console.error("Chat mic error:",e);voiceListening=false;showVoiceListening(false);
     toast((STRINGS[lang].toastMicError||"Microphone non disponible")+": "+(e.name||e.message||"unknown"));
@@ -6343,7 +6405,7 @@ async function processChatVoiceAutoSend(){
         body:JSON.stringify({action:"transcribe",audioBase64:base64,mimeType:"audio/webm",filename:"note-vocale.webm",model:"whisper-large-v3"})}); // no language → auto-detect
       var d=await r.json();
       if(d&&d.error)throw new Error(d.error.message||"transcription failed");
-      var text=((d&&d.text)||"").trim();
+      var text=cleanTranscript(((d&&d.text)||"").trim());
       if(!text)throw new Error("empty transcription");
       if(input){input.value=input.value?(input.value.replace(/\s+$/,"")+" "+text):text;autoResize(input);}
       sendChat(); // auto-submit
