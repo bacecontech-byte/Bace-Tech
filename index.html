@@ -6243,7 +6243,7 @@ function renderChatUsagePill(){var el=document.getElementById("chat-usage-pill")
 /* ───── Seamless voice input: live Web Speech + silence auto-send, Whisper fallback ───── */
 var chatRec=null,voiceListening=false,voiceCancelled=false,voiceMode=null,voiceFinal="",voiceBase="",voiceSilenceTimer=null;
 // Acoustic voice-activity detection (keeps the session alive through pauses/fillers)
-var vadStream=null,vadCtx=null,vadAnalyser=null,vadData=null,vadRAF=null,vadLastVoiceTs=0,vadHadVoice=false,vadActive=false;
+var vadStream=null,vadCtx=null,vadAnalyser=null,vadData=null,vadRAF=null,vadLastVoiceTs=0,vadHadVoice=false,vadActive=false,voiceMaxTimer=null;
 var VAD_SILENCE_MS=1500,VAD_THRESHOLD=0.012;
 // Strip excessive filler/hesitation tics before sending to the AI
 function cleanTranscript(t){
@@ -6303,9 +6303,17 @@ function speechRecCtor(){return window.SpeechRecognition||window.webkitSpeechRec
 // iOS standalone PWAs / in-app webviews expose SpeechRecognition but it silently never works → prefer Whisper there
 function isIOSDevice(){return /iPad|iPhone|iPod/.test(navigator.userAgent||"")||((navigator.platform==="MacIntel")&&navigator.maxTouchPoints>1);}
 function isStandalonePWA(){try{return (window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)||window.navigator.standalone===true;}catch(e){return false;}}
+function isMobileDevice(){
+  if(isIOSDevice())return true;
+  if(/Android|Mobile|Silk|Kindle|BlackBerry|Opera Mini|IEMobile/i.test(navigator.userAgent||""))return true;
+  try{if(navigator.maxTouchPoints>1&&window.matchMedia&&window.matchMedia("(pointer:coarse)").matches)return true;}catch(e){}
+  return false;
+}
 function speechAvailable(){
   if(!speechRecCtor())return false;
-  if(isIOSDevice())return false; // iOS Web Speech is unreliable (esp. in-app/PWA) → use Whisper for consistency
+  // Mobile Web Speech is unreliable in installed PWAs: iOS never returns results, and Android
+  // ignores continuous mode / rarely marks results final. Route ALL phones to the Whisper path.
+  if(isMobileDevice())return false;
   return true;
 }
 // Pick a MediaRecorder mime the platform actually supports (iOS = mp4/aac, others = webm/opus)
@@ -6383,6 +6391,7 @@ function startVoiceInput(){
 function stopVoiceInput(autoSend){
   voiceCancelled=!autoSend;
   if(voiceSilenceTimer){clearTimeout(voiceSilenceTimer);voiceSilenceTimer=null;}
+  if(voiceMaxTimer){clearTimeout(voiceMaxTimer);voiceMaxTimer=null;}
   stopVAD();
   if(voiceMode==="speech"&&chatRec){try{chatRec.stop();}catch(_e){}} // onend → finishVoice
   else if(voiceMode==="record"&&chatMR){try{chatMR.stop();}catch(_e){}}
@@ -6394,7 +6403,12 @@ function finishVoice(){
   if(voiceSilenceTimer){clearTimeout(voiceSilenceTimer);voiceSilenceTimer=null;}
   var input=document.getElementById("chat-input");
   if(voiceMode==="speech"&&input){ // normalize the recognized text (drop trailing "euh…", "então…", etc.)
-    var cleaned=cleanTranscript(voiceFinal);
+    var raw=(voiceFinal||"").trim();
+    if(!raw){ // some engines never mark results final — keep the live (interim) text already shown
+      var cur=input.value||"";
+      raw=(voiceBase&&cur.indexOf(voiceBase)===0)?cur.slice(voiceBase.length):cur;
+    }
+    var cleaned=cleanTranscript(raw);
     input.value=(voiceBase+cleaned).replace(/\s+/g," ").trim();
     autoResize(input);
   }
@@ -6414,8 +6428,10 @@ function startVoiceFallback(){
     chatMR.onstop=function(){stream.getTracks().forEach(function(t){t.stop();});processChatVoiceAutoSend();};
     chatMR.start();chatVoiceRec=true;showVoiceListening(true);
     attachVAD(stream); // share the SAME mic stream (avoids a 2nd getUserMedia that fails on mobile)
-    var vt=document.querySelector("#voice-listening .vl-txt");if(vt)vt.textContent=plL("Parlez… ça s’envoie après un silence","Speak… it sends after a pause","Fale… envia após uma pausa");
-    // VAD auto-stops on acoustic silence; the user can also tap the mic / ■ to finish → Whisper auto-detects + auto-sends
+    var vt=document.querySelector("#voice-listening .vl-txt");if(vt)vt.textContent=plL("Parlez, puis touchez ■ pour envoyer","Speak, then tap ■ to send","Fale e toque ■ para enviar");
+    // VAD auto-stops on acoustic silence when available; on mobile the ■ / mic tap is the reliable finish → Whisper → auto-send
+    if(voiceMaxTimer)clearTimeout(voiceMaxTimer);
+    voiceMaxTimer=setTimeout(function(){if(voiceListening&&voiceMode==="record")stopVoiceInput(true);},30000); // safety cap
   }).catch(function(e){
     console.error("Chat mic error:",e);voiceListening=false;showVoiceListening(false);
     toast((STRINGS[lang].toastMicError||"Microphone non disponible")+": "+(e.name||e.message||"unknown"));
@@ -6423,6 +6439,7 @@ function startVoiceFallback(){
 }
 async function processChatVoiceAutoSend(){
   voiceListening=false;showVoiceListening(false);chatVoiceRec=false;voiceMode=null;stopVAD();
+  if(voiceMaxTimer){clearTimeout(voiceMaxTimer);voiceMaxTimer=null;}
   if(voiceCancelled){return;}
   var mime=chatAudioMime||"audio/webm";
   var blob=new Blob(chatChunks,{type:mime});
