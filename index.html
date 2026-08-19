@@ -675,6 +675,13 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
 .pv-team{display:flex;flex-wrap:wrap;gap:6px;}
 .pv-chip{display:inline-flex;align-items:center;gap:5px;background:var(--blue-light);border:1px solid rgba(96,165,250,0.25);color:var(--blue);border-radius:6px;padding:3px 9px;font-size:12px;}
 .pv-empty{font-size:12px;color:var(--text3);font-style:italic;}
+.pv-status-switch{display:inline-flex;gap:4px;margin-top:10px;background:var(--navy3);border:1px solid var(--border2);border-radius:999px;padding:3px;}
+.pv-status-opt{border:none;background:none;color:var(--text2);font-size:12px;font-weight:600;padding:5px 12px;border-radius:999px;cursor:pointer;font-family:var(--font-b);transition:all .12s;display:inline-flex;align-items:center;gap:5px;}
+.pv-status-opt .pill-dot{width:7px;height:7px;border-radius:50%;}
+.pv-status-opt:hover{color:var(--white);}
+.pv-status-opt.active{background:var(--navy2);color:var(--white);box-shadow:0 1px 3px rgba(0,0,0,0.3);}
+.pv-inline-s{width:100%;background:var(--navy3);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;font-family:var(--font-b);font-size:13px;color:var(--white);outline:none;cursor:pointer;margin-top:2px;}
+.pv-inline-s:focus{border-color:var(--blue);}
 .chat-wrap{display:flex;flex-direction:row;gap:20px;height:calc(100vh - 110px);position:relative;}
 .chat-sidebar{width:260px;flex-shrink:0;display:flex;flex-direction:column;background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:12px;overflow-y:auto;}
 .chat-sidebar-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:0 4px;}
@@ -4924,10 +4931,16 @@ function openProjectDetails(id){
     ?"<div class='pv-metric crit'><b>"+mt.critical+"</b><span>"+plL("critiques","critical","críticos")+"</span></div>"
     :(mt.high>0?"<div class='pv-metric high'><b>"+mt.high+"</b><span>"+plL("élevés","high","altos")+"</span></div>"
                 :"<div class='pv-metric'><b>0</b><span>"+plL("critiques","critical","críticos")+"</span></div>");
+  var switchStatuses=["active","completed","paused"];
+  var switchHtml="<div class='pv-status-switch'>"+switchStatuses.map(function(s){
+    var sm=PROJ_STATUS_META[s]||PROJ_STATUS_META.active;
+    return "<button type='button' class='pv-status-opt"+(s===st?" active":"")+"' onclick=\"pmSetStatus('"+String(p.id)+"','"+s+"')\"><span class='pill-dot' style='background:"+sm.dot+"'></span>"+escapeHTML(projStatusLabelFull(s))+"</button>";
+  }).join("")+"</div>";
   document.getElementById("pv-hero").innerHTML=
     "<span class='pv-status'><span class='pill-dot' style='background:"+stm.dot+"'></span>"+escapeHTML(projStatusLabelFull(st))+"</span>"
     +"<div class='pv-name'>"+escapeHTML(p.name)+"</div>"
     +"<div class='pv-sub'>"+escapeHTML(projSubtitle(p))+"</div>"
+    +switchHtml
     +"<div class='pv-metrics'>"+critMetric
     +"<div class='pv-metric'><b>"+mt.open+"</b><span>"+plL("ouverts","open","abertos")+"</span></div>"
     +"<div class='pv-metric'><b>"+mt.people+"</b><span>"+plL("personnes","people","pessoas")+"</span></div></div>";
@@ -4935,16 +4948,21 @@ function openProjectDetails(id){
   var F=function(k,v){return "<div class='pv-field'><div class='k'>"+k+"</div><div class='v'>"+(v?escapeHTML(v):"<span class='pv-empty'>—</span>")+"</div></div>";};
   var Ffull=function(k,v){return "<div class='pv-field full'><div class='k'>"+k+"</div><div class='v'>"+(v?escapeHTML(v):"<span class='pv-empty'>—</span>")+"</div></div>";};
   var loc=[m.address,[m.city,m.state].filter(Boolean).join(", "),m.country].filter(Boolean).join(" · ");
-  var dates=(m.startDate||m.endDate)?((fmtDateStr(m.startDate)||"—")+" → "+(fmtDateStr(m.endDate)||"—")):"";
+  // editable phase dropdown
+  var PHASES=["Fundações","Estrutura","Alvenaria","Instalações","Acabamento","Entrega"];
+  var curPhase=m.phase||"Fundações";
+  var phaseSelect="<select class='pv-inline-s' onchange=\"pmSetPhase('"+String(p.id)+"',this.value)\">"+PHASES.map(function(ph){return "<option value=\""+escapeHTML(ph)+"\""+(ph===curPhase?" selected":"")+">"+escapeHTML(projPhaseLabel(ph))+"</option>";}).join("")+"</select>";
+  // editable duration (start read-only + end date picker)
+  var durHtml="<div style='display:flex;align-items:center;gap:8px;flex-wrap:wrap'><span style='font-size:13px;color:var(--text2)'>"+(fmtDateStr(m.startDate)||plL("Début ?","Start ?","Início ?"))+"</span><span style='color:var(--text3)'>→</span><input type='date' class='pv-inline-s' style='width:auto' value=\""+(m.endDate||"")+"\" onchange=\"pmSetEndDate('"+String(p.id)+"',this.value)\"></div>";
   var team=(m.team||[]);
   var teamHtml=team.length?"<div class='pv-team'>"+team.map(function(n){return "<span class='pv-chip'><i class='ti ti-user'></i>"+escapeHTML(n)+"</span>";}).join("")+"</div>":"<span class='pv-empty'>"+plL("Aucun membre","No members","Nenhum membro")+"</span>";
   var body=
     "<div><div class='pv-sec-title'>"+plL("Informations du projet","Project info","Informações do projeto")+"</div><div class='pv-grid'>"
       +F(plL("Type","Type","Tipo"),projTypeLabel(m.type))
-      +F(plL("Phase actuelle","Current phase","Fase atual"),projPhaseLabel(m.phase))
+      +"<div class='pv-field'><div class='k'>"+plL("Phase actuelle","Current phase","Fase atual")+"</div>"+phaseSelect+"</div>"
       +Ffull(plL("Localisation","Location","Localização"),loc||p.location)
       +F(plL("Nº contrat / centre de coûts","Contract / cost center","Nº contrato / centro de custo"),m.contract)
-      +F(plL("Durée","Duration","Duração"),dates)
+      +"<div class='pv-field full'><div class='k'>"+plL("Durée","Duration","Duração")+"</div>"+durHtml+"</div>"
     +"</div></div>"
     +"<div><div class='pv-sec-title'>"+plL("Responsables techniques","Technical leads","Responsáveis técnicos")+"</div><div class='pv-grid'>"
       +F(plL("Ingénieur résident","Lead / site engineer","Engenheiro residente"),m.lead||p.owner)
@@ -4961,6 +4979,19 @@ function openProjectDetails(id){
   document.getElementById("proj-view-overlay").classList.add("show");
 }
 function closeProjectDetails(){document.getElementById("proj-view-overlay").classList.remove("show");}
+// Inline quick-edit from the details view (phase, dates, status) — saves immediately
+function pmQuickUpdate(id,patch){
+  pmSetMeta(id,patch);
+  if(dbOk&&dbCoId&&(patch.location||patch.owner)){try{db.from("projects").update(patch).eq("id",id).then(function(){},function(){});}catch(e){}}
+  var idx=projects.findIndex(function(p){return String(p.id)===String(id);});
+  if(idx>=0)projects[idx]=pmMerge(Object.assign({},projects[idx]));
+  renderProjects();
+  openProjectDetails(id);
+  toast(plL("Mis à jour","Updated","Atualizado"));
+}
+function pmSetPhase(id,v){pmQuickUpdate(id,{phase:v});}
+function pmSetEndDate(id,v){pmQuickUpdate(id,{endDate:v});}
+function pmSetStatus(id,v){pmQuickUpdate(id,{status:v});}
 async function submitProjectModal(){
   var g=function(x){return document.getElementById(x).value.trim();};
   var name=g("pm-name");
