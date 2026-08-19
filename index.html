@@ -2121,6 +2121,22 @@ var PILLIER_PLANS = {
 };
 var _pUsage = { captures: 0, ai_messages: 0, documents: 0, plan: 'free', month: '' };
 
+// Apply a locally-saved plan (so an upgrade persists across reloads)
+function applyStoredPlan(){try{var sp=localStorage.getItem('pillier_plan');if(sp&&PILLIER_PLANS[sp])_pUsage.plan=sp;}catch(e){}}
+// Upgrade/downgrade the current account to a plan and reflect it everywhere
+function upgradeToPlan(planKey){
+  planKey=planKey||'pro';
+  if(!PILLIER_PLANS[planKey])return;
+  _pUsage.plan=planKey;
+  try{localStorage.setItem('pillier_plan',planKey);}catch(e){}
+  try{if(typeof dbOk!=='undefined'&&dbOk&&me&&me.email){db.from('user_usage').update({plan:planKey}).eq('user_email',me.email).eq('month',pillierCurrentMonth()).then(function(){}).catch(function(){});}}catch(e){}
+  try{renderUsageWidgets();}catch(e){}
+  try{renderChatUsagePill();}catch(e){}
+  try{renderSettingsPlan();}catch(e){}
+  var L=PILLIER_PLANS[planKey].label;
+  try{toast((typeof lang!=='undefined'&&lang===1?'You are now on ':lang===2?'Você agora está no plano ':'Vous êtes maintenant sur ')+L+' 🎉');}catch(e){}
+}
+
 function pillierCurrentMonth() {
   var d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
@@ -2193,6 +2209,7 @@ async function incrementPillierUsage(field) {
 
 // Render the sidebar + dashboard usage widgets with current counts
 function renderUsageWidgets() {
+  applyStoredPlan();
   var plan = PILLIER_PLANS[_pUsage.plan] || PILLIER_PLANS.free;
   var L = (lang === 0) ? {
     usage: 'UTILISATION', captures: 'Captures', ai: 'Messages IA', docs: 'Documents',
@@ -7207,7 +7224,49 @@ function openSettingsModal(){
   if(cl)cl.textContent=S.settingsCloud||"Armazenamento em nuvem";
   var cd=document.getElementById("cloud-desc2");
   if(cd)cd.textContent=S.cloudDesc||"Conecte o armazenamento da sua empresa para sincronizar automaticamente os incidentes.";
+  // Section labels (Account / Plan / Team / Notifications)
+  var lbl=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
+  lbl("set-account-label",lang===1?"Account":lang===2?"Conta":"Compte");
+  lbl("set-name-label",lang===1?"Name":lang===2?"Nome":"Nom");
+  lbl("set-email-label",lang===1?"Email":lang===2?"E-mail":"E-mail");
+  lbl("set-role-label",lang===1?"Role":lang===2?"Função":"Rôle");
+  lbl("set-firm-label",lang===1?"Firm":lang===2?"Empresa":"Entreprise");
+  lbl("set-plan-label",lang===1?"Plan & usage":lang===2?"Plano e uso":"Forfait et usage");
+  lbl("set-team-label",lang===1?"Team members":lang===2?"Equipe":"Équipe");
+  lbl("set-invite","+ "+(lang===1?"Invite":lang===2?"Convidar":"Inviter"));
+  lbl("set-notif-label",lang===1?"Notifications":lang===2?"Notificações":"Notifications");
+  try{renderSettingsPlan();}catch(e){}
 }
+// Populate the dynamic Settings sections (account, plan+usage, team, notifications)
+function renderSettingsPlan(){
+  var g=function(id){return document.getElementById(id);};
+  var setTxt=function(id,v){var el=g(id);if(el)el.textContent=v||"—";};
+  setTxt("set-name",me&&me.name); setTxt("set-email",me&&me.email); setTxt("set-role",me&&me.role); setTxt("set-firm",me&&me.co);
+  var plan=PILLIER_PLANS[_pUsage.plan]||PILLIER_PLANS.free;
+  var badge=g("set-plan-badge"); if(badge)badge.textContent=(plan.label||"Free").toUpperCase();
+  function bar(lb,used,lim){var pct=lim>=999999?6:Math.min(100,Math.round((used/(lim||1))*100));var col=pct<60?"#22c55e":pct<90?"#f59e0b":"#ef4444";var txt=lim>=999999?"∞":used+"/"+lim;return "<div style='margin-bottom:10px;'><div style='display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;'><span style='color:var(--text2)'>"+lb+"</span><span style='color:var(--text);font-weight:700'>"+txt+"</span></div><div style='height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;'><div style='height:100%;width:"+pct+"%;background:"+col+";'></div></div></div>";}
+  var Lb=(lang===1)?{c:"Captures",a:"AI messages",d:"Documents"}:(lang===0)?{c:"Captures",a:"Messages IA",d:"Documents"}:{c:"Capturas",a:"Mensagens IA",d:"Documentos"};
+  var wrap=g("set-usage-bars"); if(wrap)wrap.innerHTML=bar(Lb.c,_pUsage.captures||0,plan.captures)+bar(Lb.a,_pUsage.ai_messages||0,plan.ai_messages)+bar(Lb.d,_pUsage.documents||0,plan.documents);
+  var up=g("set-upgrade-wrap");
+  if(up){
+    if(_pUsage.plan==="free"||_pUsage.plan==="starter"){
+      var t=lang===1?"Upgrade to Pro — €99/mo":lang===2?"Atualizar para Pro — €99/mês":"Passer à Pro — 99€/mois";
+      up.innerHTML="<button onclick=\"upgradeToPlan('pro')\" style='width:100%;padding:11px;background:#60a5fa;border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;'>"+t+"</button>";
+    }else{
+      var msg=lang===1?"You're on "+plan.label+" — all features unlocked":lang===2?"Você está no "+plan.label+" — tudo desbloqueado":"Vous êtes sur "+plan.label+" — tout est débloqué";
+      up.innerHTML="<div style='display:flex;align-items:center;justify-content:space-between;gap:8px;'><div style='font-size:12px;color:#4ade80;'>✓ "+msg+"</div><button onclick=\"upgradeToPlan('free')\" style='background:none;border:1px solid var(--border2);color:var(--text3);border-radius:8px;padding:6px 10px;font-size:11px;cursor:pointer;font-family:inherit;'>"+(lang===1?"Downgrade":lang===2?"Rebaixar":"Rétrograder")+"</button></div>";
+    }
+  }
+  var tl=g("set-team-list");
+  if(tl){var nm=(me&&me.name)||"—";var em=(me&&me.email)||"";var ini=(nm.split(" ").map(function(w){return w[0]||"";}).join("").substring(0,2)||"?").toUpperCase();
+    tl.innerHTML="<div style='display:flex;align-items:center;gap:10px;padding:8px 0;'><div class='user-avatar' style='width:34px;height:34px;font-size:12px'>"+ini+"</div><div style='flex:1;min-width:0'><div style='font-size:13px;color:var(--white);font-weight:600'>"+nm+"</div><div style='font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>"+em+"</div></div><span style='font-size:10px;font-weight:700;color:var(--text2);background:rgba(255,255,255,0.05);border-radius:6px;padding:3px 8px;'>OWNER</span></div>";}
+  var nl=g("set-notif-list");
+  if(nl){var defs=[["crit",lang===1?"Critical incidents":lang===2?"Incidentes críticos":"Incidents critiques"],["weekly",lang===1?"Weekly summary":lang===2?"Resumo semanal":"Résumé hebdomadaire"],["team",lang===1?"Team activity":lang===2?"Atividade da equipe":"Activité de l'équipe"]];
+    nl.innerHTML=defs.map(function(d){var on=_notifPref(d[0]);return "<div style='display:flex;align-items:center;justify-content:space-between;padding:8px 0;'><span style='font-size:13px;color:var(--text)'>"+d[1]+"</span><button onclick=\"togNotif('"+d[0]+"')\" style='width:40px;height:22px;border-radius:20px;border:none;cursor:pointer;background:"+(on?"#60a5fa":"rgba(255,255,255,0.12)")+";position:relative;flex-shrink:0;'><span style='position:absolute;top:2px;left:"+(on?"20px":"2px")+";width:18px;height:18px;border-radius:50%;background:#fff;transition:left 0.15s;'></span></button></div>";}).join("");}
+}
+function _notifPref(k){try{var v=localStorage.getItem("pillier_notif_"+k);return v===null?true:v==="1";}catch(e){return true;}}
+function togNotif(k){try{localStorage.setItem("pillier_notif_"+k,_notifPref(k)?"0":"1");}catch(e){}try{renderSettingsPlan();}catch(e){}}
+function inviteTeam(){var msg=lang===1?"Team invites unlock on Pro — upgrade to add members.":lang===2?"Convites de equipe no plano Pro — faça upgrade para adicionar membros.":"Invitations d'équipe sur Pro — passez à Pro pour ajouter des membres.";try{toast(msg);}catch(e){}}
 function closeSettingsModal(){
   var ov=document.getElementById("settings-modal-overlay");
   if(ov)ov.style.display="none";
@@ -7513,7 +7572,27 @@ function sanitizeProject(proj){
       <div style="font-family:var(--font-d);font-size:18px;font-weight:800;color:var(--text);" id="settings-modal-title">Configurações</div>
       <button onclick="closeSettingsModal()" style="background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;"><i class="ti ti-x"></i></button>
     </div>
-    <div style="margin-bottom:20px;">
+    <!-- Account -->
+    <div style="margin-bottom:22px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px" id="set-account-label">Conta</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px" id="set-name-label">Nome</div><div style="background:rgba(255,255,255,0.03);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="set-name">—</div></div>
+        <div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px" id="set-email-label">E-mail</div><div style="background:rgba(255,255,255,0.03);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="set-email">—</div></div>
+        <div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px" id="set-role-label">Função</div><div style="background:rgba(255,255,255,0.03);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="set-role">—</div></div>
+        <div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px" id="set-firm-label">Empresa</div><div style="background:rgba(255,255,255,0.03);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="set-firm">—</div></div>
+      </div>
+    </div>
+    <!-- Plan & usage -->
+    <div style="margin-bottom:22px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;" id="set-plan-label">Plano e uso</div>
+        <span id="set-plan-badge" style="font-size:10px;font-weight:700;color:#60a5fa;background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.3);border-radius:20px;padding:3px 10px;">FREE</span>
+      </div>
+      <div id="set-usage-bars"></div>
+      <div id="set-upgrade-wrap" style="margin-top:12px;"></div>
+    </div>
+    <!-- Cloud storage -->
+    <div style="margin-bottom:22px;">
       <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px" id="settings-cloud-label2">Armazenamento em nuvem</div>
       <div style="font-size:12px;color:var(--text3);margin-bottom:12px" id="cloud-desc2">Conecte o armazenamento da sua empresa para sincronizar automaticamente os incidentes.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
@@ -7527,6 +7606,19 @@ function sanitizeProject(proj){
                 <button onclick="syncAllToCloud();closeSettingsModal()" style="width:100%;padding:10px;background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.2);border-radius:8px;color:#60a5fa;font-size:12px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="ti ti-refresh" style="font-size:16px;"></i> <span id="sync-all-label">Sincronizar tudo agora</span></button>
               </div>
             </div>
+    </div>
+    <!-- Team members -->
+    <div style="margin-bottom:22px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;" id="set-team-label">Equipe</div>
+        <a onclick="inviteTeam()" style="font-size:12px;color:#60a5fa;cursor:pointer;" id="set-invite">+ Convidar</a>
+      </div>
+      <div id="set-team-list"></div>
+    </div>
+    <!-- Notifications -->
+    <div style="margin-bottom:4px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px" id="set-notif-label">Notificações</div>
+      <div id="set-notif-list"></div>
     </div>
   </div>
 </div>
