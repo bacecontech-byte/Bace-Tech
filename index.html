@@ -1971,6 +1971,9 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
 .set-toggle.on{background:#60a5fa;}
 .set-toggle::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left 0.15s;}
 .set-toggle.on::after{left:20px;}
+body.light-mode #settings-modal-overlay>div,body.light-mode #team-modal-overlay>div{background:#ffffff !important;border-color:rgba(0,0,0,0.08) !important;}
+body.light-mode #settings-modal-overlay aside{background:#f7f7fa !important;}
+body.light-mode .set-toggle{background:rgba(0,0,0,0.18);}
 </style>
 <div class="toast" id="toast"></div>
 <script>
@@ -6622,7 +6625,9 @@ function renderSettingsPlan(){
   }
   var tl=g("set-team-list");
   if(tl){var nm=(me&&me.name)||"—";var em=(me&&me.email)||"";var ini=(nm.split(" ").map(function(w){return w[0]||"";}).join("").substring(0,2)||"?").toUpperCase();
-    tl.innerHTML="<div style='display:flex;align-items:center;gap:10px;padding:8px 0;'><div class='user-avatar' style='width:34px;height:34px;font-size:12px'>"+ini+"</div><div style='flex:1;min-width:0'><div style='font-size:13px;color:var(--white);font-weight:600'>"+nm+"</div><div style='font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>"+em+"</div></div><span style='font-size:10px;font-weight:700;color:var(--text2);background:rgba(255,255,255,0.05);border-radius:6px;padding:3px 8px;'>OWNER</span></div>";}
+    var rows="<div style='display:flex;align-items:center;gap:10px;padding:8px 0;'><div class='user-avatar' style='width:34px;height:34px;font-size:12px'>"+ini+"</div><div style='flex:1;min-width:0'><div style='font-size:13px;color:var(--white);font-weight:600'>"+nm+"</div><div style='font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>"+em+"</div></div><span style='font-size:10px;font-weight:700;color:var(--text2);background:rgba(255,255,255,0.05);border-radius:6px;padding:3px 8px;'>OWNER</span></div>";
+    _getTeam().forEach(function(p,idx){var pe=p.email||"";var pin=(pe.charAt(0)||"?").toUpperCase();rows+="<div style='display:flex;align-items:center;gap:10px;padding:8px 0;'><div class='user-avatar' style='width:34px;height:34px;font-size:12px'>"+pin+"</div><div style='flex:1;min-width:0'><div style='font-size:13px;color:var(--white);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>"+pe+"</div><div style='font-size:11px;color:var(--text3)'>"+_t3b("Invited","Invité","Convidado")+"</div></div><button onclick=\"removeTeamMember("+idx+")\" title='"+_t3b("Remove","Retirer","Remover")+"' style='background:none;border:none;color:var(--text3);font-size:15px;cursor:pointer;'><i class='ti ti-x'></i></button></div>";});
+    tl.innerHTML=rows;}
   var nl=g("set-notif-list");
   if(nl){var defs=[["crit",lang===1?"Critical incidents":lang===2?"Incidentes críticos":"Incidents critiques"],["weekly",lang===1?"Weekly summary":lang===2?"Resumo semanal":"Résumé hebdomadaire"],["team",lang===1?"Team activity":lang===2?"Atividade da equipe":"Activité de l'équipe"]];
     nl.innerHTML=defs.map(function(d){var on=_notifPref(d[0]);return "<div class='set-row'><span class='set-v'>"+d[1]+"</span><button onclick=\"togNotif('"+d[0]+"')\" class='set-toggle"+(on?" on":"")+"'></button></div>";}).join("");}
@@ -6638,18 +6643,44 @@ function renderSettingsPlan(){
 }
 function _notifPref(k){try{var v=localStorage.getItem("pillier_notif_"+k);return v===null?true:v==="1";}catch(e){return true;}}
 function togNotif(k){try{localStorage.setItem("pillier_notif_"+k,_notifPref(k)?"0":"1");}catch(e){}try{renderSettingsPlan();}catch(e){}}
-function inviteTeam(){var msg=lang===1?"Team invites unlock on Pro — upgrade to add members.":lang===2?"Convites de equipe no plano Pro — faça upgrade para adicionar membros.":"Invitations d'équipe sur Pro — passez à Pro pour ajouter des membres.";try{toast(msg);}catch(e){}}
+function contactSales(){var subj=encodeURIComponent("Pillier Enterprise");try{window.location.href="mailto:contato@pillier.com.br?subject="+subj;}catch(e){}try{toast(_t3b("Opening email to our team…","Ouverture d'un e-mail…","Abrindo e-mail para nossa equipe…"));}catch(e){}}
+function _getTeam(){try{return JSON.parse(localStorage.getItem("pillier_team")||"[]");}catch(e){return [];}}
+function _setTeam(a){try{localStorage.setItem("pillier_team",JSON.stringify(a||[]));}catch(e){}}
+function removeTeamMember(i){var m=_getTeam();m.splice(i,1);_setTeam(m);try{renderSettingsPlan();}catch(e){}}
+function inviteTeam(){
+  var plan=_pUsage.plan;
+  if(plan!=="pro"&&plan!=="team"&&plan!=="enterprise"){
+    var msg=_t3b("Team invites unlock on Pro — upgrade to add members.","Invitations d'équipe sur Pro — passez à Pro pour ajouter des membres.","Convites de equipe no plano Pro — faça upgrade para adicionar membros.");
+    try{toast(msg);}catch(e){}
+    try{closeTeamModal();openSettingsModal();setSettingsSection("billing");}catch(e){}
+    return;
+  }
+  var cap=(plan==="pro")?5:(plan==="team")?15:999999;
+  var members=_getTeam();
+  if(members.length+1>=cap){
+    try{toast(_t3b("Member limit reached for your plan.","Limite de membres atteinte pour votre plan.","Limite de membros atingido para o seu plano."));}catch(e){}
+    return;
+  }
+  var email=window.prompt(_t3b("Invite a teammate by email:","Inviter un collègue par e-mail :","Convidar colega por e-mail:"));
+  if(!email)return; email=(""+email).trim();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){try{toast(_t3b("Enter a valid email.","E-mail invalide.","E-mail inválido."));}catch(e){}return;}
+  members.push({email:email,role:"MEMBER"});
+  _setTeam(members);
+  try{renderSettingsPlan();}catch(e){}
+  try{toast(_t3b("Invitation sent to ","Invitation envoyée à ","Convite enviado para ")+email);}catch(e){}
+}
 // Billing: render all plans inside Assinatura with trial/commit/downgrade actions
 function renderBilling(){
   var el=document.getElementById("billing-body");if(!el)return;
-  var order=["free","starter","pro","team"];
+  var order=["free","starter","pro","team","enterprise"];
   var cur=_pUsage.plan, paid=_isPaid(), trialing=_isTrialing(), tdays=_trialDaysLeft();
-  var price={free:_t3b("Free","Gratuit","Grátis"),starter:"R$ 299",pro:"R$ 499",team:_t3b("Custom","Sur mesure","Sob consulta")};
+  var price={free:_t3b("Free","Gratuit","Grátis"),starter:"R$ 299",pro:"R$ 499",team:"R$ 999",enterprise:_t3b("Contact us","Nous contacter","Fale conosco")};
   var sub={
     free:_t3b("1 project, basics","1 projet, l'essentiel","1 projeto, o essencial"),
     starter:_t3b("For solo pros","Pour indépendants","Para autônomos"),
     pro:_t3b("For growing offices","Pour bureaux en croissance","Para escritórios em crescimento"),
-    team:_t3b("For teams & enterprise","Pour équipes & entreprises","Para equipes & empresas")
+    team:_t3b("Up to 15 users","Jusqu'à 15 utilisateurs","Até 15 usuários"),
+    enterprise:_t3b("Custom, unlimited users","Sur mesure, utilisateurs illimités","Sob medida, usuários ilimitados")
   };
   var perMo=_t3b("/mo","/mois","/mês");
   var html="";
@@ -6672,8 +6703,8 @@ function renderBilling(){
         actions="<button onclick=\"downgradeFree()\" style='"+gbtn+"'>"+_t3b("Cancel plan","Annuler l'abonnement","Cancelar plano")+"</button>";
       }
     } else {
-      if(k==="team"){
-        actions="<button onclick=\"startCheckout('team')\" style='"+pbtn+"'>"+_t3b("Talk to sales","Nous contacter","Falar com vendas")+"</button>";
+      if(k==="enterprise"){
+        actions="<button onclick=\"contactSales()\" style='"+pbtn+"'>"+_t3b("Contact us","Nous contacter","Fale conosco")+"</button>";
       } else if(cur==="free"){
         actions="<button onclick=\"startTrial('"+k+"')\" style='"+pbtn+"'>"+_t3b("Start 30-day trial","Essai 30 jours","Testar 30 dias")+"</button>";
       } else {
@@ -6685,7 +6716,7 @@ function renderBilling(){
       "<div style='display:flex;align-items:center;justify-content:space-between;gap:12px;'>"+
         "<div style='min-width:0'><div style='font-size:15px;font-weight:700;color:var(--white);'>"+(PILLIER_PLANS[k].label)+pill+"</div>"+
           "<div style='font-size:11px;color:var(--text3);margin-top:2px;'>"+sub[k]+"</div></div>"+
-        "<div style='text-align:right;flex-shrink:0;'><div style='font-size:16px;font-weight:800;color:var(--white);'>"+price[k]+"</div>"+(k!=="free"&&k!=="team"?"<div style='font-size:10px;color:var(--text3);'>"+perMo+"</div>":"")+"</div>"+
+        "<div style='text-align:right;flex-shrink:0;'><div style='font-size:16px;font-weight:800;color:var(--white);'>"+price[k]+"</div>"+(k!=="free"&&k!=="enterprise"?"<div style='font-size:10px;color:var(--text3);'>"+perMo+"</div>":"")+"</div>"+
       "</div>"+
       (actions?("<div style='margin-top:12px;display:flex;gap:8px;'>"+actions+"</div>"):"")+
     "</div>";
