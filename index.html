@@ -2064,7 +2064,7 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
     <div class="pp-divider"></div>
     <!-- Menu (Claude-style list) -->
     <button class="pp-item" onclick="closeProfilePanel(event);openSettingsModal()"><i class="ti ti-settings"></i><span id="sidebar-settings-label">Configurações</span></button>
-    <button class="pp-item" onclick="closeProfilePanel(event);showContentPage(2)"><i class="ti ti-arrow-up-circle"></i><span id="pp-upgrade">Upgrade plan</span></button>
+    <button class="pp-item" onclick="closeProfilePanel(event);openSettingsModal();setSettingsSection('billing')"><i class="ti ti-arrow-up-circle"></i><span id="pp-upgrade">Upgrade plan</span></button>
     <button class="pp-item" onclick="closeProfilePanel(event);openTeamModal()"><i class="ti ti-users"></i><span id="pp-team">Invite team</span></button>
     <button class="pp-item" onclick="window.location.href='mailto:contact@pillier.com.br'"><i class="ti ti-help-circle"></i><span id="pp-help">Get help</span></button>
     <div class="pp-divider"></div>
@@ -2133,21 +2133,69 @@ var PILLIER_PLANS = {
 };
 var _pUsage = { captures: 0, ai_messages: 0, documents: 0, plan: 'free', month: '' };
 
-// Apply a locally-saved plan (so an upgrade persists across reloads)
+// Apply a locally-saved plan (so a plan choice persists across reloads)
 function applyStoredPlan(){try{var sp=localStorage.getItem('pillier_plan');if(sp&&PILLIER_PLANS[sp])_pUsage.plan=sp;}catch(e){}}
-// Upgrade/downgrade the current account to a plan and reflect it everywhere
-function upgradeToPlan(planKey){
-  planKey=planKey||'pro';
-  if(!PILLIER_PLANS[planKey])return;
+// ── Trial / subscription state (Claude-style: 30-day trial → commit or downgrade) ──
+var _DAY_MS=86400000, _TRIAL_DAYS=30;
+function _t3b(en,fr,pt){return (typeof lang!=='undefined'&&lang===1)?en:(typeof lang!=='undefined'&&lang===0)?fr:pt;}
+function _trialEnd(){try{var v=localStorage.getItem('pillier_trial_end');return v?parseInt(v,10):0;}catch(e){return 0;}}
+function _isPaid(){try{return localStorage.getItem('pillier_paid')==='1';}catch(e){return false;}}
+function _isTrialing(){return _pUsage.plan!=='free' && _trialEnd()>0 && !_isPaid();}
+function _trialDaysLeft(){var e=_trialEnd();return e?Math.max(0,Math.ceil((e-Date.now())/_DAY_MS)):0;}
+function _reflectPlan(){try{renderUsageWidgets();}catch(e){}try{renderChatUsagePill();}catch(e){}try{renderSettingsPlan();}catch(e){}try{renderBilling();}catch(e){}}
+function _persistPlan(planKey){try{if(typeof dbOk!=='undefined'&&dbOk&&me&&me.email){db.from('user_usage').update({plan:planKey}).eq('user_email',me.email).eq('month',pillierCurrentMonth()).then(function(){}).catch(function(){});}}catch(e){}}
+// Start a 30-day trial of a paid plan (no charge yet)
+function startTrial(planKey){
+  if(!PILLIER_PLANS[planKey]||planKey==='free')return;
   _pUsage.plan=planKey;
-  try{localStorage.setItem('pillier_plan',planKey);}catch(e){}
-  try{if(typeof dbOk!=='undefined'&&dbOk&&me&&me.email){db.from('user_usage').update({plan:planKey}).eq('user_email',me.email).eq('month',pillierCurrentMonth()).then(function(){}).catch(function(){});}}catch(e){}
-  try{renderUsageWidgets();}catch(e){}
-  try{renderChatUsagePill();}catch(e){}
-  try{renderSettingsPlan();}catch(e){}
-  var L=PILLIER_PLANS[planKey].label;
-  try{toast((typeof lang!=='undefined'&&lang===1?'You are now on ':lang===2?'Você agora está no plano ':'Vous êtes maintenant sur ')+L+' 🎉');}catch(e){}
+  try{localStorage.setItem('pillier_plan',planKey);localStorage.setItem('pillier_trial_end',String(Date.now()+_TRIAL_DAYS*_DAY_MS));localStorage.removeItem('pillier_paid');}catch(e){}
+  _persistPlan(planKey);_reflectPlan();
+  try{toast(_t3b('30-day trial started 🎉','Essai de 30 jours démarré 🎉','Teste de 30 dias iniciado 🎉'));}catch(e){}
 }
+// Downgrade to Free (end trial / cancel)
+function downgradeFree(){
+  _pUsage.plan='free';
+  try{localStorage.setItem('pillier_plan','free');localStorage.removeItem('pillier_trial_end');localStorage.removeItem('pillier_paid');}catch(e){}
+  _persistPlan('free');_reflectPlan();
+  try{toast(_t3b('Switched to Free','Passé au forfait Gratuit','Alterado para o plano Free'));}catch(e){}
+}
+// Commit: pay via Stripe Checkout
+async function startCheckout(planKey){
+  try{toast(_t3b('Redirecting to payment…','Redirection vers le paiement…','Redirecionando para o pagamento…'));}catch(e){}
+  try{
+    var r=await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:planKey,email:(me&&me.email)||''})});
+    var d=await r.json();
+    if(d&&d.ok&&d.url){window.location.href=d.url;return;}
+    if(d&&d.error==='not_configured'){toast(_t3b('Payment not set up yet — add Stripe keys in Vercel.','Paiement non configuré — ajoutez les clés Stripe.','Pagamento ainda não configurado — adicione as chaves Stripe.'));return;}
+    if(d&&d.error==='no_price'){toast(_t3b('No price configured for this plan.','Aucun tarif configuré.','Nenhum preço configurado para este plano.'));return;}
+    toast(_t3b('Payment error','Erreur de paiement','Erro no pagamento')+': '+((d&&d.error)||'?'));
+  }catch(e){try{toast('Payment error');}catch(_e){}}
+}
+// After returning from Stripe: mark paid / handle cancel
+function _handleCheckoutReturn(){
+  try{
+    var p=new URLSearchParams(location.search);
+    var st=p.get('checkout');
+    if(st==='success'){
+      var pl=p.get('plan')||'pro'; if(!PILLIER_PLANS[pl])pl='pro';
+      _pUsage.plan=pl;
+      try{localStorage.setItem('pillier_plan',pl);localStorage.setItem('pillier_paid','1');localStorage.removeItem('pillier_trial_end');}catch(e){}
+      _persistPlan(pl);_reflectPlan();
+      try{toast(_t3b('Payment confirmed — welcome to '+((PILLIER_PLANS[pl]||{}).label||'Pro')+'!','Paiement confirmé !','Pagamento confirmado — bem-vindo ao '+((PILLIER_PLANS[pl]||{}).label||'Pro')+'!'));}catch(e){}
+      history.replaceState({},'',location.pathname);
+    } else if(st==='cancel'){ history.replaceState({},'',location.pathname); }
+  }catch(e){}
+}
+// Enforce trial expiry on the client (no cron): expired + unpaid → downgrade to Free
+function checkTrialExpiry(){
+  var e=_trialEnd();
+  if(_pUsage.plan!=='free' && e && !_isPaid() && Date.now()>e){
+    downgradeFree();
+    try{toast(_t3b('Your trial ended — downgraded to Free','Votre essai est terminé — retour au Gratuit','Seu teste terminou — voltou para o Free'));}catch(_e){}
+  }
+}
+// Handle Stripe return + trial expiry once the app has loaded
+window.addEventListener('load',function(){setTimeout(function(){applyStoredPlan();_handleCheckoutReturn();checkTrialExpiry();},700);});
 
 function pillierCurrentMonth() {
   var d = new Date();
@@ -7312,10 +7360,64 @@ function renderSettingsPlan(){
   var td=g("theme-btn-dark2"),tlb=g("theme-btn-light2");
   if(td)td.classList.toggle("active",!_light); if(tlb)tlb.classList.toggle("active",_light);
   ["loc","analytics"].forEach(function(k){var b=g("tog-"+k);if(b)b.classList.toggle("on",_notifPref(k));});
+  try{renderBilling();}catch(e){}
 }
 function _notifPref(k){try{var v=localStorage.getItem("pillier_notif_"+k);return v===null?true:v==="1";}catch(e){return true;}}
 function togNotif(k){try{localStorage.setItem("pillier_notif_"+k,_notifPref(k)?"0":"1");}catch(e){}try{renderSettingsPlan();}catch(e){}}
 function inviteTeam(){var msg=lang===1?"Team invites unlock on Pro — upgrade to add members.":lang===2?"Convites de equipe no plano Pro — faça upgrade para adicionar membros.":"Invitations d'équipe sur Pro — passez à Pro pour ajouter des membres.";try{toast(msg);}catch(e){}}
+// Billing: render all plans inside Assinatura with trial/commit/downgrade actions
+function renderBilling(){
+  var el=document.getElementById("billing-body");if(!el)return;
+  var order=["free","starter","pro","team"];
+  var cur=_pUsage.plan, paid=_isPaid(), trialing=_isTrialing(), tdays=_trialDaysLeft();
+  var price={free:_t3b("Free","Gratuit","Grátis"),starter:"R$ 299",pro:"R$ 499",team:_t3b("Custom","Sur mesure","Sob consulta")};
+  var sub={
+    free:_t3b("1 project, basics","1 projet, l'essentiel","1 projeto, o essencial"),
+    starter:_t3b("For solo pros","Pour indépendants","Para autônomos"),
+    pro:_t3b("For growing offices","Pour bureaux en croissance","Para escritórios em crescimento"),
+    team:_t3b("For teams & enterprise","Pour équipes & entreprises","Para equipes & empresas")
+  };
+  var perMo=_t3b("/mo","/mois","/mês");
+  var html="";
+  if(trialing){
+    html+="<div style='background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.3);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--text);line-height:1.5;'>"+_t3b("Trial: ","Essai : ","Teste: ")+"<b>"+tdays+" "+_t3b("days left","jours restants","dias restantes")+"</b> — "+_t3b("commit to keep your plan or you'll return to Free.","engagez-vous ou vous repasserez au Gratuit.","confirme para manter seu plano ou você voltará ao Free.")+"</div>";
+  }
+  order.forEach(function(k){
+    var isCur=(k===cur);
+    var pillTxt=isCur?(trialing?_t3b("Trial","Essai","Teste"):(paid?_t3b("Current","Actuel","Atual"):_t3b("Current","Actuel","Atual"))):"";
+    var pill=isCur?("<span style='font-size:9px;font-weight:700;color:#60a5fa;background:rgba(96,165,250,0.15);border-radius:20px;padding:2px 8px;margin-left:8px;'>"+pillTxt+"</span>"):"";
+    var actions="";
+    var pbtn="padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;border:none;background:#60a5fa;color:#fff;";
+    var gbtn="padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:none;border:1px solid var(--border2);color:var(--text2);";
+    if(k==="free"){
+      actions=isCur?"":"<button onclick=\"downgradeFree()\" style='"+gbtn+"'>"+_t3b("Switch to Free","Passer au Gratuit","Mudar para Free")+"</button>";
+    } else if(isCur){
+      if(trialing){
+        actions="<button onclick=\"startCheckout('"+k+"')\" style='"+pbtn+"'>"+_t3b("Continue — pay","Continuer — payer","Continuar — pagar")+"</button> <button onclick=\"downgradeFree()\" style='"+gbtn+"'>"+_t3b("Cancel","Annuler","Cancelar")+"</button>";
+      } else {
+        actions="<button onclick=\"downgradeFree()\" style='"+gbtn+"'>"+_t3b("Cancel plan","Annuler l'abonnement","Cancelar plano")+"</button>";
+      }
+    } else {
+      if(k==="team"){
+        actions="<button onclick=\"startCheckout('team')\" style='"+pbtn+"'>"+_t3b("Talk to sales","Nous contacter","Falar com vendas")+"</button>";
+      } else if(cur==="free"){
+        actions="<button onclick=\"startTrial('"+k+"')\" style='"+pbtn+"'>"+_t3b("Start 30-day trial","Essai 30 jours","Testar 30 dias")+"</button>";
+      } else {
+        actions="<button onclick=\"startCheckout('"+k+"')\" style='"+pbtn+"'>"+_t3b("Choose","Choisir","Escolher")+"</button>";
+      }
+    }
+    var border=isCur?"border:1px solid #60a5fa;":"border:1px solid var(--border);";
+    html+="<div style='"+border+"border-radius:12px;padding:14px 16px;margin-bottom:10px;background:rgba(255,255,255,0.02);'>"+
+      "<div style='display:flex;align-items:center;justify-content:space-between;gap:12px;'>"+
+        "<div style='min-width:0'><div style='font-size:15px;font-weight:700;color:var(--white);'>"+(PILLIER_PLANS[k].label)+pill+"</div>"+
+          "<div style='font-size:11px;color:var(--text3);margin-top:2px;'>"+sub[k]+"</div></div>"+
+        "<div style='text-align:right;flex-shrink:0;'><div style='font-size:16px;font-weight:800;color:var(--white);'>"+price[k]+"</div>"+(k!=="free"&&k!=="team"?"<div style='font-size:10px;color:var(--text3);'>"+perMo+"</div>":"")+"</div>"+
+      "</div>"+
+      (actions?("<div style='margin-top:12px;display:flex;gap:8px;'>"+actions+"</div>"):"")+
+    "</div>";
+  });
+  el.innerHTML=html;
+}
 function closeSettingsModal(){
   var ov=document.getElementById("settings-modal-overlay");
   if(ov)ov.style.display="none";
@@ -7657,9 +7759,7 @@ function sanitizeProject(proj){
       <!-- BILLING -->
       <div class="set-panel" id="setp-billing" style="display:none">
         <div style="display:flex;align-items:center;justify-content:space-between;"><div class="set-h" id="setp-billing-h">Assinatura</div><span id="set-plan-badge" style="font-size:10px;font-weight:700;color:#60a5fa;background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.3);border-radius:20px;padding:3px 10px;">FREE</span></div>
-        <div id="set-upgrade-wrap" style="margin-top:8px;"></div>
-        <div class="set-l" style="margin-top:20px" id="set-payment-label">Pagamento</div>
-        <div style="font-size:13px;color:var(--text3);margin-top:6px" id="set-payment-none">Nenhum método de pagamento cadastrado.</div>
+        <div id="billing-body" style="margin-top:10px;"></div>
       </div>
       <!-- USAGE -->
       <div class="set-panel" id="setp-usage" style="display:none">
