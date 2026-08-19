@@ -5202,9 +5202,9 @@ function commMentionsMe(content){
   return content.toLowerCase().indexOf("@"+me.name.trim().toLowerCase())>=0;
 }
 
-var PROMPT_PHOTO="You are a senior civil engineer and construction site expert. Analyze this construction site image and respond ONLY in {LANG} using EXACTLY this format with no markdown, no asterisks, no bold:\nTitre: [short precise title of the problem]\nCategorie: [ONE of: Structure / Electricite / Plomberie / Securite / Equipement / Documentation]\nSeverite: [ONE of: Faible / Moyen / Eleve / Critique]\nDescription: [2-4 sentences describing exactly what you see in the image - visible damage, materials affected, location, extent of the problem]\nCause: [2-3 sentences explaining the probable technical root cause based on engineering principles]\nSolution: [Numbered list of minimum 3 concrete action steps to fix this problem, based on engineering standards. Be specific and practical.]\nNormes: [List the exact applicable standards: BRAZIL use ABNT NBR (NBR 6118 for concrete structures, NBR 5410 for electrical, NBR 5626 for plumbing, NBR 8160 for sewage, NBR 14432 for fire, NBR 9050 for accessibility, NR-18 for site safety, NR-35 for work at height) | FRANCE use DTU and NF EN Eurocodes | EUROPE use EN Eurocodes. Always cite at least one standard relevant to the problem category.]\nSite: {PROJECT}";
+var PROMPT_PHOTO="You are a senior civil engineer and construction site expert. Analyze this construction site image and respond ONLY in {LANG} using EXACTLY this format with no markdown, no asterisks, no bold:\nTitre: [short precise title of the problem]\nCategorie: [pick the SINGLE best match from this exact list, copy the name verbatim: {CATEGORIES}]\nSeverite: [ONE of: Faible / Moyen / Eleve / Critique]\nDescription: [2-4 sentences describing exactly what you see in the image - visible damage, materials affected, location, extent of the problem]\nCause: [2-3 sentences explaining the probable technical root cause based on engineering principles]\nSolution: [Numbered list of minimum 3 concrete action steps to fix this problem, based on engineering standards. Be specific and practical.]\nNormes: [List the exact applicable standards: BRAZIL use ABNT NBR (NBR 6118 for concrete structures, NBR 5410 for electrical, NBR 5626 for plumbing, NBR 8160 for sewage, NBR 14432 for fire, NBR 9050 for accessibility, NR-18 for site safety, NR-35 for work at height) | FRANCE use DTU and NF EN Eurocodes | EUROPE use EN Eurocodes. Always cite at least one standard relevant to the problem category.]\nSite: {PROJECT}";
 
-var PROMPT_VOICE="You are a senior civil engineer and construction site expert. Transcribe and structure this voice note from a construction site. Respond ONLY in {LANG} using EXACTLY this format with no markdown, no asterisks:\nTitre: [short precise title]\nCategorie: [ONE of: Structure / Electricite / Plomberie / Securite / Equipement / Documentation]\nSeverite: [ONE of: Faible / Moyen / Eleve / Critique]\nDescription: [2-4 sentences describing the reported problem - what was said, materials affected, location]\nCause: [2-3 sentences explaining the probable technical root cause]\nSolution: [Numbered list of minimum 3 concrete action steps based on engineering standards]\nNormes: [BRAZIL: ABNT NBR relevant (NBR 6118 concrete, NBR 5410 electrical, NBR 5626 plumbing, NBR 8160 sewage, NBR 14432 fire, NR-18 site safety) | FRANCE: DTU and NF EN | EUROPE: EN Eurocodes. Always cite at least one relevant standard.]\nSite: {PROJECT}";
+var PROMPT_VOICE="You are a senior civil engineer and construction site expert. Transcribe and structure this voice note from a construction site. Respond ONLY in {LANG} using EXACTLY this format with no markdown, no asterisks:\nTitre: [short precise title]\nCategorie: [pick the SINGLE best match from this exact list, copy the name verbatim: {CATEGORIES}]\nSeverite: [ONE of: Faible / Moyen / Eleve / Critique]\nDescription: [2-4 sentences describing the reported problem - what was said, materials affected, location]\nCause: [2-3 sentences explaining the probable technical root cause]\nSolution: [Numbered list of minimum 3 concrete action steps based on engineering standards]\nNormes: [BRAZIL: ABNT NBR relevant (NBR 6118 concrete, NBR 5410 electrical, NBR 5626 plumbing, NBR 8160 sewage, NBR 14432 fire, NR-18 site safety) | FRANCE: DTU and NF EN | EUROPE: EN Eurocodes. Always cite at least one relevant standard.]\nSite: {PROJECT}";
 
 
 function saveKey(){
@@ -5339,7 +5339,7 @@ async function handlePhoto(input){
   var locStr=projObj&&projObj.location?" ("+projObj.location+")":"";
   var langFull=["French","English","Portuguese"][lang]||"English";
   var docContext=getProjectDocContext(proj);
-  var prompt=PROMPT_PHOTO.replace("{PROJECT}",proj+locStr+(docContext?"\n\nAvailable project documents:"+docContext:"")).replace("{LANG}",langFull);
+  var prompt=PROMPT_PHOTO.replace("{PROJECT}",proj+locStr+(docContext?"\n\nAvailable project documents:"+docContext:"")).replace("{LANG}",langFull).replace("{CATEGORIES}",_aiCategoryList());
   var reader=new FileReader();
   reader.onload=async function(e){
     window._lastPhotoData=e.target.result;
@@ -5427,7 +5427,7 @@ async function processVoice(){
   var projObj=projects.filter(function(p){return p.name===proj;})[0];
   var locStr=projObj&&projObj.location?" ("+projObj.location+")":"";
   var langFull=["French","English","Portuguese"][lang]||"English";
-  var prompt=PROMPT_VOICE.replace("{PROJECT}",proj+locStr).replace("{LANG}",langFull);
+  var prompt=PROMPT_VOICE.replace("{PROJECT}",proj+locStr).replace("{LANG}",langFull).replace("{CATEGORIES}",_aiCategoryList());
   var blob=new Blob(chunks,{type:"audio/webm"});
   var reader=new FileReader();
   reader.onload=async function(e){
@@ -5508,8 +5508,14 @@ function declineAI(){
 }
 
 function canonCat(raw){
-  // Preserve a user's custom folder value exactly (don't fold it into a built-in)
-  try{if(raw){var fl=pillierFolders();for(var _i=0;_i<fl.length;_i++){if(!fl[_i].builtin&&fl[_i].value===raw)return raw;}}}catch(_e){}
+  // Match the AI's answer against the user's actual folders (custom first, then
+  // renamed built-ins) so a capture lands in a customer-created folder too.
+  try{
+    var fl=pillierFolders(); var nr=normCat(raw);
+    for(var _i=0;_i<fl.length;_i++){if(!fl[_i].builtin&&fl[_i].value===raw)return raw;}
+    for(var _c=0;_c<fl.length;_c++){if(!fl[_c].builtin&&nr&&normCat(fl[_c].name)===nr)return fl[_c].value;}
+    for(var _b=0;_b<fl.length;_b++){if(fl[_b].builtin&&nr&&normCat(fl[_b].name)===nr)return fl[_b].value;}
+  }catch(_e){}
   var s=(raw||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z]/g,"");
   if(s.match(/struct|estru/))return "Structure";
   if(s.match(/elec|elet/))return "\u00c9lectricit\u00e9";
@@ -5854,6 +5860,11 @@ function pillierFolders(){
   });
   custom.forEach(function(c){list.push({value:c.value,icon:c.icon||"📁",name:c.name,builtin:false});});
   return list;
+}
+// Category list handed to the AI so it can classify into the user's own folders
+function _aiCategoryList(){
+  try{var n=pillierFolders().map(function(f){return f.name;});return n.length?n.join(" / "):"Structure / Electricite / Plomberie / Securite / Equipement / Documentation";}
+  catch(e){return "Structure / Electricite / Plomberie / Securite / Equipement / Documentation";}
 }
 function _folderEntries(){return (typeof activeSiteEntries==="function")?activeSiteEntries():entries;}
 function _folderCount(f){
