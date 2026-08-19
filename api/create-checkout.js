@@ -37,6 +37,11 @@ export default async function handler(req, res) {
     // If the card is later removed/invalid, cancel rather than leave unpaid.
     params.append('subscription_data[trial_settings][end_behavior][missing_payment_method]', 'cancel');
   }
+  // Tag the plan on both the session and the subscription so the webhook can
+  // resolve it without a price lookup.
+  params.append('metadata[plan]', plan);
+  params.append('subscription_data[metadata][plan]', plan);
+  params.append('subscription_data[metadata][app]', 'pillier');
   params.append('success_url', origin + '/?checkout=success&plan=' + encodeURIComponent(plan) + (isTrial ? '&trial=1' : ''));
   params.append('cancel_url', origin + '/?checkout=cancel');
   if (email) params.append('customer_email', email);
