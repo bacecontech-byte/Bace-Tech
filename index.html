@@ -675,11 +675,12 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
 .pv-team{display:flex;flex-wrap:wrap;gap:6px;}
 .pv-chip{display:inline-flex;align-items:center;gap:5px;background:var(--blue-light);border:1px solid rgba(96,165,250,0.25);color:var(--blue);border-radius:6px;padding:3px 9px;font-size:12px;}
 .pv-empty{font-size:12px;color:var(--text3);font-style:italic;}
-.pv-status-switch{display:inline-flex;gap:4px;margin-top:10px;background:var(--navy3);border:1px solid var(--border2);border-radius:999px;padding:3px;}
-.pv-status-opt{border:none;background:none;color:var(--text2);font-size:12px;font-weight:600;padding:5px 12px;border-radius:999px;cursor:pointer;font-family:var(--font-b);transition:all .12s;display:inline-flex;align-items:center;gap:5px;}
-.pv-status-opt .pill-dot{width:7px;height:7px;border-radius:50%;}
-.pv-status-opt:hover{color:var(--white);}
-.pv-status-opt.active{background:var(--navy2);color:var(--white);box-shadow:0 1px 3px rgba(0,0,0,0.3);}
+.pv-status-btn{display:inline-flex;align-items:center;gap:7px;background:var(--navy3);border:1px solid var(--border2);border-radius:999px;padding:5px 12px;cursor:pointer;position:relative;}
+.pv-status-btn:hover{border-color:var(--blue);}
+.pv-status-btn .pill-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.pv-status-btn select{appearance:none;-webkit-appearance:none;border:none;background:none;color:var(--white);font-family:var(--font-b);font-size:12px;font-weight:700;letter-spacing:.03em;cursor:pointer;outline:none;padding-right:2px;}
+.pv-status-btn select option{background:var(--navy2);color:var(--white);font-weight:600;}
+.pv-status-btn i{font-size:13px;color:var(--text3);pointer-events:none;}
 .pv-inline-s{width:100%;background:var(--navy3);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;font-family:var(--font-b);font-size:13px;color:var(--white);outline:none;cursor:pointer;margin-top:2px;}
 .pv-inline-s:focus{border-color:var(--blue);}
 .chat-wrap{display:flex;flex-direction:row;gap:20px;height:calc(100vh - 110px);position:relative;}
@@ -4931,16 +4932,16 @@ function openProjectDetails(id){
     ?"<div class='pv-metric crit'><b>"+mt.critical+"</b><span>"+plL("critiques","critical","críticos")+"</span></div>"
     :(mt.high>0?"<div class='pv-metric high'><b>"+mt.high+"</b><span>"+plL("élevés","high","altos")+"</span></div>"
                 :"<div class='pv-metric'><b>0</b><span>"+plL("critiques","critical","críticos")+"</span></div>");
-  var switchStatuses=["active","completed","paused"];
-  var switchHtml="<div class='pv-status-switch'>"+switchStatuses.map(function(s){
-    var sm=PROJ_STATUS_META[s]||PROJ_STATUS_META.active;
-    return "<button type='button' class='pv-status-opt"+(s===st?" active":"")+"' onclick=\"pmSetStatus('"+String(p.id)+"','"+s+"')\"><span class='pill-dot' style='background:"+sm.dot+"'></span>"+escapeHTML(projStatusLabelFull(s))+"</button>";
-  }).join("")+"</div>";
+  // single status control: one dropdown to send the project to Active / Paused / Completed
+  var STATUS_OPTS=["active","paused","completed"];
+  var statusSelect="<label class='pv-status-btn'><span class='pill-dot' style='background:"+stm.dot+"'></span>"
+    +"<select onchange=\"pmSetStatus('"+String(p.id)+"',this.value)\">"
+    +STATUS_OPTS.map(function(s){return "<option value=\""+s+"\""+(s===st?" selected":"")+">"+escapeHTML(projStatusLabelFull(s))+"</option>";}).join("")
+    +"</select><i class='ti ti-chevron-down'></i></label>";
   document.getElementById("pv-hero").innerHTML=
-    "<span class='pv-status'><span class='pill-dot' style='background:"+stm.dot+"'></span>"+escapeHTML(projStatusLabelFull(st))+"</span>"
+    statusSelect
     +"<div class='pv-name'>"+escapeHTML(p.name)+"</div>"
     +"<div class='pv-sub'>"+escapeHTML(projSubtitle(p))+"</div>"
-    +switchHtml
     +"<div class='pv-metrics'>"+critMetric
     +"<div class='pv-metric'><b>"+mt.open+"</b><span>"+plL("ouverts","open","abertos")+"</span></div>"
     +"<div class='pv-metric'><b>"+mt.people+"</b><span>"+plL("personnes","people","pessoas")+"</span></div></div>";
