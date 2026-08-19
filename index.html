@@ -2065,7 +2065,7 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
     <!-- Menu (Claude-style list) -->
     <button class="pp-item" onclick="closeProfilePanel(event);openSettingsModal()"><i class="ti ti-settings"></i><span id="sidebar-settings-label">Configurações</span></button>
     <button class="pp-item" onclick="closeProfilePanel(event);showContentPage(2)"><i class="ti ti-arrow-up-circle"></i><span id="pp-upgrade">Upgrade plan</span></button>
-    <button class="pp-item" onclick="closeProfilePanel(event);openSettingsModal()"><i class="ti ti-users"></i><span id="pp-team">Invite team</span></button>
+    <button class="pp-item" onclick="closeProfilePanel(event);openTeamModal()"><i class="ti ti-users"></i><span id="pp-team">Invite team</span></button>
     <button class="pp-item" onclick="window.location.href='mailto:contact@pillier.com.br'"><i class="ti ti-help-circle"></i><span id="pp-help">Get help</span></button>
     <div class="pp-divider"></div>
     <!-- AI status -->
@@ -2087,6 +2087,18 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
 .pp-seg .lang-pref-btn.active{background:rgba(96,165,250,0.15);border-color:#60a5fa;color:#60a5fa;}
 .pp-seg .lang-pref-btn i{font-size:14px;}
 .pp-divider{height:1px;background:var(--border);margin:8px 0;}
+.set-navbtn{display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:var(--text2);font-family:var(--font-b);font-size:13px;padding:9px 10px;border-radius:8px;cursor:pointer;text-align:left;margin-bottom:2px;}
+.set-navbtn:hover{background:rgba(255,255,255,0.04);color:var(--text);}
+.set-navbtn.active{background:rgba(96,165,250,0.12);color:#60a5fa;}
+.set-navbtn i{font-size:17px;width:20px;text-align:center;flex-shrink:0;}
+.set-h{font-family:var(--font-d);font-size:18px;font-weight:800;color:var(--text);margin-bottom:16px;}
+.set-l{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;}
+.set-v{font-size:14px;color:var(--text);}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.set-toggle{width:40px;height:22px;border-radius:20px;border:none;cursor:pointer;position:relative;flex-shrink:0;background:rgba(255,255,255,0.12);transition:background 0.15s;}
+.set-toggle.on{background:#60a5fa;}
+.set-toggle::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left 0.15s;}
+.set-toggle.on::after{left:20px;}
 </style>
 <div class="toast" id="toast"></div>
 <script>
@@ -7213,28 +7225,57 @@ window.addEventListener("hashchange",function(){
 });
 
 // ── Settings Modal ───────────────────────────────────────────────────────
+var _settingsSection="general";
+function setSettingsSection(key){
+  _settingsSection=key;
+  ["general","account","privacy","billing","usage","custom"].forEach(function(k){
+    var p=document.getElementById("setp-"+k);if(p)p.style.display=(k===key)?"block":"none";
+    var n=document.getElementById("setnav-"+k);if(n)n.classList.toggle("active",k===key);
+  });
+}
+function _t3(en,fr,pt){return lang===1?en:lang===0?fr:pt;}
 function openSettingsModal(){
   var ov=document.getElementById("settings-modal-overlay");
   if(ov)ov.style.display="flex";
-  // Translate
-  var S=STRINGS[lang];
-  var t=document.getElementById("settings-modal-title");
-  if(t)t.textContent=S.navSettings||"Configurações";
-  var cl=document.getElementById("settings-cloud-label2");
-  if(cl)cl.textContent=S.settingsCloud||"Armazenamento em nuvem";
-  var cd=document.getElementById("cloud-desc2");
-  if(cd)cd.textContent=S.cloudDesc||"Conecte o armazenamento da sua empresa para sincronizar automaticamente os incidentes.";
-  // Section labels (Account / Plan / Team / Notifications)
   var lbl=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
-  lbl("set-account-label",lang===1?"Account":lang===2?"Conta":"Compte");
-  lbl("set-name-label",lang===1?"Name":lang===2?"Nome":"Nom");
-  lbl("set-email-label",lang===1?"Email":lang===2?"E-mail":"E-mail");
-  lbl("set-role-label",lang===1?"Role":lang===2?"Função":"Rôle");
-  lbl("set-firm-label",lang===1?"Firm":lang===2?"Empresa":"Entreprise");
-  lbl("set-plan-label",lang===1?"Plan & usage":lang===2?"Plano e uso":"Forfait et usage");
-  lbl("set-team-label",lang===1?"Team members":lang===2?"Equipe":"Équipe");
-  lbl("set-invite","+ "+(lang===1?"Invite":lang===2?"Convidar":"Inviter"));
-  lbl("set-notif-label",lang===1?"Notifications":lang===2?"Notificações":"Notifications");
+  // Left-nav labels
+  lbl("settings-modal-title2",_t3("Settings","Paramètres","Configurações"));
+  lbl("setnav-general-l",_t3("General","Général","Geral"));
+  lbl("setnav-account-l",_t3("Account","Compte","Conta"));
+  lbl("setnav-privacy-l",_t3("Privacy","Confidentialité","Privacidade"));
+  lbl("setnav-billing-l",_t3("Billing","Facturation","Assinatura"));
+  lbl("setnav-usage-l",_t3("Usage","Usage","Uso"));
+  lbl("setnav-custom-l",_t3("Customization","Personnalisation","Personalização"));
+  // Panel headers + field labels
+  lbl("setp-general-h",_t3("Profile","Profil","Perfil"));
+  lbl("set-name-label",_t3("Name","Nom","Nome"));
+  lbl("set-nick-label",_t3("What to call you?","Comment vous appeler ?","Como chamar você?"));
+  lbl("set-lang-label",_t3("Language","Langue","Idioma"));
+  lbl("set-theme-label",_t3("Theme","Thème","Tema"));
+  lbl("setp-account-h",_t3("Account","Compte","Conta"));
+  lbl("set-email-label",_t3("Email","E-mail","E-mail"));
+  lbl("set-role-label",_t3("Role","Rôle","Função"));
+  lbl("set-firm-label",_t3("Firm","Entreprise","Empresa"));
+  lbl("set-logout",_t3("Log out","Déconnexion","Sair"));
+  lbl("setp-privacy-h",_t3("Privacy","Confidentialité","Privacidade"));
+  lbl("set-priv-loc",_t3("Location metadata","Métadonnées de localisation","Metadados de localização"));
+  lbl("set-priv-analytics",_t3("Help improve the product","Aider à améliorer le produit","Ajudar a melhorar o produto"));
+  lbl("setp-billing-h",_t3("Subscription","Abonnement","Assinatura"));
+  lbl("set-payment-label",_t3("Payment","Paiement","Pagamento"));
+  lbl("set-payment-none",_t3("No payment method on file.","Aucun moyen de paiement enregistré.","Nenhum método de pagamento cadastrado."));
+  lbl("setp-usage-h",_t3("Usage","Usage","Uso"));
+  lbl("settings-cloud-label2",_t3("Cloud storage","Stockage cloud","Armazenamento em nuvem"));
+  lbl("cloud-desc2",_t3("Connect your company storage to auto-sync incidents.","Connectez le stockage de votre entreprise pour synchroniser les incidents.","Conecte o armazenamento da sua empresa para sincronizar automaticamente os incidentes."));
+  setSettingsSection(_settingsSection||"general");
+  try{renderSettingsPlan();}catch(e){}
+}
+function closeTeamModal(){var ov=document.getElementById("team-modal-overlay");if(ov)ov.style.display="none";}
+function openTeamModal(){
+  var ov=document.getElementById("team-modal-overlay");if(ov)ov.style.display="flex";
+  var lbl=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
+  lbl("set-team-label",_t3("Team","Équipe","Equipe"));
+  lbl("set-invite","+ "+_t3("Invite","Inviter","Convidar"));
+  lbl("set-notif-label",_t3("Notifications","Notifications","Notificações"));
   try{renderSettingsPlan();}catch(e){}
 }
 // Populate the dynamic Settings sections (account, plan+usage, team, notifications)
@@ -7262,7 +7303,15 @@ function renderSettingsPlan(){
     tl.innerHTML="<div style='display:flex;align-items:center;gap:10px;padding:8px 0;'><div class='user-avatar' style='width:34px;height:34px;font-size:12px'>"+ini+"</div><div style='flex:1;min-width:0'><div style='font-size:13px;color:var(--white);font-weight:600'>"+nm+"</div><div style='font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>"+em+"</div></div><span style='font-size:10px;font-weight:700;color:var(--text2);background:rgba(255,255,255,0.05);border-radius:6px;padding:3px 8px;'>OWNER</span></div>";}
   var nl=g("set-notif-list");
   if(nl){var defs=[["crit",lang===1?"Critical incidents":lang===2?"Incidentes críticos":"Incidents critiques"],["weekly",lang===1?"Weekly summary":lang===2?"Resumo semanal":"Résumé hebdomadaire"],["team",lang===1?"Team activity":lang===2?"Atividade da equipe":"Activité de l'équipe"]];
-    nl.innerHTML=defs.map(function(d){var on=_notifPref(d[0]);return "<div style='display:flex;align-items:center;justify-content:space-between;padding:8px 0;'><span style='font-size:13px;color:var(--text)'>"+d[1]+"</span><button onclick=\"togNotif('"+d[0]+"')\" style='width:40px;height:22px;border-radius:20px;border:none;cursor:pointer;background:"+(on?"#60a5fa":"rgba(255,255,255,0.12)")+";position:relative;flex-shrink:0;'><span style='position:absolute;top:2px;left:"+(on?"20px":"2px")+";width:18px;height:18px;border-radius:50%;background:#fff;transition:left 0.15s;'></span></button></div>";}).join("");}
+    nl.innerHTML=defs.map(function(d){var on=_notifPref(d[0]);return "<div class='set-row'><span class='set-v'>"+d[1]+"</span><button onclick=\"togNotif('"+d[0]+"')\" class='set-toggle"+(on?" on":"")+"'></button></div>";}).join("");}
+  // General: nickname + language/theme active state
+  var first=((me&&me.name)||"").trim().split(/\s+/)[0]||"";
+  setTxt("set-nick",first);
+  [0,1,2].forEach(function(i){var b=g("pp-lang-"+i+"b");if(b)b.classList.toggle("active",i===lang);});
+  var _light=document.body.classList.contains("light-mode");
+  var td=g("theme-btn-dark2"),tlb=g("theme-btn-light2");
+  if(td)td.classList.toggle("active",!_light); if(tlb)tlb.classList.toggle("active",_light);
+  ["loc","analytics"].forEach(function(k){var b=g("tog-"+k);if(b)b.classList.toggle("on",_notifPref(k));});
 }
 function _notifPref(k){try{var v=localStorage.getItem("pillier_notif_"+k);return v===null?true:v==="1";}catch(e){return true;}}
 function togNotif(k){try{localStorage.setItem("pillier_notif_"+k,_notifPref(k)?"0":"1");}catch(e){}try{renderSettingsPlan();}catch(e){}}
@@ -7566,60 +7615,89 @@ function sanitizeProject(proj){
 </div>
 
 <!-- Settings Modal -->
+<!-- Settings modal (Claude-style: left nav + panels) -->
 <div id="settings-modal-overlay" onclick="if(event.target===this)closeSettingsModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#18181c;border:1px solid rgba(96,165,250,0.15);border-radius:16px;width:760px;max-width:94vw;height:560px;max-height:88vh;display:flex;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.5);">
+    <aside style="width:210px;flex-shrink:0;background:rgba(255,255,255,0.02);border-right:1px solid var(--border);padding:18px 12px;overflow-y:auto;">
+      <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:0 10px 10px;" id="settings-modal-title2">Configurações</div>
+      <button class="set-navbtn active" id="setnav-general" onclick="setSettingsSection('general')"><i class="ti ti-settings"></i><span id="setnav-general-l">General</span></button>
+      <button class="set-navbtn" id="setnav-account" onclick="setSettingsSection('account')"><i class="ti ti-user"></i><span id="setnav-account-l">Account</span></button>
+      <button class="set-navbtn" id="setnav-privacy" onclick="setSettingsSection('privacy')"><i class="ti ti-lock"></i><span id="setnav-privacy-l">Privacy</span></button>
+      <button class="set-navbtn" id="setnav-billing" onclick="setSettingsSection('billing')"><i class="ti ti-credit-card"></i><span id="setnav-billing-l">Billing</span></button>
+      <button class="set-navbtn" id="setnav-usage" onclick="setSettingsSection('usage')"><i class="ti ti-chart-bar"></i><span id="setnav-usage-l">Usage</span></button>
+      <button class="set-navbtn" id="setnav-custom" onclick="setSettingsSection('custom')"><i class="ti ti-adjustments"></i><span id="setnav-custom-l">Customization</span></button>
+    </aside>
+    <div style="flex:1;min-width:0;position:relative;overflow-y:auto;padding:26px 28px;">
+      <button onclick="closeSettingsModal()" style="position:absolute;top:16px;right:18px;background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;z-index:2;"><i class="ti ti-x"></i></button>
+      <!-- GENERAL -->
+      <div class="set-panel" id="setp-general">
+        <div class="set-h" id="setp-general-h">Perfil</div>
+        <div class="set-row"><span class="set-l" id="set-name-label">Nome</span><span class="set-v" id="set-name">—</span></div>
+        <div class="set-row"><span class="set-l" id="set-nick-label">Como chamar você?</span><span class="set-v" id="set-nick">—</span></div>
+        <div style="margin-top:18px"><div class="set-l" style="margin-bottom:8px" id="set-lang-label">Idioma</div>
+          <div class="pp-seg"><button onclick="changeLang(0)" id="pp-lang-0b" class="lang-pref-btn">&#x1F1EB;&#x1F1F7; FR</button><button onclick="changeLang(1)" id="pp-lang-1b" class="lang-pref-btn">&#x1F1EC;&#x1F1E7; EN</button><button onclick="changeLang(2)" id="pp-lang-2b" class="lang-pref-btn">&#x1F1E7;&#x1F1F7; PT</button></div></div>
+        <div style="margin-top:14px"><div class="set-l" style="margin-bottom:8px" id="set-theme-label">Tema</div>
+          <div class="pp-seg"><button onclick="setTheme('dark')" id="theme-btn-dark2" class="lang-pref-btn active"><i class="ti ti-moon"></i> Dark</button><button onclick="setTheme('light')" id="theme-btn-light2" class="lang-pref-btn"><i class="ti ti-sun"></i> Light</button></div></div>
+      </div>
+      <!-- ACCOUNT -->
+      <div class="set-panel" id="setp-account" style="display:none">
+        <div class="set-h" id="setp-account-h">Conta</div>
+        <div class="set-row"><span class="set-l" id="set-email-label">E-mail</span><span class="set-v" id="set-email">—</span></div>
+        <div class="set-row"><span class="set-l" id="set-role-label">Função</span><span class="set-v" id="set-role">—</span></div>
+        <div class="set-row"><span class="set-l" id="set-firm-label">Empresa</span><span class="set-v" id="set-firm">—</span></div>
+        <button onclick="doLogout()" style="margin-top:18px;background:none;border:1px solid var(--border2);color:var(--text2);border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:8px;" id="set-logout"><i class="ti ti-logout"></i> Sair</button>
+      </div>
+      <!-- PRIVACY -->
+      <div class="set-panel" id="setp-privacy" style="display:none">
+        <div class="set-h" id="setp-privacy-h">Privacidade</div>
+        <div style="font-size:13px;color:var(--text3);line-height:1.6;margin-bottom:10px" id="set-priv-desc">A Pillier protege seus dados. Seus incidentes e mídias são armazenados de forma segura e nunca compartilhados sem sua autorização.</div>
+        <div class="set-row"><span class="set-v" id="set-priv-loc">Metadados de localização</span><button onclick="togNotif('loc')" id="tog-loc" class="set-toggle"></button></div>
+        <div class="set-row"><span class="set-v" id="set-priv-analytics">Ajudar a melhorar o produto</span><button onclick="togNotif('analytics')" id="tog-analytics" class="set-toggle"></button></div>
+      </div>
+      <!-- BILLING -->
+      <div class="set-panel" id="setp-billing" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;"><div class="set-h" id="setp-billing-h">Assinatura</div><span id="set-plan-badge" style="font-size:10px;font-weight:700;color:#60a5fa;background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.3);border-radius:20px;padding:3px 10px;">FREE</span></div>
+        <div id="set-upgrade-wrap" style="margin-top:8px;"></div>
+        <div class="set-l" style="margin-top:20px" id="set-payment-label">Pagamento</div>
+        <div style="font-size:13px;color:var(--text3);margin-top:6px" id="set-payment-none">Nenhum método de pagamento cadastrado.</div>
+      </div>
+      <!-- USAGE -->
+      <div class="set-panel" id="setp-usage" style="display:none">
+        <div class="set-h" id="setp-usage-h">Uso</div>
+        <div id="set-usage-bars"></div>
+      </div>
+      <!-- CUSTOMIZATION (cloud storage) -->
+      <div class="set-panel" id="setp-custom" style="display:none">
+        <div class="set-h" id="settings-cloud-label2">Armazenamento em nuvem</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:14px" id="cloud-desc2">Conecte o armazenamento da sua empresa para sincronizar automaticamente os incidentes.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button onclick="connectCloud('google')" class="cloud-btn" id="cloud-google2" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;"><i class="ti ti-brand-google-drive" style="font-size:18px;color:#34a853;"></i> Google Drive</button>
+          <button onclick="connectCloud('onedrive')" class="cloud-btn" id="cloud-onedrive2" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;"><i class="ti ti-brand-onedrive" style="font-size:18px;color:#0078d4;"></i> OneDrive</button>
+          <button onclick="connectCloud('dropbox')" class="cloud-btn" id="cloud-dropbox2" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;"><i class="ti ti-brand-dropbox" style="font-size:18px;color:#0061fe;"></i> Dropbox</button>
+          <button onclick="connectCloud('s3')" class="cloud-btn" id="cloud-s32" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;"><i class="ti ti-brand-aws" style="font-size:18px;color:#ff9900;"></i> AWS S3</button>
+          <button onclick="connectCloud('gcp')" class="cloud-btn" id="cloud-gcp2" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;"><i class="ti ti-cloud" style="font-size:18px;color:#4285f4;"></i> GCP Storage</button>
+          <button onclick="connectCloud('webdav')" class="cloud-btn" id="cloud-webdav2" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;"><i class="ti ti-server" style="font-size:18px;color:#8b5cf6;"></i> On-premise</button>
+        </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+          <button onclick="syncAllToCloud();closeSettingsModal()" style="width:100%;padding:10px;background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.2);border-radius:8px;color:#60a5fa;font-size:12px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="ti ti-refresh" style="font-size:16px;"></i> <span id="sync-all-label">Sincronizar tudo agora</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Team modal (Convidar equipe): team + notifications only -->
+<div id="team-modal-overlay" onclick="if(event.target===this)closeTeamModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
   <div style="background:#18181c;border:1px solid rgba(96,165,250,0.15);border-radius:16px;padding:24px;width:420px;max-width:90vw;max-height:80vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,0.5);">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-      <div style="font-family:var(--font-d);font-size:18px;font-weight:800;color:var(--text);" id="settings-modal-title">Configurações</div>
-      <button onclick="closeSettingsModal()" style="background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;"><i class="ti ti-x"></i></button>
-    </div>
-    <!-- Account -->
-    <div style="margin-bottom:22px;">
-      <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px" id="set-account-label">Conta</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px" id="set-name-label">Nome</div><div style="background:rgba(255,255,255,0.03);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="set-name">—</div></div>
-        <div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px" id="set-email-label">E-mail</div><div style="background:rgba(255,255,255,0.03);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="set-email">—</div></div>
-        <div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px" id="set-role-label">Função</div><div style="background:rgba(255,255,255,0.03);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="set-role">—</div></div>
-        <div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px" id="set-firm-label">Empresa</div><div style="background:rgba(255,255,255,0.03);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="set-firm">—</div></div>
-      </div>
-    </div>
-    <!-- Plan & usage -->
-    <div style="margin-bottom:22px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;" id="set-plan-label">Plano e uso</div>
-        <span id="set-plan-badge" style="font-size:10px;font-weight:700;color:#60a5fa;background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.3);border-radius:20px;padding:3px 10px;">FREE</span>
-      </div>
-      <div id="set-usage-bars"></div>
-      <div id="set-upgrade-wrap" style="margin-top:12px;"></div>
-    </div>
-    <!-- Cloud storage -->
-    <div style="margin-bottom:22px;">
-      <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px" id="settings-cloud-label2">Armazenamento em nuvem</div>
-      <div style="font-size:12px;color:var(--text3);margin-bottom:12px" id="cloud-desc2">Conecte o armazenamento da sua empresa para sincronizar automaticamente os incidentes.</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <button onclick="connectCloud('google')" class="cloud-btn" id="cloud-google2" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;"><i class="ti ti-brand-google-drive" style="font-size:18px;color:#34a853;"></i> Google Drive</button>
-        <button onclick="connectCloud('onedrive')" class="cloud-btn" id="cloud-onedrive2" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;"><i class="ti ti-brand-onedrive" style="font-size:18px;color:#0078d4;"></i> OneDrive</button>
-        <button onclick="connectCloud('dropbox')" class="cloud-btn" id="cloud-dropbox2" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;"><i class="ti ti-brand-dropbox" style="font-size:18px;color:#0061fe;"></i> Dropbox</button>
-        <button onclick="connectCloud('s3')" class="cloud-btn" id="cloud-s32" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;"><i class="ti ti-brand-aws" style="font-size:18px;color:#ff9900;"></i> AWS S3</button>
-        <button onclick="connectCloud('gcp')" class="cloud-btn" id="cloud-gcp2" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;"><i class="ti ti-cloud" style="font-size:18px;color:#4285f4;"></i> GCP Storage</button>
-        <button onclick="connectCloud('webdav')" class="cloud-btn" id="cloud-webdav2" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;"><i class="ti ti-server" style="font-size:18px;color:#8b5cf6;"></i> On-premise</button>
-      <div style="margin-top:8px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
-                <button onclick="syncAllToCloud();closeSettingsModal()" style="width:100%;padding:10px;background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.2);border-radius:8px;color:#60a5fa;font-size:12px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="ti ti-refresh" style="font-size:16px;"></i> <span id="sync-all-label">Sincronizar tudo agora</span></button>
-              </div>
-            </div>
-    </div>
-    <!-- Team members -->
-    <div style="margin-bottom:22px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex:1;">
         <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;" id="set-team-label">Equipe</div>
-        <a onclick="inviteTeam()" style="font-size:12px;color:#60a5fa;cursor:pointer;" id="set-invite">+ Convidar</a>
+        <a onclick="inviteTeam()" style="font-size:12px;color:#60a5fa;cursor:pointer;margin-left:auto;" id="set-invite">+ Convidar</a>
       </div>
-      <div id="set-team-list"></div>
+      <button onclick="closeTeamModal()" style="background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;margin-left:12px;"><i class="ti ti-x"></i></button>
     </div>
-    <!-- Notifications -->
-    <div style="margin-bottom:4px;">
-      <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px" id="set-notif-label">Notificações</div>
-      <div id="set-notif-list"></div>
-    </div>
+    <div id="set-team-list"></div>
+    <div style="margin-top:20px;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px" id="set-notif-label">Notificações</div>
+    <div id="set-notif-list"></div>
   </div>
 </div>
 
