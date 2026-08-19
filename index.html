@@ -1912,49 +1912,53 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
 <!-- PROFILE PANEL -->
 <div id="profile-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:400;display:none;align-items:flex-end;justify-content:flex-start" onclick="closeProfilePanel(event)">
   <div id="profile-panel" style="background:var(--navy2);border:1px solid var(--border2);border-radius:16px;width:300px;margin:0 0 80px 16px;padding:24px;box-shadow:0 16px 48px rgba(0,0,0,0.5);animation:slideUp 0.2s ease" onclick="event.stopPropagation()">
-    <!-- User info -->
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)">
+    <!-- User header -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border)">
       <div class="user-avatar" id="pp-av" style="width:44px;height:44px;font-size:16px">?</div>
-      <div>
+      <div style="min-width:0">
         <div style="font-family:var(--font-d);font-size:14px;font-weight:700;color:var(--white)" id="pp-name">...</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px" id="pp-email">...</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="pp-email">...</div>
         <div style="font-size:11px;color:var(--text3)" id="pp-co">...</div>
       </div>
     </div>
-    <!-- Language preference -->
-    <div style="margin-bottom:20px">
-      <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px" id="pp-lang-label">Langue de l'interface</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-        <button onclick="changeLang(0)" id="pp-lang-0" class="lang-pref-btn" style="padding:9px;font-size:12px">&#x1F1EB;&#x1F1F7; FR</button>
-        <button onclick="changeLang(1)" id="pp-lang-1" class="lang-pref-btn" style="padding:9px;font-size:12px">&#x1F1EC;&#x1F1E7; EN</button>
-        <button onclick="changeLang(2)" id="pp-lang-2" class="lang-pref-btn" style="padding:9px;font-size:12px">&#x1F1E7;&#x1F1F7; PT</button>
-      </div>
+    <!-- Language (segmented) -->
+    <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin:2px 2px 8px" id="pp-lang-label">Langue de l'interface</div>
+    <div class="pp-seg" style="margin-bottom:10px">
+      <button onclick="changeLang(0)" id="pp-lang-0" class="lang-pref-btn">&#x1F1EB;&#x1F1F7; FR</button>
+      <button onclick="changeLang(1)" id="pp-lang-1" class="lang-pref-btn">&#x1F1EC;&#x1F1E7; EN</button>
+      <button onclick="changeLang(2)" id="pp-lang-2" class="lang-pref-btn">&#x1F1E7;&#x1F1F7; PT</button>
     </div>
-    <!-- Theme toggle -->
-    <div style="margin-bottom:20px">
-      <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px" id="pp-theme-label">Theme</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <button onclick="setTheme('dark')" id="theme-btn-dark" class="lang-pref-btn active" style="padding:9px;font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-moon" style="font-size:14px"></i> Dark</button>
-        <button onclick="setTheme('light')" id="theme-btn-light" class="lang-pref-btn" style="padding:9px;font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-sun" style="font-size:14px"></i> Light</button>
-      </div>
+    <!-- Theme (segmented) -->
+    <div class="pp-seg" style="margin-bottom:12px">
+      <button onclick="setTheme('dark')" id="theme-btn-dark" class="lang-pref-btn active"><i class="ti ti-moon"></i> Dark</button>
+      <button onclick="setTheme('light')" id="theme-btn-light" class="lang-pref-btn"><i class="ti ti-sun"></i> Light</button>
     </div>
-    <!-- AI Status -->
-    <div style="font-size:12px;color:var(--green);padding:8px 12px;border-radius:8px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);margin-bottom:16px">&#x2705; <span id="pp-ai-status">IA active et sécurisée</span></div>
-    <!-- Settings -->
-    <button onclick="closeProfilePanel(event);openSettingsModal()" id="pwa-settings-sidebar" style="width:100%;background:none;border:1px solid var(--border2);color:var(--text2);border-radius:8px;padding:10px;font-family:var(--font-b);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.12s;margin-bottom:8px" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'">
-      <i class="ti ti-settings"></i> <span id="sidebar-settings-label">Configurações</span>
-    </button>
-    <!-- Usage widget (Phase 1) -->
-    <div id="usage-widget-sidebar" style="margin:12px 0;padding:12px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;"></div>
-
+    <div class="pp-divider"></div>
+    <!-- Menu (Claude-style list) -->
+    <button class="pp-item" onclick="closeProfilePanel(event);openSettingsModal()"><i class="ti ti-settings"></i><span id="sidebar-settings-label">Configurações</span></button>
+    <button class="pp-item" onclick="closeProfilePanel(event);showContentPage(2)"><i class="ti ti-arrow-up-circle"></i><span id="pp-upgrade">Upgrade plan</span></button>
+    <button class="pp-item" onclick="closeProfilePanel(event);openSettingsModal()"><i class="ti ti-users"></i><span id="pp-team">Invite team</span></button>
+    <button class="pp-item" onclick="window.location.href='mailto:contact@pillier.com.br'"><i class="ti ti-help-circle"></i><span id="pp-help">Get help</span></button>
+    <div class="pp-divider"></div>
+    <!-- AI status -->
+    <div style="font-size:12px;color:var(--green);padding:8px 12px;border-radius:8px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);margin-bottom:10px">&#x2705; <span id="pp-ai-status">IA active et sécurisée</span></div>
+    <!-- Usage widget -->
+    <div id="usage-widget-sidebar" style="margin:0 0 10px;padding:12px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;"></div>
+    <div class="pp-divider"></div>
     <!-- Logout -->
-    <button onclick="doLogout()" style="width:100%;background:none;border:1px solid var(--border2);color:var(--text2);border-radius:8px;padding:10px;font-family:var(--font-b);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.12s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'">
-      <i class="ti ti-logout"></i> <span id="pp-logout">Déconnexion</span>
-    </button>
+    <button class="pp-item" onclick="doLogout()"><i class="ti ti-logout" style="color:var(--red)"></i><span id="pp-logout">Déconnexion</span></button>
   </div>
 </div>
 <style>
 @keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.pp-item{display:flex;align-items:center;gap:12px;width:100%;background:none;border:none;color:var(--text);font-family:var(--font-b);font-size:14px;padding:10px;border-radius:9px;cursor:pointer;text-align:left;transition:background 0.12s;}
+.pp-item:hover{background:rgba(255,255,255,0.05);}
+.pp-item i{font-size:18px;color:var(--text2);width:20px;text-align:center;flex-shrink:0;}
+.pp-seg{display:flex;gap:6px;}
+.pp-seg .lang-pref-btn{flex:1;background:var(--navy3);border:1px solid var(--border2);color:var(--text2);border-radius:8px;padding:8px 6px;font-size:12px;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:all 0.12s;}
+.pp-seg .lang-pref-btn.active{background:rgba(96,165,250,0.15);border-color:#60a5fa;color:#60a5fa;}
+.pp-seg .lang-pref-btn i{font-size:14px;}
+.pp-divider{height:1px;background:var(--border);margin:8px 0;}
 </style>
 <div class="toast" id="toast"></div>
 <script>
@@ -3696,6 +3700,11 @@ function applyLang(){
   var ppEl=document.getElementById("pp-lang-label");if(ppEl&&S.ppLangLabel)ppEl.textContent=S.ppLangLabel;
   var ppAi=document.getElementById("pp-ai-status");if(ppAi&&S.ppAiStatus)ppAi.textContent=S.ppAiStatus;
   var ppLo=document.getElementById("pp-logout");if(ppLo&&S.ppLogout)ppLo.textContent=S.ppLogout;
+  // Profile menu items (Claude-style)
+  var _ppSet=document.getElementById("sidebar-settings-label");if(_ppSet)_ppSet.textContent=(S.navSettings||"Configurações");
+  var _ppUp=document.getElementById("pp-upgrade");if(_ppUp)_ppUp.textContent=lang===1?"Upgrade plan":lang===2?"Atualizar plano":"Améliorer le forfait";
+  var _ppTeam=document.getElementById("pp-team");if(_ppTeam)_ppTeam.textContent=lang===1?"Invite your team":lang===2?"Convidar equipe":"Inviter l'équipe";
+  var _ppHelp=document.getElementById("pp-help");if(_ppHelp)_ppHelp.textContent=lang===1?"Get help":lang===2?"Obter ajuda":"Obtenir de l'aide";
   // Chat save/history buttons
   var chatBtnIds={"lbl-save-chat":"lblSaveChat","lbl-new-chat":"lblNewChat","lbl-history":"lblHistory"};
   Object.keys(chatBtnIds).forEach(function(id){var el=document.getElementById(id);if(el&&S[chatBtnIds[id]])el.textContent=S[chatBtnIds[id]];});
