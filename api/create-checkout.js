@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) return res.status(200).json({ ok: false, error: 'not_configured' });
 
-  const { plan, email } = req.body || {};
+  const { plan, email, trial } = req.body || {};
   const priceMap = {
     starter: process.env.STRIPE_PRICE_STARTER,
     pro: process.env.STRIPE_PRICE_PRO,
@@ -22,13 +22,22 @@ export default async function handler(req, res) {
   const price = priceMap[plan];
   if (!price) return res.status(200).json({ ok: false, error: 'no_price' });
 
+  const isTrial = !!trial;
   const origin = req.headers.origin || ('https://' + (req.headers.host || 'pillier.com.br'));
   const params = new URLSearchParams();
   params.append('mode', 'subscription');
   params.append('line_items[0][price]', price);
   params.append('line_items[0][quantity]', '1');
   params.append('allow_promotion_codes', 'true');
-  params.append('success_url', origin + '/?checkout=success&plan=' + encodeURIComponent(plan));
+  // Always collect a card up front — even for the free trial (no charge today).
+  params.append('payment_method_collection', 'always');
+  if (isTrial) {
+    // 30-day free trial: card required now, first charge after the trial ends.
+    params.append('subscription_data[trial_period_days]', '30');
+    // If the card is later removed/invalid, cancel rather than leave unpaid.
+    params.append('subscription_data[trial_settings][end_behavior][missing_payment_method]', 'cancel');
+  }
+  params.append('success_url', origin + '/?checkout=success&plan=' + encodeURIComponent(plan) + (isTrial ? '&trial=1' : ''));
   params.append('cancel_url', origin + '/?checkout=cancel');
   if (email) params.append('customer_email', email);
 

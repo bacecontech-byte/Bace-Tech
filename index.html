@@ -2021,11 +2021,10 @@ function _reflectPlan(){try{renderUsageWidgets();}catch(e){}try{renderChatUsageP
 function _persistPlan(planKey){try{if(typeof dbOk!=='undefined'&&dbOk&&me&&me.email){db.from('user_usage').update({plan:planKey}).eq('user_email',me.email).eq('month',pillierCurrentMonth()).then(function(){}).catch(function(){});}}catch(e){}}
 // Start a 30-day trial of a paid plan (no charge yet)
 function startTrial(planKey){
-  if(!PILLIER_PLANS[planKey]||planKey==='free')return;
-  _pUsage.plan=planKey;
-  try{localStorage.setItem('pillier_plan',planKey);localStorage.setItem('pillier_trial_end',String(Date.now()+_TRIAL_DAYS*_DAY_MS));localStorage.removeItem('pillier_paid');}catch(e){}
-  _persistPlan(planKey);_reflectPlan();
-  try{toast(_t3b('30-day trial started 🎉','Essai de 30 jours démarré 🎉','Teste de 30 dias iniciado 🎉'));}catch(e){}
+  if(!PILLIER_PLANS[planKey]||planKey==='free'||planKey==='enterprise')return;
+  // Card-upfront trial: collect payment details via Stripe Checkout before
+  // the trial activates. No charge today; the trial is activated on return.
+  startCheckout(planKey,true);
 }
 // Downgrade to Free (end trial / cancel)
 function downgradeFree(){
@@ -2035,10 +2034,10 @@ function downgradeFree(){
   try{toast(_t3b('Switched to Free','Passé au forfait Gratuit','Alterado para o plano Free'));}catch(e){}
 }
 // Commit: pay via Stripe Checkout
-async function startCheckout(planKey){
-  try{toast(_t3b('Redirecting to payment…','Redirection vers le paiement…','Redirecionando para o pagamento…'));}catch(e){}
+async function startCheckout(planKey,isTrial){
+  try{toast(isTrial?_t3b('Starting your free trial…','Démarrage de votre essai gratuit…','Iniciando seu teste gratuito…'):_t3b('Redirecting to payment…','Redirection vers le paiement…','Redirecionando para o pagamento…'));}catch(e){}
   try{
-    var r=await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:planKey,email:(me&&me.email)||''})});
+    var r=await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:planKey,trial:!!isTrial,email:(me&&me.email)||''})});
     var d=await r.json();
     if(d&&d.ok&&d.url){window.location.href=d.url;return;}
     if(d&&d.error==='not_configured'){toast(_t3b('Payment not set up yet — add Stripe keys in Vercel.','Paiement non configuré — ajoutez les clés Stripe.','Pagamento ainda não configurado — adicione as chaves Stripe.'));return;}
@@ -2053,10 +2052,17 @@ function _handleCheckoutReturn(){
     var st=p.get('checkout');
     if(st==='success'){
       var pl=p.get('plan')||'pro'; if(!PILLIER_PLANS[pl])pl='pro';
+      var wasTrial=p.get('trial')==='1';
       _pUsage.plan=pl;
-      try{localStorage.setItem('pillier_plan',pl);localStorage.setItem('pillier_paid','1');localStorage.removeItem('pillier_trial_end');}catch(e){}
-      _persistPlan(pl);_reflectPlan();
-      try{toast(_t3b('Payment confirmed — welcome to '+((PILLIER_PLANS[pl]||{}).label||'Pro')+'!','Paiement confirmé !','Pagamento confirmado — bem-vindo ao '+((PILLIER_PLANS[pl]||{}).label||'Pro')+'!'));}catch(e){}
+      if(wasTrial){
+        try{localStorage.setItem('pillier_plan',pl);localStorage.setItem('pillier_trial_end',String(Date.now()+_TRIAL_DAYS*_DAY_MS));localStorage.removeItem('pillier_paid');}catch(e){}
+        _persistPlan(pl);_reflectPlan();
+        try{toast(_t3b("Trial started — you won't be charged today 🎉","Essai démarré — aucun débit aujourd'hui 🎉","Teste iniciado — você não será cobrado hoje 🎉"));}catch(e){}
+      } else {
+        try{localStorage.setItem('pillier_plan',pl);localStorage.setItem('pillier_paid','1');localStorage.removeItem('pillier_trial_end');}catch(e){}
+        _persistPlan(pl);_reflectPlan();
+        try{toast(_t3b('Payment confirmed — welcome to '+((PILLIER_PLANS[pl]||{}).label||'Pro')+'!','Paiement confirmé !','Pagamento confirmado — bem-vindo ao '+((PILLIER_PLANS[pl]||{}).label||'Pro')+'!'));}catch(e){}
+      }
       history.replaceState({},'',location.pathname);
     } else if(st==='cancel'){ history.replaceState({},'',location.pathname); }
   }catch(e){}
@@ -6686,6 +6692,8 @@ function renderBilling(){
   var html="";
   if(trialing){
     html+="<div style='background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.3);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--text);line-height:1.5;'>"+_t3b("Trial: ","Essai : ","Teste: ")+"<b>"+tdays+" "+_t3b("days left","jours restants","dias restantes")+"</b> — "+_t3b("commit to keep your plan or you'll return to Free.","engagez-vous ou vous repasserez au Gratuit.","confirme para manter seu plano ou você voltará ao Free.")+"</div>";
+  } else if(cur==="free"){
+    html+="<div style='background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12.5px;color:var(--text);line-height:1.6;'><b>"+_t3b("Start your 30-day free trial.","Démarrez votre essai gratuit de 30 jours.","Comece seu teste gratuito de 30 dias.")+"</b><br>"+_t3b("You will not be charged today. A card is required. Cancel anytime before the trial ends.","Aucun débit aujourd'hui. Une carte est requise. Annulez à tout moment avant la fin de l'essai.","Você não será cobrado hoje. É necessário um cartão. Cancele quando quiser antes do fim do teste.")+"</div>";
   }
   order.forEach(function(k){
     var isCur=(k===cur);
