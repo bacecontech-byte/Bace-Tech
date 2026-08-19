@@ -675,12 +675,10 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
 .pv-team{display:flex;flex-wrap:wrap;gap:6px;}
 .pv-chip{display:inline-flex;align-items:center;gap:5px;background:var(--blue-light);border:1px solid rgba(96,165,250,0.25);color:var(--blue);border-radius:6px;padding:3px 9px;font-size:12px;}
 .pv-empty{font-size:12px;color:var(--text3);font-style:italic;}
-.pv-status-btn{display:inline-flex;align-items:center;gap:7px;background:var(--navy3);border:1px solid var(--border2);border-radius:999px;padding:5px 12px;cursor:pointer;position:relative;}
-.pv-status-btn:hover{border-color:var(--blue);}
-.pv-status-btn .pill-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.pv-status-btn select{appearance:none;-webkit-appearance:none;border:none;background:none;color:var(--white);font-family:var(--font-b);font-size:12px;font-weight:700;letter-spacing:.03em;cursor:pointer;outline:none;padding-right:2px;}
-.pv-status-btn select option{background:var(--navy2);color:var(--white);font-weight:600;}
-.pv-status-btn i{font-size:13px;color:var(--text3);pointer-events:none;}
+.pv-status-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.pv-mark-btn{display:inline-flex;align-items:center;gap:6px;background:var(--navy3);border:1px solid var(--border2);color:var(--text);font-family:var(--font-b);font-size:12px;font-weight:600;padding:6px 13px;border-radius:999px;cursor:pointer;transition:all .12s;}
+.pv-mark-btn:hover{border-color:var(--blue);color:var(--white);background:var(--blue-light);}
+.pv-mark-btn .pill-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 .pv-inline-s{width:100%;background:var(--navy3);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;font-family:var(--font-b);font-size:13px;color:var(--white);outline:none;cursor:pointer;margin-top:2px;}
 .pv-inline-s:focus{border-color:var(--blue);}
 .chat-wrap{display:flex;flex-direction:row;gap:20px;height:calc(100vh - 110px);position:relative;}
@@ -4921,9 +4919,9 @@ function fmtDateStr(d){if(!d)return "";var t=Date.parse(d);if(isNaN(t))return d;
 function openProjectDetails(id){
   var p=projects.find(function(x){return String(x.id)===String(id);});
   if(!p){toast("❌");return;}
-  p=p._meta?p:pmMerge(p);
-  var m=p._meta||{};
-  var st=(m.status)||p.status||"active";
+  // always read the latest saved meta (never a stale cached copy)
+  var m=pmGetMeta(p.id);
+  var st=m.status||p.status||"active";
   var stm=PROJ_STATUS_META[st]||PROJ_STATUS_META.active;
   var mt=projMetrics(p);
   document.getElementById("pv-modal-title").textContent=plL("Détails du projet","Project details","Detalhes do projeto");
@@ -4932,14 +4930,15 @@ function openProjectDetails(id){
     ?"<div class='pv-metric crit'><b>"+mt.critical+"</b><span>"+plL("critiques","critical","críticos")+"</span></div>"
     :(mt.high>0?"<div class='pv-metric high'><b>"+mt.high+"</b><span>"+plL("élevés","high","altos")+"</span></div>"
                 :"<div class='pv-metric'><b>0</b><span>"+plL("critiques","critical","críticos")+"</span></div>");
-  // single status control: one dropdown to send the project to Active / Paused / Completed
+  // current status pill + one action button per other status ("Mark as …")
   var STATUS_OPTS=["active","paused","completed"];
-  var statusSelect="<label class='pv-status-btn'><span class='pill-dot' style='background:"+stm.dot+"'></span>"
-    +"<select onchange=\"pmSetStatus('"+String(p.id)+"',this.value)\">"
-    +STATUS_OPTS.map(function(s){return "<option value=\""+s+"\""+(s===st?" selected":"")+">"+escapeHTML(projStatusLabelFull(s))+"</option>";}).join("")
-    +"</select><i class='ti ti-chevron-down'></i></label>";
+  var markBtns=STATUS_OPTS.filter(function(s){return s!==st;}).map(function(s){
+    var sm=PROJ_STATUS_META[s]||PROJ_STATUS_META.active;
+    return "<button type='button' class='pv-mark-btn' onclick=\"pmSetStatus('"+String(p.id)+"','"+s+"')\"><span class='pill-dot' style='background:"+sm.dot+"'></span>"+plL("Marquer comme ","Mark as ","Marcar como ")+escapeHTML(projStatusLabelFull(s))+"</button>";
+  }).join("");
+  var statusRow="<div class='pv-status-row'><span class='pv-status'><span class='pill-dot' style='background:"+stm.dot+"'></span>"+escapeHTML(projStatusLabelFull(st))+"</span>"+markBtns+"</div>";
   document.getElementById("pv-hero").innerHTML=
-    statusSelect
+    statusRow
     +"<div class='pv-name'>"+escapeHTML(p.name)+"</div>"
     +"<div class='pv-sub'>"+escapeHTML(projSubtitle(p))+"</div>"
     +"<div class='pv-metrics'>"+critMetric
@@ -4983,9 +4982,13 @@ function closeProjectDetails(){document.getElementById("proj-view-overlay").clas
 // Inline quick-edit from the details view (phase, dates, status) — saves immediately
 function pmQuickUpdate(id,patch){
   pmSetMeta(id,patch);
-  if(dbOk&&dbCoId&&(patch.location||patch.owner)){try{db.from("projects").update(patch).eq("id",id).then(function(){},function(){});}catch(e){}}
   var idx=projects.findIndex(function(p){return String(p.id)===String(id);});
-  if(idx>=0)projects[idx]=pmMerge(Object.assign({},projects[idx]));
+  if(idx>=0){
+    var p=projects[idx];
+    // rebuild from the clean DB core so fresh meta (status/phase/date) is not shadowed by a stale cached copy
+    var core={id:p.id,name:p.name,location:p.location,owner:p.owner,company_id:p.company_id,created_at:p.created_at};
+    projects[idx]=pmMerge(core);
+  }
   renderProjects();
   openProjectDetails(id);
   toast(plL("Mis à jour","Updated","Atualizado"));
