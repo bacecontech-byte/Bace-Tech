@@ -6972,22 +6972,29 @@ async function processDoc(file,proj){
       showLoad(false);
 
       var docId=Date.now()+"_"+Math.random().toString(36).substring(2,7);
-      var fileUrl=null;
+      var fileUrl=null, storeFailed=false;
 
       if(dbOk&&dbCoId){
         try{
-          var slug=me.co.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"");
-          var projSlug=proj.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"");
-          var storePath=slug+"/"+projSlug+"/"+Date.now()+"_"+file.name;
-          var uploadR=await db.storage.from("doc-files").upload(storePath,file,{upsert:true,contentType:file.type});
-          if(!uploadR.error)fileUrl=storePath;
-        }catch(upErr){console.error("File upload error:",upErr);}
+          var slug=(me.co||"co").toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"");
+          var projSlug=(proj||"geral").toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"");
+          var safeName=file.name.replace(/[^\w.\-]+/g,"_");
+          var storePath=slug+"/"+projSlug+"/"+Date.now()+"_"+safeName;
+          var opts={upsert:true,contentType:file.type||"application/octet-stream"};
+          var uploadR=await db.storage.from("doc-files").upload(storePath,file,opts);
+          if(uploadR.error){ // one retry (transient errors)
+            uploadR=await db.storage.from("doc-files").upload(storePath,file,opts);
+          }
+          if(!uploadR.error){fileUrl=storePath;}
+          else {storeFailed=true;console.error("Doc storage upload failed:",uploadR.error);}
+        }catch(upErr){storeFailed=true;console.error("File upload error:",upErr);}
       }
 
       var doc={id:docId,name:file.name,project:proj,type:file.type,size:Math.round(file.size/1024)+"KB",summary:"["+totalPages+" pages] "+finalSummary,date:new Date().toLocaleDateString("fr-FR"),file_url:fileUrl,localArrayBuffer:localArrayBuffer};
       if(!projectDocs[proj])projectDocs[proj]=[];
       projectDocs[proj].unshift(doc);
 
+      if(storeFailed){try{toast(_t3("Analysis saved, but the file couldn't be stored on the server — check the doc-files bucket.","Analyse enregistrée, mais le fichier n'a pas pu être stocké — vérifiez le bucket doc-files.","Análise salva, mas o arquivo não pôde ser armazenado — verifique o bucket doc-files."));}catch(e){}}
       if(dbOk&&dbCoId){
         var ins=await db.from("project_documents").insert({company_id:dbCoId,project:proj,name:file.name,summary:doc.summary,file_type:file.type,file_size:doc.size,uploaded_by:me.name,file_url:fileUrl}).select();incrementPillierUsage("documents");
         if(ins.data&&ins.data[0])doc.id=ins.data[0].id;
@@ -7278,20 +7285,36 @@ async function openDocViewer(docId){
 
   // If we have a stored file URL, load from Supabase Storage
   if(doc.file_url&&dbOk){
+    // 1) Authenticated download (works for private buckets with a read policy)
     try{
       var r=await db.storage.from("doc-files").download(doc.file_url);
-      if(r.data){
+      if(r&&r.data){
         var arrayBuffer=await r.data.arrayBuffer();
         if(doc.name.toLowerCase().endsWith(".pdf")){
           await renderPDFViewer(arrayBuffer,doc.name);
         } else {
           var blob=new Blob([arrayBuffer],{type:doc.type||"image/png"});
-          var url=URL.createObjectURL(blob);
-          document.getElementById("doc-viewer-body").innerHTML="<img src='"+url+"' style='max-width:100%;border-radius:8px'>";
+          document.getElementById("doc-viewer-body").innerHTML="<img src='"+URL.createObjectURL(blob)+"' style='max-width:100%;border-radius:8px'>";
         }
         return;
       }
     }catch(e){console.error("Storage load error:",e);}
+    // 2) Public URL (works if the bucket is public)
+    try{
+      var pu=db.storage.from("doc-files").getPublicUrl(doc.file_url);
+      var purl=pu&&pu.data&&pu.data.publicUrl;
+      if(purl){
+        var pr=await fetch(purl);
+        if(pr.ok){
+          if(doc.name.toLowerCase().endsWith(".pdf")){
+            await renderPDFViewer(await pr.arrayBuffer(),doc.name);
+          } else {
+            document.getElementById("doc-viewer-body").innerHTML="<img src='"+purl+"' style='max-width:100%;border-radius:8px'>";
+          }
+          return;
+        }
+      }
+    }catch(e2){console.error("Public URL load error:",e2);}
   }
 
   // Use locally stored arrayBuffer for immediate viewing
@@ -7309,6 +7332,17 @@ async function openDocViewer(docId){
     return;
   }
 
+  // Last resort: a signed link so the file can still be opened in a new tab
+  if(doc.file_url&&dbOk){
+    try{
+      var sg=await db.storage.from("doc-files").createSignedUrl(doc.file_url,3600);
+      var su=sg&&sg.data&&sg.data.signedUrl;
+      if(su){
+        document.getElementById("doc-viewer-body").innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F4C4;</div><div class='empty-text' style='margin-bottom:12px'>"+_t3("Inline preview unavailable — open the file directly:","Aperçu indisponible — ouvrez le fichier directement :","Pré-visualização indisponível — abra o arquivo diretamente:")+"</div><a href='"+su+"' target='_blank' rel='noopener' style='display:inline-block;background:#60a5fa;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;'>"+_t3("Open document","Ouvrir le document","Abrir documento")+"</a></div>";
+        return;
+      }
+    }catch(e){console.error("Signed URL error:",e);}
+  }
   document.getElementById("doc-viewer-body").innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F4C1;</div><div class='empty-text'>"+(STRINGS[lang].docViewerNoFile||"Fichier non disponible. Re-importez le document.")+"</div></div>";
 }
 
