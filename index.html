@@ -6890,36 +6890,52 @@ async function processDoc(file,proj){
         var d1=await r1.json();
         if(d1.choices&&d1.choices[0])pageSummaries.push(d1.choices[0].message.content);
 
-        // Pass 2: Quadrant zoom ONLY for documents ≤ 5 pages (detailed plans)
-        if(totalPages<=5){
-          var quadrants=[
-            {x:0,y:0,label:"top-left"},{x:0.5,y:0,label:"top-right"},
-            {x:0,y:0.5,label:"bottom-left"},{x:0.5,y:0.5,label:"bottom-right"}
-          ];
-          // Process 2 quadrants at a time (parallel)
-          for(var qBatch=0;qBatch<quadrants.length;qBatch+=2){
-            var batch=quadrants.slice(qBatch,qBatch+2);
-            updateProgress(pageNum,"Zone "+(qBatch+1)+"-"+(qBatch+2)+"/4");
-            var promises=batch.map(function(quad){
-              var qCanvas=document.createElement("canvas");
-              qCanvas.width=Math.floor(canvas.width/2);
-              qCanvas.height=Math.floor(canvas.height/2);
-              var qCtx=qCanvas.getContext("2d");
-              qCtx.drawImage(canvas,Math.floor(canvas.width*quad.x),Math.floor(canvas.height*quad.y),
-                Math.floor(canvas.width/2),Math.floor(canvas.height/2),0,0,qCanvas.width,qCanvas.height);
-              var qImg=qCanvas.toDataURL("image/jpeg",0.90);
-              return fetch("/api/gemini",{
-                method:"POST",headers:{"Content-Type":"application/json"},
-                body:JSON.stringify({messages:[{role:"user",content:[
-                  {type:"image_url",image_url:{url:qImg}},
-                  {type:"text",text:"You are a senior civil engineer. This is the "+quad.label+" zone of page "+pageNum+". List EVERY number, dimension, text, label, annotation you can read. Be exhaustive."}
-                ]}],max_tokens:2048})
-              }).then(function(r){return r.json();}).then(function(d){
-                if(d.choices&&d.choices[0])return "[Zone "+quad.label+"]: "+d.choices[0].message.content;
-                return "";
-              }).catch(function(){return "";});
+        // Pass 2: High-resolution tiling — read fine detail on large-format
+        // sheets (A2/A1/A0). Each tile is rendered DIRECTLY from the PDF at
+        // ~250 DPI (not cropped from a shrunk page), so small dimensions,
+        // callouts and annotations stay legible. Grid scales with sheet size;
+        // tiles overlap so text on a seam isn't lost. Small docs keep a 2×2 grid.
+        var vp1=page.getViewport({scale:1});
+        var longPt=Math.max(vp1.width,vp1.height);
+        var largeFormat=longPt>1600; // bigger than A3 → a real plan sheet
+        if(largeFormat||totalPages<=5){
+          var cols,rows;
+          if(largeFormat){
+            cols=Math.min(3,Math.max(2,Math.round(vp1.width/850)));
+            rows=Math.min(4,Math.max(2,Math.round(vp1.height/850)));
+          } else { cols=2; rows=2; }
+          var hiScale=largeFormat?3.5:Math.max(scale,3.0); // ≈250 DPI on big sheets
+          var hiVp=page.getViewport({scale:hiScale});
+          var fullW=hiVp.width, fullH=hiVp.height;
+          var tw=fullW/cols, th=fullH/rows, ov=0.08; // 8% overlap between tiles
+          var tileJobs=[];
+          for(var ry=0;ry<rows;ry++){for(var cx=0;cx<cols;cx++){
+            var ox=Math.max(0,tw*cx-tw*ov), oy=Math.max(0,th*ry-th*ov);
+            var ex=Math.min(fullW,tw*(cx+1)+tw*ov), ey=Math.min(fullH,th*(ry+1)+th*ov);
+            tileJobs.push({ox:ox,oy:oy,w:Math.floor(ex-ox),h:Math.floor(ey-oy),label:"linha "+(ry+1)+" col "+(cx+1)});
+          }}
+          for(var tb=0;tb<tileJobs.length;tb+=2){
+            var batch=tileJobs.slice(tb,tb+2);
+            updateProgress(pageNum,"Zoom "+Math.min(tb+2,tileJobs.length)+"/"+tileJobs.length);
+            // Render each tile region at full hi-res (sequential), then run the
+            // vision calls in parallel.
+            var imgs=[];
+            for(var bi=0;bi<batch.length;bi++){
+              var job=batch[bi];
+              var tCanvas=document.createElement("canvas");
+              tCanvas.width=job.w; tCanvas.height=job.h;
+              var tCtx=tCanvas.getContext("2d");
+              await page.render({canvasContext:tCtx,viewport:hiVp,transform:[1,0,0,1,-job.ox,-job.oy]}).promise;
+              imgs.push({img:tCanvas.toDataURL("image/jpeg",0.9),label:job.label});
+              tCanvas.width=tCanvas.height=0; // free memory
+            }
+            var proms=imgs.map(function(t){
+              return fetch("/api/gemini",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:[{role:"user",content:[
+                {type:"image_url",image_url:{url:t.img}},
+                {type:"text",text:"You are a senior civil engineer examining a high-resolution zoom ("+t.label+") of page "+pageNum+" of a construction drawing. Read EVERY number, dimension, tolerance, level/elevation, grid reference, room name and area, material callout, symbol, annotation and title-block text visible in this region. Transcribe them verbatim and exhaustively. If a value is cut off at an edge, say so. Do NOT summarize."}
+              ]}],max_tokens:2048})}).then(function(r){return r.json();}).then(function(d){return (d.choices&&d.choices[0])?("[Zoom "+t.label+"]: "+d.choices[0].message.content):"";}).catch(function(){return "";});
             });
-            var results=await Promise.all(promises);
+            var results=await Promise.all(proms);
             results.forEach(function(r){if(r)pageSummaries.push(r);});
           }
         }
