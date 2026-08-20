@@ -1904,15 +1904,7 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
               <option value="title-asc" id="ks-title">Title A-Z</option>
             </select>
           </div>
-          <div class="kb-controls" id="kb-controls">
-            <div class="kb-filter active" onclick="filterKB(-1,this)" id="kbf-all">Tout</div>
-            <div class="kb-filter" onclick="filterKB(0,this)" id="kbf-0">Structure</div>
-            <div class="kb-filter" onclick="filterKB(1,this)" id="kbf-1">Electricité</div>
-            <div class="kb-filter" onclick="filterKB(2,this)" id="kbf-2">Plomberie</div>
-            <div class="kb-filter" onclick="filterKB(3,this)" id="kbf-3">Sécurité</div>
-            <div class="kb-filter" onclick="filterKB(4,this)" id="kbf-4">Équipement</div>
-            <div class="kb-filter" onclick="filterKB(5,this)" id="kbf-5">Documentation</div>
-          </div>
+          <div class="kb-controls" id="kb-controls"></div>
           <div id="kb-out"><div class="empty-state"><div class="empty-icon">&#x1F5C2;&#xFE0F;</div><div class="empty-text" id="kb-empty"></div></div></div>
         </div>
         <div id="tab-4" class="tab">
@@ -3946,7 +3938,7 @@ function applyLang(){
   var ksDate=document.getElementById("ks-date");if(ksDate&&S.ksDate)ksDate.textContent=S.ksDate;
   var ksSev=document.getElementById("ks-sev");if(ksSev&&S.ksSev)ksSev.textContent=S.ksSev;
   var ksTitle=document.getElementById("ks-title");if(ksTitle&&S.ksTitle)ksTitle.textContent=S.ksTitle;
-  if(S.cats){S.cats.forEach(function(c,i){var el=document.getElementById("kbf-"+i);if(el)el.textContent=c;});}
+  try{renderKBFilters();}catch(e){}
 
   // Folder names
   if(S.folders){S.folders.forEach(function(f,i){var el=document.getElementById("fn-"+i);if(el)el.textContent=f;});}
@@ -5890,8 +5882,7 @@ function openFolderVal(value){
   var bi=CATS.indexOf(value);
   if(bi>=0){openFolder(bi);return;}
   kbCustomCat=value; kbIdx=-1;
-  document.querySelectorAll(".kb-filter").forEach(function(b){b.classList.remove("active");});
-  showTab(3,document.querySelectorAll(".sidebar-link")[3]); renderKB();
+  showTab(3,document.querySelectorAll(".sidebar-link")[3]); renderKBFilters(); renderKB();
 }
 // Create / edit a folder (value=null → create)
 function openFolderEditor(value){
@@ -5938,7 +5929,7 @@ function saveFolderEditor(){
   }
   _saveFoldersStore(s);
   closeFolderEditor();
-  try{renderCounts();}catch(e){} try{renderCatChips();}catch(e){}
+  try{renderCounts();}catch(e){} try{renderCatChips();}catch(e){} try{renderKBFilters();}catch(e){}
   try{toast(_t3("Folder saved","Dossier enregistré","Pasta salva"));}catch(e){}
 }
 function deleteFolder(){
@@ -5948,11 +5939,28 @@ function deleteFolder(){
   var s=_foldersStore(); s.custom=(s.custom||[]).filter(function(c){return c.value!==fe.value;});
   _saveFoldersStore(s);
   closeFolderEditor();
-  try{renderCounts();}catch(e){} try{renderCatChips();}catch(e){}
+  try{renderCounts();}catch(e){} try{renderCatChips();}catch(e){} try{renderKBFilters();}catch(e){}
 }
 
-function openFolder(i){kbCustomCat="";kbIdx=i;document.querySelectorAll(".kb-filter").forEach(function(b,j){b.classList.toggle("active",j===i+1);});if(document.querySelector(".kb-filter"))document.querySelector(".kb-filter").classList.remove("active");showTab(3,document.querySelectorAll(".sidebar-link")[3]);renderKB();}
-function filterKB(i,btn){kbCustomCat="";kbIdx=i;document.querySelectorAll(".kb-filter").forEach(function(b){b.classList.remove("active");});btn.classList.add("active");renderKB();}
+// Render the Knowledge-base filter chips from the user's folder list (built-in
+// + custom) so a custom folder's items are filterable here too.
+function renderKBFilters(){
+  var wrap=document.getElementById("kb-controls");if(!wrap)return;
+  var html="<div class='kb-filter"+((!kbCustomCat&&kbIdx<0)?" active":"")+"' onclick=\"filterKB(-1,this)\" id='kbf-all'>"+(STRINGS[lang].kbAll||"Tudo")+"</div>";
+  pillierFolders().forEach(function(f){
+    if(f.builtin){
+      var bi=CATS.indexOf(f.value);
+      html+="<div class='kb-filter"+((!kbCustomCat&&kbIdx===bi)?" active":"")+"' onclick=\"filterKB("+bi+",this)\">"+f.name+"</div>";
+    }else{
+      var v=(f.value||"").replace(/'/g,"\\'");
+      html+="<div class='kb-filter"+((kbCustomCat===f.value)?" active":"")+"' onclick=\"filterKBCustom('"+v+"',this)\">"+f.icon+" "+f.name+"</div>";
+    }
+  });
+  wrap.innerHTML=html;
+}
+function openFolder(i){kbCustomCat="";kbIdx=i;showTab(3,document.querySelectorAll(".sidebar-link")[3]);renderKBFilters();renderKB();}
+function filterKB(i){kbCustomCat="";kbIdx=i;renderKBFilters();renderKB();}
+function filterKBCustom(value){kbCustomCat=value;kbIdx=-1;renderKBFilters();renderKB();}
 var kbSearchQuery="";
 // Returns the translated category label for display
 // Global normCat — used by catLabel, renderKB, and everywhere
@@ -5973,6 +5981,7 @@ function filterKBSearch(val){kbSearchQuery=(val||"").toLowerCase().trim();render
 function renderKB(){
   // Always apply sort labels in current language
   var S=STRINGS[lang];
+  try{renderKBFilters();}catch(e){}
   var entries=activeSiteEntries(); // scope knowledge base to the selected canteiro
   var ksD=document.getElementById("ks-date");if(ksD&&S.ksDate)ksD.textContent=S.ksDate;
   var ksV=document.getElementById("ks-sev");if(ksV&&S.ksSev)ksV.textContent=S.ksSev;
