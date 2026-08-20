@@ -2037,7 +2037,7 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
             <select class="doc-proj-sel" id="doc-proj-sel" onchange="loadDocs()"><option id="docs-all-sites-opt">Tous les chantiers</option></select>
           </div>
           <div class="doc-upload-zone" id="doc-upload-zone">
-            <input type="file" accept=".pdf,.doc,.docx,.xlsx,.xls,.png,.jpg,.jpeg" multiple onchange="handleDocUpload(this)">
+            <input type="file" accept=".pdf,.doc,.docx,.xlsx,.xls,.png,.jpg,.jpeg,.dxf,.ifc,.dwg" multiple onchange="handleDocUpload(this)">
             <div style="font-size:32px;margin-bottom:10px">&#x1F4C2;</div>
             <div style="font-family:var(--font-d);font-size:15px;font-weight:600;color:var(--white);margin-bottom:6px" id="docs-upload-title">Glissez vos fichiers ici</div>
             <div style="font-size:12px;color:var(--text3)" id="docs-upload-sub">Plans PDF, spécifications, rapports d’étude, calculs structurels...</div>
@@ -3078,6 +3078,7 @@ var UPLOAD_LIMITS = {
   video: 50 * 1024 * 1024,    // 50 MB per video
   audio: 25 * 1024 * 1024,    // 25 MB per audio
   document: 20 * 1024 * 1024, // 20 MB per PDF/DOC/XLSX
+  cad: 60 * 1024 * 1024,      // 60 MB per DXF/IFC/DWG (CAD/BIM files run large)
   default: 15 * 1024 * 1024   // 15 MB default
 };
 var ALLOWED_MIME = {
@@ -6807,9 +6808,11 @@ function updateDocProjectDropdown(){
 
 async function handleDocUpload(input){
   if(!input.files||!input.files.length)return;
-  // SECURITY: Validate all files before processing
+  // SECURITY: Validate all files before processing (CAD/BIM files use the larger cad limit)
   for(var vi=0;vi<input.files.length;vi++){
-    var check=validateUpload(input.files[vi],'document');
+    var _n=input.files[vi].name.toLowerCase();
+    var _kind=(/\.(dxf|ifc|dwg)$/.test(_n))?'cad':'document';
+    var check=validateUpload(input.files[vi],_kind);
     if(!check.ok){toast('❌ '+check.error);input.value='';return;}
   }
   var proj=document.getElementById("doc-proj-sel").value||"Tous les chantiers";
@@ -6828,7 +6831,122 @@ async function handleDocUpload(input){
   loadDocs();
 }
 
+// OCR one tile via Google Document AI. Best-effort: if OCR isn't configured on
+// the server, flag it off so we stop calling it for the rest of this document.
+async function ocrTile(dataUrl,mime){
+  try{
+    var r=await fetch("/api/ocr",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({imageBase64:dataUrl,mimeType:mime||"image/jpeg"})});
+    var d=await r.json();
+    if(d&&d.error==="not_configured"){window._ocrOff=true;return "";}
+    return (d&&d.ok&&d.text)?String(d.text).replace(/\s+\n/g,"\n").trim():"";
+  }catch(e){return "";}
+}
+
+// ── CAD / BIM parsing (DXF / IFC / DWG) — exact vector data, no image guessing ──
+function parseDXF(txt){
+  var lines=txt.split(/\r\n|\r|\n/);
+  var texts=[],dims=[],layers={},counts={},curType="";
+  for(var i=0;i+1<lines.length;i+=2){
+    var code=(lines[i]||"").trim(), val=lines[i+1];
+    if(code==="0"){
+      curType=(val||"").trim();
+      if(/^(TEXT|MTEXT|DIMENSION|LINE|LWPOLYLINE|POLYLINE|CIRCLE|ARC|INSERT|HATCH|SOLID|SPLINE|ELLIPSE)$/.test(curType))counts[curType]=(counts[curType]||0)+1;
+    } else if(code==="8"){ if(curType)layers[(val||"").trim()]=true; }
+    else if(code==="1"){
+      var t=(val||"").replace(/\\[A-Za-z0-9|;]+/g,"").trim(); // strip MTEXT formatting codes
+      if(curType==="TEXT"||curType==="MTEXT"){ if(t)texts.push(t); }
+      else if(curType==="DIMENSION"){ if(t&&t!=="<>")dims.push(t); }
+    } else if(code==="42"&&curType==="DIMENSION"){ var m=(val||"").trim(); if(m)dims.push(m); }
+  }
+  var out=[];
+  out.push("Entity counts: "+Object.keys(counts).map(function(k){return k+"="+counts[k];}).join(", "));
+  var lk=Object.keys(layers); if(lk.length)out.push("Layers ("+lk.length+"): "+lk.slice(0,80).join(", "));
+  if(dims.length)out.push("Dimensions ("+dims.length+"): "+dims.slice(0,400).join(" | "));
+  if(texts.length)out.push("Text labels ("+texts.length+"): "+texts.slice(0,800).join(" | "));
+  return out.join("\n");
+}
+function parseIFC(txt){
+  var cap=txt.length>3000000?txt.substring(0,3000000):txt;
+  var lines=cap.split(/\r\n|\r|\n/);
+  var counts={},storeys=[];
+  var elems=["WALL","WALLSTANDARDCASE","SLAB","BEAM","COLUMN","DOOR","WINDOW","STAIR","STAIRFLIGHT","ROOF","SPACE","FOOTING","PILE","RAILING","COVERING","PLATE","MEMBER","CURTAINWALL","BUILDINGELEMENTPROXY"];
+  var reType=/=\s*IFC([A-Z0-9]+)\s*\(/i;
+  for(var i=0;i<lines.length;i++){
+    var m=lines[i].match(reType); if(!m)continue;
+    var t=m[1].toUpperCase();
+    for(var e=0;e<elems.length;e++){if(t===elems[e]){counts[t]=(counts[t]||0)+1;break;}}
+    if(t==="BUILDINGSTOREY"){var q=lines[i].match(/'([^']*)'/g);if(q&&q.length>=3)storeys.push(q[2].replace(/'/g,""));}
+  }
+  var out=[];
+  out.push("Element counts: "+Object.keys(counts).map(function(k){return k+"="+counts[k];}).join(", "));
+  if(storeys.length)out.push("Storeys ("+storeys.length+"): "+storeys.slice(0,40).join(", "));
+  var props=[],pm,reP=/IFCPROPERTYSINGLEVALUE\('([^']*)'\s*,[^,]*,\s*IFC[A-Z]+\(([^)]*)\)/gi;
+  while((pm=reP.exec(cap))&&props.length<400)props.push(pm[1]+"="+pm[2].replace(/'/g,"").trim());
+  if(props.length)out.push("Properties: "+props.join(" | "));
+  var quants=[],qm,reQ=/IFCQUANTITY(LENGTH|AREA|VOLUME|COUNT|WEIGHT)\('([^']*)'\s*,[^,]*,[^,]*,\s*([-\d.]+)/gi;
+  while((qm=reQ.exec(cap))&&quants.length<400)quants.push(qm[2]+"("+qm[1].toLowerCase()+")="+qm[3]);
+  if(quants.length)out.push("Quantities: "+quants.join(" | "));
+  return out.join("\n");
+}
+async function processCAD(file,proj){
+  showLoad(true,"Pillier IA — CAD/BIM...");
+  try{
+    var lname=file.name.toLowerCase();
+    var kind="", extract="";
+    if(lname.endsWith(".dwg")){
+      kind="DWG";
+      extract="DWG is Autodesk's binary format and can't be parsed directly here. The file is stored so it can be opened/downloaded. For full analysis, please also upload a DXF, IFC or PDF export.";
+    } else if(lname.endsWith(".dxf")){ kind="DXF"; extract=parseDXF(await file.text()); }
+    else { kind="IFC"; extract=parseIFC(await file.text()); }
+
+    var docLang=["French","English","Portuguese"][lang]||"English";
+    var finalSummary="";
+    if(kind!=="DWG"){
+      var combinePrompt="You are a senior civil/BIM engineer. From the extracted "+kind+" model data below, produce ONE structured technical report. Respond ENTIRELY in "+docLang+". Use EXACTLY these field names, no markdown:\\nTipo: ["+kind+" model + any title/name]\\nObjeto: [project / building / discipline]\\nEscala: [units or scale if present]\\nSalas: [every space/room with area if present]\\nEspecificacoes: [materials, sections, quantities, dimensions]\\nElementos: [every element type with counts, e.g. walls, slabs, beams, columns, doors, windows]\\nNormas: [applicable norms for this content]\\nNotas: [layers, property names, anything else]\\nBe exhaustive; include every dimension, quantity and count present.\\n\\n--- "+kind+" DATA ---\\n"+extract.substring(0,30000);
+      try{
+        var cr=await fetch("/api/groq",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"openai/gpt-oss-120b",messages:[{role:"user",content:combinePrompt}],max_tokens:8000,reasoning_effort:"low",temperature:0.2})});
+        var cd=await cr.json();
+        finalSummary=cd.choices&&cd.choices[0]&&cd.choices[0].message&&cd.choices[0].message.content?cd.choices[0].message.content.replace(/<think>[\s\S]*?<\/think>/gi,"").trim():"";
+      }catch(e){}
+      if(!finalSummary||finalSummary.length<20)finalSummary=extract.substring(0,4000);
+    } else {
+      finalSummary="Tipo: DWG (CAD binário)\nNotas: "+extract;
+    }
+    await saveDocRecord(file,proj,"["+kind+"] "+finalSummary);
+  }catch(e){showLoad(false);console.error("CAD parse error:",e);try{toast("❌ "+(e.message||"CAD"));}catch(_e){}}
+}
+// Shared save path: upload the file to storage (retry + warn), record it, render.
+async function saveDocRecord(file,proj,summaryText){
+  showLoad(false);
+  var docId=Date.now()+"_"+Math.random().toString(36).substring(2,7);
+  var fileUrl=null, storeFailed=false;
+  if(dbOk&&dbCoId){
+    try{
+      var slug=(me.co||"co").toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"");
+      var projSlug=(proj||"geral").toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"");
+      var safeName=file.name.replace(/[^\w.\-]+/g,"_");
+      var storePath=slug+"/"+projSlug+"/"+Date.now()+"_"+safeName;
+      var opts={upsert:true,contentType:file.type||"application/octet-stream"};
+      var up=await db.storage.from("doc-files").upload(storePath,file,opts);
+      if(up.error)up=await db.storage.from("doc-files").upload(storePath,file,opts);
+      if(!up.error)fileUrl=storePath; else storeFailed=true;
+    }catch(e){storeFailed=true;}
+  }
+  var doc={id:docId,name:file.name,project:proj,type:file.type,size:Math.round(file.size/1024)+"KB",summary:summaryText,date:new Date().toLocaleDateString("fr-FR"),file_url:fileUrl};
+  if(!projectDocs[proj])projectDocs[proj]=[];
+  projectDocs[proj].unshift(doc);
+  if(storeFailed){try{toast(_t3("Analysis saved, but the file couldn't be stored — check the doc-files bucket.","Analyse enregistrée, mais le fichier n'a pas pu être stocké.","Análise salva, mas o arquivo não pôde ser armazenado."));}catch(e){}}
+  if(dbOk&&dbCoId){
+    var ins=await db.from("project_documents").insert({company_id:dbCoId,project:proj,name:file.name,summary:summaryText,file_type:file.type,file_size:doc.size,uploaded_by:me.name,file_url:fileUrl}).select();try{incrementPillierUsage("documents");}catch(e){}
+    if(ins.data&&ins.data[0])doc.id=ins.data[0].id;
+  }
+  try{toast("✅ "+file.name);}catch(e){}
+  renderDocs(proj);
+}
+
 async function processDoc(file,proj){
+  var _ln=file.name.toLowerCase();
+  if(_ln.endsWith(".dxf")||_ln.endsWith(".ifc")||_ln.endsWith(".dwg"))return await processCAD(file,proj);
   showLoad(true,"Pillier IA lit le document...");
   try{
     var prompt="You are an expert senior civil engineer with 30+ years of experience analyzing construction documents in France, Brazil, and internationally.\\nLANGUAGE RULE: Detect the document language and respond ENTIRELY in that language. Portuguese document = Portuguese response. French document = French response. Otherwise English.\\nEXTRACT EVERY DETAIL from this page — do not summarize, do not skip anything:\\n1. IDENTIFICATION: document type, revision, project name, full address, architect name, engineer name, date, drawing number\\n2. SCALE: drawing scale\\n3. ROOMS & SPACES: EVERY room and space with its exact name and area in m2\\n4. STRUCTURAL ELEMENTS: every column with section, every beam with section, slabs with thickness, foundations type and depth, load-bearing walls\\n5. OPENINGS: every door width and height, every window width and height, lintel types\\n6. MATERIALS: concrete grade, steel grade, masonry type, insulation specs\\n7. SYSTEMS: electrical panels, plumbing risers, drainage slopes, HVAC, fire protection\\n8. ANNOTATIONS: every note, legend, warning, stamp, signature, title block text verbatim\\n9. NORMS CITED: list every code or standard mentioned\\nALWAYS ADD APPLICABLE NORMS based on document content.\\nRespond ONLY in this format — no markdown, no asterisks:\\nTipo: [document type + number + revision]\\nObjeto: [project name | address | architect/engineer names | date | drawing number]\\nEscala: [drawing scale]\\nSalas: [EVERY room/space with name and area, pipe-separated]\\nEspecificacoes: [ALL specs exhaustively]\\nElementos: [ALL structural elements, doors, windows, systems]\\nNormas: [norms cited + all applicable norms]\\nNotas: [ALL annotations verbatim]";
@@ -6935,8 +7053,15 @@ async function processDoc(file,proj){
                 {type:"text",text:"You are a senior civil engineer examining a high-resolution zoom ("+t.label+") of page "+pageNum+" of a construction drawing. Read EVERY number, dimension, tolerance, level/elevation, grid reference, room name and area, material callout, symbol, annotation and title-block text visible in this region. Transcribe them verbatim and exhaustively. If a value is cut off at an edge, say so. Do NOT summarize."}
               ]}],max_tokens:2048})}).then(function(r){return r.json();}).then(function(d){return (d.choices&&d.choices[0])?("[Zoom "+t.label+"]: "+d.choices[0].message.content):"";}).catch(function(){return "";});
             });
+            // OCR pass (Google Document AI) — exact printed-text transcription per tile,
+            // layered with the vision reading for reliable dimensions/callouts.
+            var ocrProms=imgs.map(function(t){
+              return window._ocrOff?Promise.resolve(""):ocrTile(t.img).then(function(x){return x?("[OCR "+t.label+"]: "+x):"";});
+            });
             var results=await Promise.all(proms);
+            var ocrResults=await Promise.all(ocrProms);
             results.forEach(function(r){if(r)pageSummaries.push(r);});
+            ocrResults.forEach(function(r){if(r)pageSummaries.push(r);});
           }
         }
 
@@ -7282,6 +7407,15 @@ async function openDocViewer(docId){
   document.getElementById("doc-viewer-footer").style.display="none";
   document.getElementById("doc-viewer-overlay").classList.add("show");
   document.body.style.overflow="hidden";
+
+  // CAD/BIM files can't render inline — offer a download to open in CAD software
+  if(/\.(dxf|ifc|dwg)$/.test((doc.name||"").toLowerCase())&&doc.file_url&&dbOk){
+    try{
+      var sgc=await db.storage.from("doc-files").createSignedUrl(doc.file_url,3600);
+      var suc=sgc&&sgc.data&&sgc.data.signedUrl;
+      if(suc){document.getElementById("doc-viewer-body").innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F4D0;</div><div class='empty-text' style='margin-bottom:12px'>"+_t3("CAD/BIM file — download to open in your CAD software:","Fichier CAO/BIM — téléchargez-le pour l'ouvrir :","Arquivo CAD/BIM — baixe para abrir no seu software:")+"</div><a href='"+suc+"' target='_blank' rel='noopener' style='display:inline-block;background:#60a5fa;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;'>"+_t3("Download file","Télécharger","Baixar arquivo")+"</a></div>";return;}
+    }catch(e){console.error("CAD link error:",e);}
+  }
 
   // If we have a stored file URL, load from Supabase Storage
   if(doc.file_url&&dbOk){
