@@ -8161,21 +8161,24 @@ async function syncToCloud(entry){
     var filename=ts+"_"+entry.title.substring(0,40).replace(/[^a-z0-9]/gi,"-")+".txt";
 
     for(var i=0;i<d.connections.length;i++){
-      var conn=d.connections[i];
-      fetch("/api/cloud-sync?action=sync",{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          company_id:dbCoId,
-          provider:conn.provider,
-          project:sanitizeProject(entry.project)||me.co||"General",
-          tab:"files",
-          category:catLabel(entry.cat)||"Documentação",
-          filename:filename,
-          content:report,
-          contentType:"text/plain",
-          photoBase64:entry.photo||null
-        })
-      }).catch(function(e){console.error("Cloud sync "+conn.provider+":",e);});
+      (function(conn){
+        fetch("/api/cloud-sync?action=sync",{
+          method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({
+            company_id:dbCoId,
+            provider:conn.provider,
+            project:sanitizeProject(entry.project)||me.co||"General",
+            tab:"files",
+            category:catLabel(entry.cat)||"Documentação",
+            filename:filename,
+            content:report,
+            contentType:"text/plain",
+            photoBase64:entry.photo||null
+          })
+        }).then(function(r){return r.json();}).then(function(res){
+          if(res&&res.ok===false){console.error("Cloud sync "+conn.provider+":",res.error);try{toast("☁️ "+conn.provider+": "+(""+res.error).substring(0,90));}catch(e){}}
+        }).catch(function(e){console.error("Cloud sync "+conn.provider+":",e);});
+      })(d.connections[i]);
     }
   }catch(e){console.error("syncToCloud:",e);}
 }
@@ -8208,7 +8211,7 @@ async function syncDocToCloud(doc,proj,file){
       if(blob&&blob.size&&blob.size<=_CLOUD_BIN_MAX){binBase64=await _blobToDataUrl(blob);binName=doc.name;binMime=(file&&file.type)||doc.type||"application/octet-stream";}
     }catch(e){}
     conns.forEach(function(c){
-      fetch("/api/cloud-sync?action=sync",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:dbCoId,provider:c.provider,project:sanitizeProject(proj||doc.project)||me.co||"General",tab:"docs",docType:dtype,filename:fname,content:content,contentType:"text/plain",binBase64:binBase64,binName:binName,binMime:binMime})}).catch(function(){});
+      fetch("/api/cloud-sync?action=sync",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:dbCoId,provider:c.provider,project:sanitizeProject(proj||doc.project)||me.co||"General",tab:"docs",docType:dtype,filename:fname,content:content,contentType:"text/plain",binBase64:binBase64,binName:binName,binMime:binMime})}).then(function(r){return r.json();}).then(function(res){if(res&&res.ok===false){console.error("Doc cloud sync "+c.provider+":",res.error);try{toast("☁️ "+c.provider+": "+(""+res.error).substring(0,90));}catch(e){}}}).catch(function(){});
     });
   }catch(e){console.error("syncDocToCloud:",e);}
 }
