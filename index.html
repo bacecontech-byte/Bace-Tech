@@ -5549,6 +5549,7 @@ async function saveEntry(){
       existingEntry.sev=document.getElementById("c-sev").value;
       if(dbOk&&dbCoId){db.from("captures").update({title:existingEntry.title,description:existingEntry.desc,action:existingEntry.action,project:existingEntry.project,category:existingEntry.cat,severity:existingEntry.sev}).eq("id",existingEntry.id);}
       saveEntriesLocal();
+      try{ragIndex("incident",existingEntry.id,existingEntry.project,existingEntry.title,[existingEntry.title,catLabel(existingEntry.cat),existingEntry.desc,existingEntry.action,existingEntry.cause,existingEntry.normes].filter(Boolean).join("\n"));}catch(e){}
       window._editingId=null;
       ["c-title","c-desc","c-action"].forEach(function(id){document.getElementById(id).value="";});
       toast(STRINGS[lang].toastUpdated||"✅ Incident mis à jour");
@@ -5578,6 +5579,7 @@ async function saveEntry(){
   // Immediate success feedback: filed into its category folder + Knowledge Base
   toast("✅ "+plL("Classé dans « ","Filed under « ","Arquivado em « ")+catLabel(entry.cat)+" »");
   renderDash();renderKB();renderCounts();
+  try{ragIndex("incident",entry.id,entry.project,entry.title,[entry.title,catLabel(entry.cat),entry.desc,entry.action,entry.cause,entry.normes].filter(Boolean).join("\n"));}catch(e){}
   syncToCloud(entry);
   if(dbOk)await saveDB(entry);
   setTimeout(function(){showTab(0,document.querySelectorAll(".sidebar-link")[0]);},700);
@@ -6686,6 +6688,15 @@ async function sendChat(){
   var projList=projects.map(function(p){return p.name+(p.location?" ("+p.location+")":"");}).join(", ")||"Aucun projet";
   var allDocCtx=Object.keys(projectDocs).map(function(p){return getProjectDocContext(p);}).filter(Boolean).join("\n");
   var docCtxStr=allDocCtx?"\n\nINDEXED PROJECT DOCUMENTS (use for precise technical answers):\n"+allDocCtx:"";
+  // Semantic retrieval (RAG): pull the most relevant chunks across all docs + incidents
+  if(!window._ragOff){
+    try{
+      var _matches=await ragSearch(val,6);
+      if(_matches&&_matches.length){
+        docCtxStr+="\n\nMOST RELEVANT KNOWLEDGE (semantic search — ground your answer in these and mention the source when used):\n"+_matches.map(function(m,i){return "["+(i+1)+"] ("+(m.source_type||"")+(m.project?" · "+m.project:"")+(m.title?" · "+m.title:"")+")\n"+(m.content||"");}).join("\n\n");
+      }
+    }catch(e){}
+  }
   var _langRule="\\n\\nLANGUAGE: Detect the language of the user's MOST RECENT message and always reply in that exact same language (French, Portuguese, English, Spanish, etc.), regardless of earlier messages. Voice input may be in any language — mirror it.";
   var _style={
     fr:"\\n\\nSTYLE: Tu es un copilote ingénieur de chantier. Réponds de façon naturelle et conversationnelle, comme un collègue expert — jamais en recopiant des lignes brutes de base de données. Synthétise les données pertinentes en phrases claires. Utilise le markdown quand c'est utile : **gras** pour les points clés, listes à puces pour les étapes, et un tableau markdown UNIQUEMENT si l'utilisateur demande explicitement de lister/comparer plusieurs incidents. Ne montre jamais les identifiants internes ni le format brut « | ID | ... | » sauf demande explicite. Va droit au but."+_langRule,
@@ -6940,8 +6951,27 @@ async function saveDocRecord(file,proj,summaryText){
     var ins=await db.from("project_documents").insert({company_id:dbCoId,project:proj,name:file.name,summary:summaryText,file_type:file.type,file_size:doc.size,uploaded_by:me.name,file_url:fileUrl}).select();try{incrementPillierUsage("documents");}catch(e){}
     if(ins.data&&ins.data[0])doc.id=ins.data[0].id;
   }
+  try{ragIndex("document",doc.id,proj,file.name,summaryText);}catch(e){}
   try{toast("✅ "+file.name);}catch(e){}
   renderDocs(proj);
+}
+
+// ── Semantic search (RAG) — index content + retrieve relevant chunks ──────
+async function ragIndex(sourceType,sourceId,project,title,content){
+  try{
+    if(!dbCoId||!content||window._ragOff)return;
+    var r=await fetch("/api/rag",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"index",company_id:dbCoId,source_type:sourceType,source_id:String(sourceId),project:project||"",title:title||"",content:content})});
+    var d=await r.json(); if(d&&d.error==="not_configured")window._ragOff=true;
+  }catch(e){}
+}
+async function ragSearch(query,k){
+  try{
+    if(!dbCoId||!query||window._ragOff)return [];
+    var r=await fetch("/api/rag",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"search",company_id:dbCoId,query:query,k:k||6})});
+    var d=await r.json();
+    if(d&&d.error==="not_configured"){window._ragOff=true;return [];}
+    return (d&&d.ok&&d.matches)?d.matches:[];
+  }catch(e){return [];}
 }
 
 async function processDoc(file,proj){
@@ -7124,6 +7154,7 @@ async function processDoc(file,proj){
         var ins=await db.from("project_documents").insert({company_id:dbCoId,project:proj,name:file.name,summary:doc.summary,file_type:file.type,file_size:doc.size,uploaded_by:me.name,file_url:fileUrl}).select();incrementPillierUsage("documents");
         if(ins.data&&ins.data[0])doc.id=ins.data[0].id;
       }
+      try{ragIndex("document",doc.id,proj,file.name,doc.summary);}catch(e){}
 
       toast("\u2705 "+file.name+" - "+totalPages+" "+(S.docsPagesDone||"pages analysées")+" !");
       renderDocs(proj);
