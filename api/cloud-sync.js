@@ -114,7 +114,7 @@ export default async function handler(req, res) {
 
     // ── SYNC FILE (upload incident to cloud) ──
     if (action === "sync") {
-      const { company_id, provider, project, category, section, filename, content: fileContent, contentType, photoBase64 } = req.body || JSON.parse(await getBody(req));
+      const { company_id, provider, project, category, tab, docType, filename, content: fileContent, contentType, photoBase64 } = req.body || JSON.parse(await getBody(req));
 
       const conn = await getConnection(company_id, provider);
       if (!conn) return res.status(400).json({ error: "Not connected" });
@@ -127,12 +127,10 @@ export default async function handler(req, res) {
         await saveTokens(company_id, provider, tokens);
       }
 
-      // Build the project folder structure on the company cloud:
-      //   Pillier / <Project> / <Section>
-      // where Section is one of the standard folders (Structure, Incidents,
-      // Reports, Media, Documents). This lands files directly in the right
-      // folder for that specific project.
-      const folderPath = "Pillier/" + sanitize(project) + "/" + sectionFor(category, section);
+      // Unified per-site folder architecture:
+      //   Pillier / <Construction Site> / Meus arquivos / <Category> / <file>
+      //   Pillier / <Construction Site> / Plantas & Documentos / <Plantas | Laudos & Especificações> / <file>
+      const folderPath = buildFolderPath(project, tab, category, docType, filename, contentType);
 
       // Upload based on provider
       let result;
@@ -210,6 +208,38 @@ export default async function handler(req, res) {
 // ── Helper functions ─────────────────────────────────────────────────────
 
 function sanitize(s) { return (s || "general").replace(/[^a-zA-Z0-9\-_ ]/g, "").substring(0, 50); }
+
+// Folder-name cleaner that PRESERVES accents & "&" (so folders read "Elétrica",
+// "Plantas & Documentos", "Segurança"), only stripping path/filesystem-unsafe chars.
+function sanitizeFolder(s) {
+  return (("" + (s || "")).replace(/[\/\\\r\n\t]+/g, " ").replace(/[<>:"|?* -]/g, "").replace(/\.+$/, "").trim().substring(0, 60)) || "Geral";
+}
+
+// Decide which "Plantas & Documentos" subfolder a document belongs in.
+function docSubfolder(filename, contentType) {
+  const n = ("" + (filename || "")).toLowerCase();
+  const ct = "" + (contentType || "");
+  if (/\.(dwg|dxf|ifc|rvt)$/.test(n) || ct.indexOf("image") === 0 || /planta|plan|blueprint|layout|desenho|arquitet/.test(n)) return "Plantas";
+  return "Laudos & Especificações";
+}
+
+// Build the destination folder path for a synced file.
+//   tab "docs"  → Plantas & Documentos
+//   otherwise   → Meus arquivos / <category>
+function buildFolderPath(project, tab, category, docType, filename, contentType) {
+  const site = sanitizeFolder(project);
+  if (tab === "docs" || tab === "documents") {
+    const sub = docType ? sanitizeFolder(docType) : docSubfolder(filename, contentType);
+    return "Pillier/" + site + "/Plantas & Documentos/" + sub;
+  }
+  return "Pillier/" + site + "/Meus arquivos/" + sanitizeFolder(category || "Documentação");
+}
+
+// JSON with non-ASCII escaped to \uXXXX — required for Dropbox-API-Arg headers,
+// which must be pure ASCII even when paths contain accents.
+function asciiHeader(obj) {
+  return JSON.stringify(obj).replace(/[-￿]/g, function (c) { return "\\u" + ("0000" + c.charCodeAt(0).toString(16)).slice(-4); });
+}
 
 // Standard project folder structure. Maps an incident category (any language)
 // or an explicit section to one of the fixed top-level folders.
@@ -340,15 +370,16 @@ async function uploadGoogleDrive(tokens, folderPath, filename, content, contentT
 
 // ── OneDrive upload ──
 async function uploadOneDrive(tokens, folderPath, filename, content, contentType, photoBase64) {
-  const path = folderPath.replace(/ /g, "%20");
-  await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${path}/${filename}:/content`, {
+  const path = folderPath.split("/").map(encodeURIComponent).join("/"); // encode accents & "&" per segment
+  const encName = encodeURIComponent(filename);
+  await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${path}/${encName}:/content`, {
     method: "PUT",
     headers: { Authorization: "Bearer " + tokens.access_token, "Content-Type": contentType || "text/plain" },
     body: content,
   });
   if (photoBase64) {
     const photoData = Buffer.from((photoBase64.split(",")[1] || photoBase64), "base64");
-    await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${path}/${filename.replace(".txt", ".jpg")}:/content`, {
+    await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${path}/${encodeURIComponent(filename.replace(".txt", ".jpg"))}:/content`, {
       method: "PUT",
       headers: { Authorization: "Bearer " + tokens.access_token, "Content-Type": "image/jpeg" },
       body: photoData,
@@ -364,7 +395,7 @@ async function uploadDropbox(tokens, folderPath, filename, content, photoBase64)
     headers: {
       Authorization: "Bearer " + tokens.access_token,
       "Content-Type": "application/octet-stream",
-      "Dropbox-API-Arg": JSON.stringify({ path: "/" + folderPath + "/" + filename, mode: "overwrite", autorename: true }),
+      "Dropbox-API-Arg": asciiHeader({ path: "/" + folderPath + "/" + filename, mode: "overwrite", autorename: true }),
     },
     body: content,
   });
@@ -375,7 +406,7 @@ async function uploadDropbox(tokens, folderPath, filename, content, photoBase64)
       headers: {
         Authorization: "Bearer " + tokens.access_token,
         "Content-Type": "application/octet-stream",
-        "Dropbox-API-Arg": JSON.stringify({ path: "/" + folderPath + "/" + filename.replace(".txt", ".jpg"), mode: "overwrite", autorename: true }),
+        "Dropbox-API-Arg": asciiHeader({ path: "/" + folderPath + "/" + filename.replace(".txt", ".jpg"), mode: "overwrite", autorename: true }),
       },
       body: photoData,
     });
@@ -406,18 +437,18 @@ async function uploadWebDAV(creds, folderPath, filename, content, photoBase64) {
   const parts = folderPath.split("/");
   let currentPath = url.replace(/\/$/, "");
   for (const folder of parts) {
-    currentPath += "/" + folder;
+    currentPath += "/" + encodeURIComponent(folder);
     await fetch(currentPath, { method: "MKCOL", headers: { Authorization: "Basic " + auth } }).catch(() => {});
   }
   // Upload file
-  await fetch(currentPath + "/" + filename, {
+  await fetch(currentPath + "/" + encodeURIComponent(filename), {
     method: "PUT",
     headers: { Authorization: "Basic " + auth, "Content-Type": "text/plain" },
     body: content,
   });
   if (photoBase64) {
     const photoData = Buffer.from((photoBase64.split(",")[1] || photoBase64), "base64");
-    await fetch(currentPath + "/" + filename.replace(".txt", ".jpg"), {
+    await fetch(currentPath + "/" + encodeURIComponent(filename.replace(".txt", ".jpg")), {
       method: "PUT",
       headers: { Authorization: "Basic " + auth, "Content-Type": "image/jpeg" },
       body: photoData,
