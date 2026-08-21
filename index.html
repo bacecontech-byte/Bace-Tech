@@ -4144,7 +4144,7 @@ function enterApp(user){
   // fallback merges every unrelated @gmail.com account into one shared workspace.
   var co=(meta.company&&meta.company.trim())?meta.company.trim():user.email;
   var parts=name.split(" ");
-  me={name:name,co:co,av:((parts[0]||"?")[0]+(parts[1]||"?")[0]).toUpperCase(),email:user.email};
+  me={name:name,co:co,av:((parts[0]||"?")[0]+(parts[1]||"?")[0]).toUpperCase(),email:user.email,uid:user.id};
   // If a DIFFERENT account signs in on this browser, drop the previous account's
   // cached data so nothing carries across accounts.
   try{
@@ -4624,6 +4624,9 @@ async function connectDB(){
     if(r.data&&r.data.length>0){dbCoId=r.data[0].id;}
     else{var ins=await db.from("companies").insert({name:me.co,sector:"Construction"}).select();if(ins.data&&ins.data[0])dbCoId=ins.data[0].id;}
     if(!dbCoId)return;
+    // Register this user's membership so database RLS grants access to the
+    // workspace (harmless no-op if the RLS tables aren't set up yet).
+    try{if(me.uid)await db.from("company_members").upsert({user_id:me.uid,company_id:dbCoId},{onConflict:"user_id,company_id"});}catch(e){}
     dbOk=true;
     await loadDB();
     await loadPillierUsage();
