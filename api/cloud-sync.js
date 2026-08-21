@@ -114,7 +114,7 @@ export default async function handler(req, res) {
 
     // ── SYNC FILE (upload incident to cloud) ──
     if (action === "sync") {
-      const { company_id, provider, project, category, tab, docType, filename, content: fileContent, contentType, photoBase64 } = req.body || JSON.parse(await getBody(req));
+      const { company_id, provider, project, category, tab, docType, filename, content: fileContent, contentType, photoBase64, binBase64, binName, binMime } = req.body || JSON.parse(await getBody(req));
 
       const conn = await getConnection(company_id, provider);
       if (!conn) return res.status(400).json({ error: "Not connected" });
@@ -140,6 +140,12 @@ export default async function handler(req, res) {
       else if (provider === "s3") result = await uploadS3(tokens.credentials, folderPath, filename, fileContent, contentType, photoBase64);
       else if (provider === "gcp") result = await uploadGCP(tokens.credentials, folderPath, filename, fileContent, contentType, photoBase64);
       else if (provider === "webdav") result = await uploadWebDAV(tokens.credentials, folderPath, filename, fileContent, photoBase64);
+
+      // Mirror the ORIGINAL uploaded file (PDF / blueprint / photo) alongside the summary.
+      if (binBase64 && binName) {
+        try { await uploadBinary(provider, tokens, folderPath, binName, binMime || "application/octet-stream", binBase64); }
+        catch (e) { console.error("binary mirror error:", e.message); }
+      }
 
       return res.status(200).json({ ok: true, result });
     }
@@ -455,4 +461,49 @@ async function uploadWebDAV(creds, folderPath, filename, content, photoBase64) {
     });
   }
   return { ok: true };
+}
+
+// ── Original-file mirroring (binary): upload the raw PDF/blueprint/photo ──────
+async function driveEnsureFolder(tokens, folderPath) {
+  const parts = folderPath.split("/");
+  let parentId = "root";
+  for (const folder of parts) {
+    const s = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${encodeURIComponent(folder)}'+and+'${parentId}'+in+parents+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false&fields=files(id)`, { headers: { Authorization: "Bearer " + tokens.access_token } });
+    const sd = await s.json();
+    if (sd.files && sd.files.length > 0) parentId = sd.files[0].id;
+    else {
+      const c = await fetch("https://www.googleapis.com/drive/v3/files", { method: "POST", headers: { Authorization: "Bearer " + tokens.access_token, "Content-Type": "application/json" }, body: JSON.stringify({ name: folder, mimeType: "application/vnd.google-apps.folder", parents: [parentId] }) });
+      const cj = await c.json(); parentId = cj.id;
+    }
+  }
+  return parentId;
+}
+
+async function uploadBinary(provider, tokens, folderPath, name, mime, base64) {
+  const data = base64.indexOf(",") > -1 ? base64.split(",")[1] : base64;
+  if (provider === "google") {
+    const parentId = await driveEnsureFolder(tokens, folderPath);
+    const boundary = "pillier_bin_boundary";
+    const meta = JSON.stringify({ name, parents: [parentId] });
+    const body = `--${boundary}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${boundary}\r\nContent-Type: ${mime}\r\nContent-Transfer-Encoding: base64\r\n\r\n${data}\r\n--${boundary}--`;
+    const r = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", { method: "POST", headers: { Authorization: "Bearer " + tokens.access_token, "Content-Type": `multipart/related; boundary=${boundary}` }, body });
+    const j = await r.json(); return { fileId: j.id };
+  }
+  if (provider === "onedrive") {
+    const path = folderPath.split("/").map(encodeURIComponent).join("/");
+    await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${path}/${encodeURIComponent(name)}:/content`, { method: "PUT", headers: { Authorization: "Bearer " + tokens.access_token, "Content-Type": mime }, body: Buffer.from(data, "base64") });
+    return { ok: true };
+  }
+  if (provider === "dropbox") {
+    await fetch("https://content.dropboxapi.com/2/files/upload", { method: "POST", headers: { Authorization: "Bearer " + tokens.access_token, "Content-Type": "application/octet-stream", "Dropbox-API-Arg": asciiHeader({ path: "/" + folderPath + "/" + name, mode: "overwrite", autorename: true }) }, body: Buffer.from(data, "base64") });
+    return { ok: true };
+  }
+  if (provider === "webdav") {
+    const creds = tokens.credentials; const auth = Buffer.from(creds.username + ":" + creds.password).toString("base64");
+    let cur = creds.url.replace(/\/$/, "");
+    for (const f of folderPath.split("/")) { cur += "/" + encodeURIComponent(f); await fetch(cur, { method: "MKCOL", headers: { Authorization: "Basic " + auth } }).catch(() => {}); }
+    await fetch(cur + "/" + encodeURIComponent(name), { method: "PUT", headers: { Authorization: "Basic " + auth, "Content-Type": mime }, body: Buffer.from(data, "base64") });
+    return { ok: true };
+  }
+  return { ok: false, note: "binary mirror not supported for " + provider };
 }
