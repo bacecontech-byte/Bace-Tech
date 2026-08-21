@@ -6972,7 +6972,7 @@ async function saveDocRecord(file,proj,summaryText){
     if(ins.data&&ins.data[0])doc.id=ins.data[0].id;
   }
   try{ragIndex("document",doc.id,proj,file.name,summaryText);}catch(e){}
-  try{syncDocToCloud(doc,proj);}catch(e){}
+  try{syncDocToCloud(doc,proj,file);}catch(e){}
   try{toast("✅ "+file.name);}catch(e){}
   renderDocs(proj);
 }
@@ -7201,7 +7201,7 @@ async function processDoc(file,proj){
         if(ins.data&&ins.data[0])doc.id=ins.data[0].id;
       }
       try{ragIndex("document",doc.id,proj,file.name,doc.summary);}catch(e){}
-      try{syncDocToCloud(doc,proj);}catch(e){}
+      try{syncDocToCloud(doc,proj,file);}catch(e){}
 
       toast("\u2705 "+file.name+" - "+totalPages+" "+(S.docsPagesDone||"pages analysées")+" !");
       renderDocs(proj);
@@ -8185,9 +8185,12 @@ function docSubfolderFor(name,type){
   if(/\.(dwg|dxf|ifc|rvt)$/.test(n)||t.indexOf("image")===0||/planta|plan|blueprint|layout|desenho|arquitet/.test(n))return "Plantas";
   return "Laudos & Especificações";
 }
+function _blobToDataUrl(blob){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(e){res(e.target.result);};r.onerror=rej;r.readAsDataURL(blob);});}
+var _CLOUD_BIN_MAX=3.6*1024*1024; // Vercel request-body limit — mirror originals up to ~3.6MB
 // Auto-sync an uploaded document to every connected cloud, into
 // Pillier/<Site>/Plantas & Documentos/<Plantas | Laudos & Especificações>.
-async function syncDocToCloud(doc,proj){
+// Mirrors the ORIGINAL file (PDF/blueprint) plus a .txt analysis summary.
+async function syncDocToCloud(doc,proj,file){
   if(!dbCoId||!doc)return;
   try{
     var r=await fetch("/api/cloud-sync?action=status",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:dbCoId})});
@@ -8197,8 +8200,15 @@ async function syncDocToCloud(doc,proj){
     var content="DOCUMENTO — "+doc.name+"\n\nProjeto: "+(proj||doc.project||"")+"\nData: "+(doc.date||"")+"\n\nRESUMO:\n"+(doc.summary||"");
     var fname=((doc.date||new Date().toLocaleDateString("fr-FR")).replace(/\//g,"-"))+"_"+(doc.name||"documento").substring(0,40).replace(/[^a-z0-9.]/gi,"-")+".txt";
     var dtype=docSubfolderFor(doc.name,doc.type);
+    // Original file bytes: prefer the just-uploaded File; else fetch from storage.
+    var binBase64=null,binName=null,binMime=null;
+    try{
+      var blob=file||null;
+      if(!blob&&doc.file_url&&dbOk){var dl=await db.storage.from("doc-files").download(doc.file_url);if(dl&&dl.data)blob=dl.data;}
+      if(blob&&blob.size&&blob.size<=_CLOUD_BIN_MAX){binBase64=await _blobToDataUrl(blob);binName=doc.name;binMime=(file&&file.type)||doc.type||"application/octet-stream";}
+    }catch(e){}
     conns.forEach(function(c){
-      fetch("/api/cloud-sync?action=sync",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:dbCoId,provider:c.provider,project:sanitizeProject(proj||doc.project)||me.co||"General",tab:"docs",docType:dtype,filename:fname,content:content,contentType:"text/plain"})}).catch(function(){});
+      fetch("/api/cloud-sync?action=sync",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:dbCoId,provider:c.provider,project:sanitizeProject(proj||doc.project)||me.co||"General",tab:"docs",docType:dtype,filename:fname,content:content,contentType:"text/plain",binBase64:binBase64,binName:binName,binMime:binMime})}).catch(function(){});
     });
   }catch(e){console.error("syncDocToCloud:",e);}
 }
