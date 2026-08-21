@@ -6974,6 +6974,31 @@ async function ragSearch(query,k){
   }catch(e){return [];}
 }
 
+// Backfill: (re)index every existing incident + document into the RAG store.
+async function backfillRAG(){
+  if(!dbCoId){try{toast(_t3("Log in first","Connectez-vous d'abord","Faça login primeiro"));}catch(e){}return;}
+  window._ragOff=false; // allow a fresh attempt in case setup was just completed
+  var btn=document.getElementById("rag-backfill-btn"); if(btn)btn.disabled=true;
+  var statusEl=document.getElementById("rag-backfill-status");
+  var items=[];
+  entries.forEach(function(e){items.push({type:"incident",id:e.id,project:e.project,title:e.title,content:[e.title,catLabel(e.cat),e.desc,e.action,e.cause,e.normes].filter(Boolean).join("\n")});});
+  try{
+    var r=await db.from("project_documents").select("id,project,name,summary").eq("company_id",dbCoId).limit(1000);
+    if(r.data)r.data.forEach(function(d){items.push({type:"document",id:d.id,project:d.project,title:d.name,content:d.summary});});
+  }catch(e){}
+  items=items.filter(function(it){return it.content&&it.content.length>10;});
+  var total=items.length, done=0;
+  var setLbl=function(){if(statusEl)statusEl.textContent=total?("· "+done+"/"+total):"";};
+  setLbl();
+  if(!total){if(btn)btn.disabled=false;try{toast(_t3("Nothing to index yet.","Rien à indexer pour l'instant.","Nada para indexar ainda."));}catch(e){}return;}
+  for(var i=0;i<items.length&&!window._ragOff;i+=3){
+    var batch=items.slice(i,i+3);
+    await Promise.all(batch.map(function(it){return ragIndex(it.type,it.id,it.project,it.title,it.content).then(function(){done++;setLbl();});}));
+  }
+  if(btn)btn.disabled=false;
+  try{toast(window._ragOff?_t3("Semantic search isn't set up — run supabase/pgvector.sql first.","Recherche non configurée — exécutez d'abord le script SQL.","Busca não configurada — rode o SQL primeiro."):("✅ "+done+" "+_t3("items indexed for AI search","éléments indexés","itens indexados para busca IA")));}catch(e){}
+}
+
 async function processDoc(file,proj){
   var _ln=file.name.toLowerCase();
   if(_ln.endsWith(".dxf")||_ln.endsWith(".ifc")||_ln.endsWith(".dwg"))return await processCAD(file,proj);
@@ -8193,6 +8218,9 @@ function openSettingsModal(){
   lbl("set-payment-label",_t3("Payment","Paiement","Pagamento"));
   lbl("set-payment-none",_t3("No payment method on file.","Aucun moyen de paiement enregistré.","Nenhum método de pagamento cadastrado."));
   lbl("setp-usage-h",_t3("Usage","Usage","Uso"));
+  lbl("rag-backfill-label",_t3("AI semantic search","Recherche sémantique IA","Busca semântica IA"));
+  lbl("rag-backfill-desc",_t3("Index all existing incidents & documents so Pillier IA can search them by meaning.","Indexez tous les incidents et documents existants pour que Pillier IA les recherche par sens.","Indexe todos os incidentes e documentos existentes para a Pillier IA buscar por significado."));
+  lbl("rag-backfill-btn-label",_t3("Reindex knowledge","Réindexer","Reindexar conhecimento"));
   lbl("settings-cloud-label2",_t3("Cloud Storage Integrations","Stockage cloud","Armazenamento em nuvem"));
   lbl("cloud-desc2",_t3("Connect your company storage. Incidents sync straight into each project's folder structure.","Connectez le stockage de votre entreprise. Les incidents se synchronisent directement dans l'arborescence de chaque projet.","Conecte o armazenamento da sua empresa. Os incidentes vão direto para a estrutura de pastas de cada projeto."));
   lbl("setp-apps-h",_t3("Customization","Personnalisation","Personalização"));
@@ -8701,6 +8729,11 @@ function sanitizeProject(proj){
       <div class="set-panel" id="setp-usage" style="display:none">
         <div class="set-h" id="setp-usage-h">Uso</div>
         <div id="set-usage-bars"></div>
+        <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border);">
+          <div class="set-l" id="rag-backfill-label" style="margin-bottom:8px;">AI semantic search</div>
+          <div style="font-size:12px;color:var(--text3);line-height:1.5;margin-bottom:10px;" id="rag-backfill-desc">Index all existing incidents & documents so Pillier IA can search them by meaning.</div>
+          <button onclick="backfillRAG()" id="rag-backfill-btn" style="width:100%;padding:10px;background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.2);border-radius:8px;color:#60a5fa;font-size:12px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="ti ti-database-search" style="font-size:16px;"></i> <span id="rag-backfill-btn-label">Reindex knowledge</span> <span id="rag-backfill-status" style="color:var(--text3);"></span></button>
+        </div>
       </div>
       <!-- CUSTOMIZATION (cloud storage) -->
       <div class="set-panel" id="setp-custom" style="display:none">
