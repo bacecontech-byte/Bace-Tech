@@ -4139,9 +4139,22 @@ async function doReset(){
 function enterApp(user){
   var meta=user.user_metadata||{};
   var name=meta.full_name||user.email.split("@")[0];
-  var co=meta.company||user.email.split("@")[1]||"Pillier";
+  // Workspace boundary: an explicit company means teammates share a workspace;
+  // WITHOUT one we must isolate per-user (email), NOT per email-domain — a domain
+  // fallback merges every unrelated @gmail.com account into one shared workspace.
+  var co=(meta.company&&meta.company.trim())?meta.company.trim():user.email;
   var parts=name.split(" ");
   me={name:name,co:co,av:((parts[0]||"?")[0]+(parts[1]||"?")[0]).toUpperCase(),email:user.email};
+  // If a DIFFERENT account signs in on this browser, drop the previous account's
+  // cached data so nothing carries across accounts.
+  try{
+    var lastAcct=localStorage.getItem("pillier_acct");
+    if(lastAcct&&lastAcct!==(user.email||"")){
+      ["pillier-captures-v1","pillier-projects-cache","pillier-proj-meta","pillier-comm-v1","pillier-comm-mentions","pillier_folders","pillier_plan","pillier_trial_end","pillier_paid","pillier_team"].forEach(function(k){localStorage.removeItem(k);});
+      entries=[];projects=[];projectDocs={};chatHistory=[];
+    }
+    localStorage.setItem("pillier_acct",user.email||"");
+  }catch(e){}
   // Apply saved language preference
   var savedLang=meta.preferred_lang;
   if(savedLang===undefined||savedLang===null){
@@ -6628,7 +6641,9 @@ function mdInline(s){
 // Full markdown → HTML: GFM tables, lists, code blocks, headings, bold/italic
 function renderMarkdown(src){
   if(src==null)return "";
-  var esc=String(src).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  // Honor explicit <br> tags the model emits (common inside table cells) — turn
+  // them into a placeholder that survives HTML-escaping, restored to <br> at the end.
+  var esc=String(src).replace(/<br\s*\/?>/gi,"BR").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   var lines=esc.split(/\r?\n/),out=[],i=0;
   var isSep=function(l){return /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?\s*$/.test(l);};
   var splitRow=function(r){r=r.trim().replace(/^\|/,"").replace(/\|$/,"");return r.split("|").map(function(c){return c.trim();});};
@@ -6653,7 +6668,7 @@ function renderMarkdown(src){
     while(i<lines.length&&lines[i].trim()!==""&&!special(lines[i],lines[i+1])){para.push(lines[i]);i++;}
     out.push("<p class='md-p'>"+para.map(mdInline).join("<br>")+"</p>");
   }
-  return out.join("");
+  return out.join("").replace(/\x01BR\x01/g,"<br>");
 }
 function mdToHtml(t){return renderMarkdown(t);}
 function addMsg(role,text){
@@ -6684,7 +6699,9 @@ async function sendChat(){
   var attachment=chatAttachment;
   clearChatAttachment();
   showTyping();
-  var kb=entries.length?entries.map(function(e,i){return "["+i+"] "+e.title+" | "+e.project+" | "+e.cat+" | "+e.sev+" | "+e.desc+" | "+e.action+" | "+e.date+" | "+e.status;}).join("\n"):"Aucun incident.";
+  // Scope the chat's incident knowledge to the current company AND selected site.
+  var _chatEntries=(typeof activeSiteEntries==="function")?activeSiteEntries():entries;
+  var kb=_chatEntries.length?_chatEntries.map(function(e,i){return "["+i+"] "+e.title+" | "+e.project+" | "+e.cat+" | "+e.sev+" | "+e.desc+" | "+e.action+" | "+e.date+" | "+e.status;}).join("\n"):"Aucun incident.";
   var projList=projects.map(function(p){return p.name+(p.location?" ("+p.location+")":"");}).join(", ")||"Aucun projet";
   var allDocCtx=Object.keys(projectDocs).map(function(p){return getProjectDocContext(p);}).filter(Boolean).join("\n");
   var docCtxStr=allDocCtx?"\n\nINDEXED PROJECT DOCUMENTS (use for precise technical answers):\n"+allDocCtx:"";
@@ -6704,9 +6721,9 @@ async function sendChat(){
     pt:"\\n\\nESTILO: Você é um copiloto engenheiro de obra. Responda de forma natural e conversacional, como um colega especialista — nunca copiando linhas brutas do banco de dados. Sintetize os dados relevantes em frases claras. Use markdown quando útil: **negrito** para pontos-chave, listas com marcadores para etapas, e uma tabela markdown SOMENTE quando o usuário pedir explicitamente para listar/comparar vários incidentes. Nunca mostre IDs internos nem o formato bruto « | ID | ... | » a menos que seja explicitamente solicitado. Seja direto."+_langRule
   };
   var _sp={
-    fr:"Tu es Pillier IA, assistant expert en génie civil et gestion de chantiers pour "+me.co+". Tu connais les normes BRÉSIL (ABNT NBR 6118, NBR 5410, NBR 5626, NBR 9050, NBR 14432, NBR 8160, NR-18, NR-35, PBQP-H), FRANCE (DTU, Eurocodes, NF EN) et EUROPE (EN Eurocodes). Projets actifs: "+projList+". Base de connaissances ("+entries.length+" incidents):\\n"+kb+docCtxStr+"\\nRéponds en français sauf si l'utilisateur écrit dans une autre langue. Sois concis et pratique. Cite toujours les normes applicables."+_style.fr,
-    en:"You are Pillier IA, expert AI assistant in civil engineering and construction site management for "+me.co+". You know BRAZIL (ABNT NBR 6118, NBR 5410, NBR 5626, NBR 9050, NBR 14432, NBR 8160, NR-18, NR-35, PBQP-H), FRANCE (DTU, Eurocodes, NF EN) and EUROPE (EN Eurocodes) construction standards. Active projects: "+projList+". Knowledge base ("+entries.length+" incidents):\\n"+kb+docCtxStr+"\\nRespond in English unless the user writes in another language. Be concise and practical. Always cite applicable norms."+_style.en,
-    pt:"Você é a Pillier IA, assistente especialista em engenharia civil e gestão de canteiros para "+me.co+". Você conhece as normas do BRASIL (ABNT NBR 6118, NBR 5410, NBR 5626, NBR 9050, NBR 14432, NBR 8160, NR-18, NR-35, PBQP-H), FRANÇA (DTU, Eurocodes, NF EN) e EUROPA (EN Eurocodes). Projetos ativos: "+projList+". Base de conhecimento ("+entries.length+" incidentes):\\n"+kb+docCtxStr+"\\nResponda em português, exceto se o usuário escrever em outro idioma. Seja conciso e prático. Sempre cite as normas aplicáveis."+_style.pt
+    fr:"Tu es Pillier IA, assistant expert en génie civil et gestion de chantiers pour "+me.co+". Tu connais les normes BRÉSIL (ABNT NBR 6118, NBR 5410, NBR 5626, NBR 9050, NBR 14432, NBR 8160, NR-18, NR-35, PBQP-H), FRANCE (DTU, Eurocodes, NF EN) et EUROPE (EN Eurocodes). Projets actifs: "+projList+". Base de connaissances ("+_chatEntries.length+" incidents):\\n"+kb+docCtxStr+"\\nRéponds en français sauf si l'utilisateur écrit dans une autre langue. Sois concis et pratique. Cite toujours les normes applicables."+_style.fr,
+    en:"You are Pillier IA, expert AI assistant in civil engineering and construction site management for "+me.co+". You know BRAZIL (ABNT NBR 6118, NBR 5410, NBR 5626, NBR 9050, NBR 14432, NBR 8160, NR-18, NR-35, PBQP-H), FRANCE (DTU, Eurocodes, NF EN) and EUROPE (EN Eurocodes) construction standards. Active projects: "+projList+". Knowledge base ("+_chatEntries.length+" incidents):\\n"+kb+docCtxStr+"\\nRespond in English unless the user writes in another language. Be concise and practical. Always cite applicable norms."+_style.en,
+    pt:"Você é a Pillier IA, assistente especialista em engenharia civil e gestão de canteiros para "+me.co+". Você conhece as normas do BRASIL (ABNT NBR 6118, NBR 5410, NBR 5626, NBR 9050, NBR 14432, NBR 8160, NR-18, NR-35, PBQP-H), FRANÇA (DTU, Eurocodes, NF EN) e EUROPA (EN Eurocodes). Projetos ativos: "+projList+". Base de conhecimento ("+_chatEntries.length+" incidentes):\\n"+kb+docCtxStr+"\\nResponda em português, exceto se o usuário escrever em outro idioma. Seja conciso e prático. Sempre cite as normas aplicáveis."+_style.pt
   };
   var sysPrompt=_sp[lang===1?"en":lang===2?"pt":"fr"];
   var messages=[{role:"system",content:sysPrompt}].concat(chatHistory.slice(-10));
