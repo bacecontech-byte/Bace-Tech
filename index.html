@@ -6972,6 +6972,7 @@ async function saveDocRecord(file,proj,summaryText){
     if(ins.data&&ins.data[0])doc.id=ins.data[0].id;
   }
   try{ragIndex("document",doc.id,proj,file.name,summaryText);}catch(e){}
+  try{syncDocToCloud(doc,proj);}catch(e){}
   try{toast("✅ "+file.name);}catch(e){}
   renderDocs(proj);
 }
@@ -7200,6 +7201,7 @@ async function processDoc(file,proj){
         if(ins.data&&ins.data[0])doc.id=ins.data[0].id;
       }
       try{ragIndex("document",doc.id,proj,file.name,doc.summary);}catch(e){}
+      try{syncDocToCloud(doc,proj);}catch(e){}
 
       toast("\u2705 "+file.name+" - "+totalPages+" "+(S.docsPagesDone||"pages analysées")+" !");
       renderDocs(proj);
@@ -8143,7 +8145,8 @@ async function syncToCloud(entry){
       body:JSON.stringify({company_id:dbCoId})
     });
     var d=await r.json();
-    if(!d.connections||!d.connections.length)return;
+    d.connections=(d.connections||[]).filter(function(c){return c.provider&&c.provider.indexOf("app:")!==0;});
+    if(!d.connections.length)return;
 
     var report="INCIDENTE — "+entry.title+"\n\n";
     report+="Data: "+entry.date+"\n";
@@ -8165,7 +8168,8 @@ async function syncToCloud(entry){
           company_id:dbCoId,
           provider:conn.provider,
           project:sanitizeProject(entry.project)||me.co||"General",
-          category:entry.cat||"General",
+          tab:"files",
+          category:catLabel(entry.cat)||"Documentação",
           filename:filename,
           content:report,
           contentType:"text/plain",
@@ -8174,6 +8178,29 @@ async function syncToCloud(entry){
       }).catch(function(e){console.error("Cloud sync "+conn.provider+":",e);});
     }
   }catch(e){console.error("syncToCloud:",e);}
+}
+// Classify a document into the "Plantas & Documentos" subfolder.
+function docSubfolderFor(name,type){
+  var n=(name||"").toLowerCase(),t=(type||"");
+  if(/\.(dwg|dxf|ifc|rvt)$/.test(n)||t.indexOf("image")===0||/planta|plan|blueprint|layout|desenho|arquitet/.test(n))return "Plantas";
+  return "Laudos & Especificações";
+}
+// Auto-sync an uploaded document to every connected cloud, into
+// Pillier/<Site>/Plantas & Documentos/<Plantas | Laudos & Especificações>.
+async function syncDocToCloud(doc,proj){
+  if(!dbCoId||!doc)return;
+  try{
+    var r=await fetch("/api/cloud-sync?action=status",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:dbCoId})});
+    var d=await r.json();
+    var conns=(d.connections||[]).filter(function(c){return c.provider&&c.provider.indexOf("app:")!==0;});
+    if(!conns.length)return;
+    var content="DOCUMENTO — "+doc.name+"\n\nProjeto: "+(proj||doc.project||"")+"\nData: "+(doc.date||"")+"\n\nRESUMO:\n"+(doc.summary||"");
+    var fname=((doc.date||new Date().toLocaleDateString("fr-FR")).replace(/\//g,"-"))+"_"+(doc.name||"documento").substring(0,40).replace(/[^a-z0-9.]/gi,"-")+".txt";
+    var dtype=docSubfolderFor(doc.name,doc.type);
+    conns.forEach(function(c){
+      fetch("/api/cloud-sync?action=sync",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:dbCoId,provider:c.provider,project:sanitizeProject(proj||doc.project)||me.co||"General",tab:"docs",docType:dtype,filename:fname,content:content,contentType:"text/plain"})}).catch(function(){});
+    });
+  }catch(e){console.error("syncDocToCloud:",e);}
 }
 
 // Check cloud status on login
@@ -8426,8 +8453,8 @@ async function syncAllToCloud(){
             company_id:dbCoId,
             provider:d.connections[c].provider,
             project:e.project||"General",
-            category:e.cat||"General",
-            section:"Incidents",
+            tab:"files",
+            category:catLabel(e.cat)||"Documentação",
             filename:filename,
             content:report,
             contentType:"text/plain",
@@ -8472,8 +8499,8 @@ async function syncAllToCloud(){
             company_id:dbCoId,
             provider:d.connections[c2].provider,
             project:sanitizeProject(doc.project)||me.co||"General",
-            category:"Documentos",
-            section:"Documents",
+            tab:"docs",
+            docType:docSubfolderFor(doc.name,doc.type),
             filename:docFilename+".txt",
             content:docContent,
             contentType:"text/plain"
@@ -8770,11 +8797,14 @@ function sanitizeProject(proj){
         <div id="cloud-status" style="margin-top:12px;"></div>
         <div style="margin-top:14px;padding:12px 14px;background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.14);border-radius:10px;">
           <div id="cloud-structure-legend" style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Folder structure created per project:</div>
-          <div style="font-size:12px;color:var(--text);line-height:1.9;font-family:var(--font-b);">
+          <div style="font-size:12px;color:var(--text);line-height:1.85;font-family:var(--font-b);">
             <div>📁 Pillier</div>
-            <div style="padding-left:14px;">└ 📁 &lt;Project&gt;</div>
-            <div style="padding-left:30px;color:var(--text2);">├ 📁 Structure &nbsp; ├ 📁 Incidents &nbsp; ├ 📁 Reports</div>
-            <div style="padding-left:30px;color:var(--text2);">├ 📁 Media &nbsp;&nbsp;&nbsp;&nbsp; └ 📁 Documents</div>
+            <div style="padding-left:14px;">└ 📁 &lt;Canteiro / Projeto&gt;</div>
+            <div style="padding-left:30px;">├ 📁 Meus arquivos</div>
+            <div style="padding-left:46px;color:var(--text2);">├ 📁 Estrutura &nbsp; ├ 📁 Elétrica &nbsp; ├ 📁 Hidráulica</div>
+            <div style="padding-left:46px;color:var(--text2);">├ 📁 Segurança &nbsp; ├ 📁 Equipamento &nbsp; └ 📁 …</div>
+            <div style="padding-left:30px;">└ 📁 Plantas &amp; Documentos</div>
+            <div style="padding-left:46px;color:var(--text2);">├ 📁 Plantas &nbsp;&nbsp; └ 📁 Laudos &amp; Especificações</div>
           </div>
         </div>
         <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
