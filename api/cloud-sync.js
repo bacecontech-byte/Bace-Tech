@@ -132,22 +132,25 @@ export default async function handler(req, res) {
       //   Pillier / <Construction Site> / Plantas & Documentos / <Plantas | Laudos & Especificações> / <file>
       const folderPath = buildFolderPath(project, tab, category, docType, filename, contentType);
 
-      // Upload based on provider
+      // Upload based on provider — return the real error (200 body) so the app can surface it.
       let result;
-      if (provider === "google") result = await uploadGoogleDrive(tokens, folderPath, filename, fileContent, contentType, photoBase64);
-      else if (provider === "onedrive") result = await uploadOneDrive(tokens, folderPath, filename, fileContent, contentType, photoBase64);
-      else if (provider === "dropbox") result = await uploadDropbox(tokens, folderPath, filename, fileContent, photoBase64);
-      else if (provider === "s3") result = await uploadS3(tokens.credentials, folderPath, filename, fileContent, contentType, photoBase64);
-      else if (provider === "gcp") result = await uploadGCP(tokens.credentials, folderPath, filename, fileContent, contentType, photoBase64);
-      else if (provider === "webdav") result = await uploadWebDAV(tokens.credentials, folderPath, filename, fileContent, photoBase64);
+      try {
+        if (provider === "google") result = await uploadGoogleDrive(tokens, folderPath, filename, fileContent, contentType, photoBase64);
+        else if (provider === "onedrive") result = await uploadOneDrive(tokens, folderPath, filename, fileContent, contentType, photoBase64);
+        else if (provider === "dropbox") result = await uploadDropbox(tokens, folderPath, filename, fileContent, photoBase64);
+        else if (provider === "s3") result = await uploadS3(tokens.credentials, folderPath, filename, fileContent, contentType, photoBase64);
+        else if (provider === "gcp") result = await uploadGCP(tokens.credentials, folderPath, filename, fileContent, contentType, photoBase64);
+        else if (provider === "webdav") result = await uploadWebDAV(tokens.credentials, folderPath, filename, fileContent, photoBase64);
 
-      // Mirror the ORIGINAL uploaded file (PDF / blueprint / photo) alongside the summary.
-      if (binBase64 && binName) {
-        try { await uploadBinary(provider, tokens, folderPath, binName, binMime || "application/octet-stream", binBase64); }
-        catch (e) { console.error("binary mirror error:", e.message); }
+        // Mirror the ORIGINAL uploaded file (PDF / blueprint / photo) alongside the summary.
+        if (binBase64 && binName) {
+          await uploadBinary(provider, tokens, folderPath, binName, binMime || "application/octet-stream", binBase64);
+        }
+      } catch (e) {
+        return res.status(200).json({ ok: false, error: "" + (e.message || e), folderPath, provider });
       }
 
-      return res.status(200).json({ ok: true, result });
+      return res.status(200).json({ ok: true, folderPath, result });
     }
 
     // ── DISCONNECT ──
@@ -330,26 +333,8 @@ async function refreshToken(provider, tokens) {
 
 // ── Google Drive upload ──
 async function uploadGoogleDrive(tokens, folderPath, filename, content, contentType, photoBase64) {
-  const parts = folderPath.split("/");
-  let parentId = "root";
-  // Create folder hierarchy
-  for (const folder of parts) {
-    const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${encodeURIComponent(folder)}'+and+'${parentId}'+in+parents+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false&fields=files(id)`, {
-      headers: { Authorization: "Bearer " + tokens.access_token },
-    });
-    const searchData = await searchRes.json();
-    if (searchData.files && searchData.files.length > 0) {
-      parentId = searchData.files[0].id;
-    } else {
-      const createRes = await fetch("https://www.googleapis.com/drive/v3/files", {
-        method: "POST",
-        headers: { Authorization: "Bearer " + tokens.access_token, "Content-Type": "application/json" },
-        body: JSON.stringify({ name: folder, mimeType: "application/vnd.google-apps.folder", parents: [parentId] }),
-      });
-      const created = await createRes.json();
-      parentId = created.id;
-    }
-  }
+  // Build (or find) the full nested folder path; throws if a folder can't be created.
+  const parentId = await driveEnsureFolder(tokens, folderPath);
   // Upload report file
   const boundary = "bacetech_boundary";
   const metadata = JSON.stringify({ name: filename, parents: [parentId] });
@@ -465,16 +450,22 @@ async function uploadWebDAV(creds, folderPath, filename, content, photoBase64) {
 
 // ── Original-file mirroring (binary): upload the raw PDF/blueprint/photo ──────
 async function driveEnsureFolder(tokens, folderPath) {
-  const parts = folderPath.split("/");
+  const parts = folderPath.split("/").filter(Boolean);
   let parentId = "root";
   for (const folder of parts) {
-    const s = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${encodeURIComponent(folder)}'+and+'${parentId}'+in+parents+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false&fields=files(id)`, { headers: { Authorization: "Bearer " + tokens.access_token } });
+    // Properly URL-encode the whole query (names contain spaces / accents / "&").
+    const q = `name='${folder.replace(/'/g, "\\'")}' and '${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+    const s = await fetch("https://www.googleapis.com/drive/v3/files?spaces=drive&fields=files(id)&q=" + encodeURIComponent(q), { headers: { Authorization: "Bearer " + tokens.access_token } });
     const sd = await s.json();
-    if (sd.files && sd.files.length > 0) parentId = sd.files[0].id;
-    else {
-      const c = await fetch("https://www.googleapis.com/drive/v3/files", { method: "POST", headers: { Authorization: "Bearer " + tokens.access_token, "Content-Type": "application/json" }, body: JSON.stringify({ name: folder, mimeType: "application/vnd.google-apps.folder", parents: [parentId] }) });
-      const cj = await c.json(); parentId = cj.id;
-    }
+    if (sd && sd.files && sd.files.length > 0) { parentId = sd.files[0].id; continue; }
+    const c = await fetch("https://www.googleapis.com/drive/v3/files?fields=id", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + tokens.access_token, "Content-Type": "application/json" },
+      body: JSON.stringify({ name: folder, mimeType: "application/vnd.google-apps.folder", parents: [parentId] }),
+    });
+    const cj = await c.json();
+    if (!cj || !cj.id) throw new Error("Drive folder create failed for '" + folder + "': " + JSON.stringify(cj && cj.error || cj));
+    parentId = cj.id;
   }
   return parentId;
 }
