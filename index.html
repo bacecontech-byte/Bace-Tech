@@ -1167,7 +1167,7 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
       <!-- Login method selector -->
       <div class="login-methods" id="login-methods">
         <button type="button" class="lm-pill active" data-m="password" onclick="setLoginMethod('password')" id="lm-password"><i class="ti ti-lock"></i><span>Password</span></button>
-        <button type="button" class="lm-pill" data-m="code" onclick="setLoginMethod('code')" id="lm-code"><i class="ti ti-number"></i><span>Code</span></button>
+        <button type="button" class="lm-pill" data-m="code" onclick="setLoginMethod('code')" id="lm-code"><i class="ti ti-mail-code"></i><span>Code</span></button>
         <button type="button" class="lm-pill" data-m="magic" onclick="setLoginMethod('magic')" id="lm-magic"><i class="ti ti-wand"></i><span>Magic link</span></button>
       </div>
 
@@ -4312,12 +4312,12 @@ function applyLoginMethodLang(){
   var setHTML=function(id,t){var el=document.getElementById(id);if(el)el.innerHTML=t;};
   var pm=document.querySelector('#lm-password span'),cm=document.querySelector('#lm-code span'),mm=document.querySelector('#lm-magic span');
   if(pm)pm.textContent=plL("Mot de passe","Password","Senha");
-  if(cm)cm.textContent=plL("Code","Code","Código");
+  if(cm)cm.textContent=plL("Code e-mail","Email code","Código e-mail");
   if(mm)mm.textContent=plL("Lien magique","Magic link","Link mágico");
-  set("code-req-desc",plL("Nous vous enverrons un code de vérification à 6 chiffres par email.","We'll email you a 6-digit verification code.","Enviaremos um código de verificação de 6 dígitos por e-mail."));
-  set("btn-send-code",plL("Envoyer le code","Send code","Enviar código"));
+  set("code-req-desc",plL("Nous vous enverrons un email. Ouvrez-le et cliquez sur « Confirmer votre e-mail » : un onglet affichera votre code à 6 chiffres.","We'll email you a link. Open it and click “Confirm your email” — a tab opens showing your 6-digit code.","Enviaremos um e-mail. Abra e clique em “Confirmar seu e-mail” — uma aba abre mostrando seu código de 6 dígitos."));
+  set("btn-send-code",plL("M'envoyer un code par e-mail","Email me a code","Enviar um código por e-mail"));
   set("code-wait-title",plL("Entrez votre code","Enter your code","Digite seu código"));
-  set("code-wait-sub",plL("Ouvrez le lien dans votre email pour voir votre code à 6 chiffres, puis saisissez-le ci-dessous.","Open the link in your email to view your 6-digit code, then enter it below.","Abra o link no seu e-mail para ver seu código de 6 dígitos e digite-o abaixo."));
+  set("code-wait-sub",plL("Ouvrez l'email « Confirmer votre e-mail » : un onglet affiche votre code à 6 chiffres. Saisissez-le ci-dessous.","Open the “Confirm your email” message — a tab shows your 6-digit code. Enter it below.","Abra a mensagem “Confirmar seu e-mail” — uma aba mostra seu código de 6 dígitos. Digite-o abaixo."));
   set("btn-verify-code",plL("Vérifier et se connecter","Verify & sign in","Verificar e entrar"));
   set("code-resend",plL("Renvoyer le code","Resend code","Reenviar código"));
   set("code-change",plL("Changer d'email","Change email","Alterar e-mail"));
@@ -4417,15 +4417,39 @@ function crCopy(){
   var b=document.getElementById("cr-copy");if(b)b.textContent=plL("Copié !","Copied!","Copiado!");
   setTimeout(function(){var b2=document.getElementById("cr-copy");if(b2)b2.textContent=plL("Copier le code","Copy code","Copiar código");},1500);
 }
-function showCodeReveal(){
-  var code=_getCodeParam();
+async function showCodeReveal(){
   var s=document.getElementById("code-reveal-screen");if(!s)return;
-  document.getElementById("cr-sub").textContent=code?plL("Voici votre code de vérification","Here is your verification code","Aqui está seu código de verificação"):plL("Aucun code dans ce lien","No code in this link","Nenhum código neste link");
-  document.getElementById("cr-code").textContent=code||"------";
-  document.getElementById("cr-copy").textContent=plL("Copier le code","Copy code","Copiar código");
-  document.getElementById("cr-copy").style.display=code?"block":"none";
-  document.getElementById("cr-hint").textContent=plL("Retournez à l'onglet de connexion Pillier et saisissez ce code pour vous connecter.","Return to the Pillier sign-in tab and enter this code to log in.","Volte para a aba de login da Pillier e digite este código para entrar.");
   s.style.display="flex";
+  var code=_getCodeParam();
+  if(code){
+    // Code is in the link — reveal it for the user to copy into the sign-in tab.
+    document.getElementById("cr-sub").textContent=plL("Voici votre code de vérification","Here is your verification code","Aqui está seu código de verificação");
+    document.getElementById("cr-code").textContent=code;
+    document.getElementById("cr-copy").style.display="block";
+    document.getElementById("cr-copy").textContent=plL("Copier le code","Copy code","Copiar código");
+    document.getElementById("cr-hint").textContent=plL("Retournez à l'onglet de connexion Pillier et saisissez ce code pour vous connecter.","Return to the Pillier sign-in tab and enter this code to log in.","Volte para a aba de login da Pillier e digite este código para entrar.");
+    return;
+  }
+  // No raw code in the URL (default Supabase template uses token_hash). Fall back to signing in.
+  var qp=new URLSearchParams(location.search);
+  var hp=new URLSearchParams((location.hash||"").replace(/^#/,""));
+  var th=qp.get("token_hash")||hp.get("token_hash");
+  var ty=qp.get("type")||hp.get("type")||"email";
+  document.getElementById("cr-code").textContent="•••";
+  document.getElementById("cr-copy").style.display="none";
+  var showSigningIn=function(){document.getElementById("cr-sub").textContent=plL("Connexion en cours…","Signing you in…","Entrando…");document.getElementById("cr-hint").textContent=plL("Vous allez être redirigé vers votre tableau de bord.","You'll be redirected to your dashboard.","Você será redirecionado para o painel.");};
+  try{
+    if(db){
+      // If the link already established a session (implicit flow), just go in.
+      var sess=await db.auth.getSession();
+      if(sess&&sess.data&&sess.data.session){showSigningIn();setTimeout(function(){location.href="/";},500);return;}
+      if(th){showSigningIn();var r=await db.auth.verifyOtp({token_hash:th,type:ty});if(!r.error&&r.data&&r.data.user){setTimeout(function(){location.href="/";},500);return;}}
+    }
+  }catch(e){}
+  // Nothing usable in the link.
+  document.getElementById("cr-sub").textContent=plL("Lien invalide ou expiré","Invalid or expired link","Link inválido ou expirado");
+  document.getElementById("cr-code").textContent="—";
+  document.getElementById("cr-hint").textContent=plL("Demandez un nouveau code depuis l'onglet de connexion.","Request a new code from the sign-in tab.","Solicite um novo código na aba de login.");
 }
 
 async function doLogin(){
