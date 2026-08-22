@@ -8182,6 +8182,32 @@ async function syncToCloud(entry){
     }
   }catch(e){console.error("syncToCloud:",e);}
 }
+// On-demand diagnostic: create the folder tree on the first connected cloud and
+// report the exact folder path created — or the exact provider error.
+async function testCloudSync(){
+  var out=document.getElementById("cloud-test-out");
+  var setOut=function(t){if(out)out.textContent=t;};
+  if(!dbCoId){setOut("⚠️ "+_t3("Log in first.","Connectez-vous.","Faça login primeiro."));return;}
+  setOut("⏳ "+_t3("Testing…","Test en cours…","Testando…"));
+  try{
+    var r=await fetch("/api/cloud-sync?action=status",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:dbCoId})});
+    var d=await r.json();
+    var conns=(d.connections||[]).filter(function(c){return c.provider&&c.provider.indexOf("app:")!==0;});
+    if(!conns.length){setOut("⚠️ "+_t3("No cloud connected — connect one above first.","Aucun cloud connecté.","Nenhuma nuvem conectada — conecte uma acima."));return;}
+    var site=(getActiveSite&&getActiveSite())||me.co||"Teste";
+    var lines=[];
+    for(var i=0;i<conns.length;i++){
+      var c=conns[i];
+      try{
+        var sr=await fetch("/api/cloud-sync?action=sync",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:dbCoId,provider:c.provider,project:site,tab:"files",category:"Estrutura",filename:"pillier-teste.txt",content:"Pillier — teste de estrutura de pastas ("+new Date().toISOString()+")",contentType:"text/plain"})});
+        var sd=await sr.json();
+        if(sd&&sd.ok)lines.push("✅ "+c.provider+" → "+(sd.folderPath||"?"));
+        else lines.push("❌ "+c.provider+": "+((sd&&sd.error)||"erro"));
+      }catch(e){lines.push("❌ "+c.provider+": "+(e.message||"erro"));}
+    }
+    setOut(lines.join("\n"));
+  }catch(e){setOut("❌ "+(e.message||"erro"));}
+}
 // Classify a document into the "Plantas & Documentos" subfolder.
 function docSubfolderFor(name,type){
   var n=(name||"").toLowerCase(),t=(type||"");
@@ -8286,6 +8312,7 @@ function openSettingsModal(){
   lbl("setp-apps-h",_t3("Customization","Personnalisation","Personalização"));
   lbl("apps-desc",_t3("Connect the other apps your company uses so Pillier fits into your workflow.","Connectez les autres apps de votre entreprise pour intégrer Pillier à votre flux de travail.","Conecte os outros apps da sua empresa para integrar o Pillier ao seu fluxo de trabalho."));
   lbl("cloud-structure-legend",_t3("Folder structure created per project:","Arborescence créée par projet :","Estrutura de pastas criada por projeto:"));
+  lbl("cloud-test-label",_t3("Test folder structure","Tester l'arborescence","Testar estrutura de pastas"));
   setSettingsSection(_settingsSection||"general");
   try{renderSettingsPlan();}catch(e){}
 }
@@ -8820,8 +8847,10 @@ function sanitizeProject(proj){
             <div style="padding-left:46px;color:var(--text2);">├ 📁 Plantas &nbsp;&nbsp; └ 📁 Laudos &amp; Especificações</div>
           </div>
         </div>
-        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;">
           <button onclick="syncAllToCloud();closeSettingsModal()" style="width:100%;padding:10px;background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.2);border-radius:8px;color:#60a5fa;font-size:12px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="ti ti-refresh" style="font-size:16px;"></i> <span id="sync-all-label">Sincronizar tudo agora</span></button>
+          <button onclick="testCloudSync()" id="cloud-test-btn" style="width:100%;padding:10px;background:none;border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="ti ti-folder-check" style="font-size:16px;"></i> <span id="cloud-test-label">Testar estrutura de pastas</span></button>
+          <div id="cloud-test-out" style="font-size:11px;color:var(--text3);line-height:1.5;white-space:pre-wrap;"></div>
         </div>
       </div>
       <!-- CUSTOMIZATION (app integrations) -->
