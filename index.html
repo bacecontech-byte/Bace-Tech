@@ -345,6 +345,14 @@ body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-heig
 .auth-tabs{display:flex;background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:3px;margin-bottom:24px;gap:3px;}
 .auth-tab{flex:1;background:none;border:none;color:var(--text2);font-family:var(--font-b);font-size:13px;font-weight:500;padding:9px;border-radius:6px;cursor:pointer;transition:all 0.15s;}
 .auth-tab.active{background:var(--blue);color:white;}
+/* Password strength checklist */
+.pw-checklist{margin-top:8px;display:grid;gap:4px;}
+.pw-req{font-size:11.5px;color:#8a8a95;display:flex;align-items:center;gap:7px;transition:color .12s;}
+.pw-req .pw-ico{width:13px;text-align:center;font-weight:700;color:#f87171;flex-shrink:0;}
+.pw-req.ok{color:#4ade80;}
+.pw-req.ok .pw-ico{color:#4ade80;}
+.pw-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#8a8a95;cursor:pointer;font-size:18px;line-height:1;padding:2px;}
+.pw-eye:hover{color:#d0d0da;}
 .form-group{margin-bottom:16px;}
 .form-label{display:block;font-size:12px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:7px;}
 .form-input,.form-select{width:100%;background:var(--navy2);border:1px solid var(--border2);border-radius:10px;padding:14px 16px;font-family:var(--font-b);font-size:15px;color:var(--text);outline:none;transition:border-color 0.15s;}
@@ -1150,7 +1158,7 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
       <div class="form-group"><label class="form-label" id="lb-pass">Mot de passe</label><input class="form-input" type="password" id="l-pass" placeholder="••••••••" style="width:100%;background:#18181c;border-color:rgba(255,255,255,0.1);color:#fff;"></div>
       <div id="turnstile-login" style="margin:16px 0 24px;min-height:65px;position:relative;z-index:1;"></div>
       <button class="btn-primary" id="btn-login" onclick="doLogin()" style="width:100%;margin-top:4px;position:relative;z-index:5;pointer-events:auto;cursor:pointer;"></button>
-      <div style="text-align:center;margin-top:12px;"><a onclick="doReset()" style="font-size:12px;color:#6a6a75;cursor:pointer;" id="lnk-reset"></a></div>
+      <div style="text-align:center;margin-top:12px;"><a onclick="showResetView()" style="font-size:12px;color:#6a6a75;cursor:pointer;" id="lnk-reset"></a></div>
       <div class="auth-switch" style="margin-top:10px;font-size:12px;color:#6a6a75;"><span id="no-acc"></span> <a onclick="switchTab(1)" id="lnk-signup" style="color:#60a5fa;cursor:pointer;"></a></div>
       <div id="consent-login" style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.06);font-size:11px;color:var(--text3);line-height:1.5;text-align:center;">
         <span id="consent-login-txt">By continuing, you agree to Pillier's</span>
@@ -1176,7 +1184,19 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
           <label style="display:flex;align-items:center;gap:8px;background:#18181c;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;cursor:pointer;"><input type="radio" name="signup-lang" value="2" style="accent-color:#60a5fa" onchange="setLang(2,null)"><span style="font-size:12px;color:#6a6a75;">🇧🇷 Português</span></label>
         </div>
       </div>
-      <div class="form-group"><label class="form-label" id="lb-spass">Mot de passe</label><input class="form-input" type="password" id="s-pass" placeholder="Min. 8 caractères" style="width:100%;background:#18181c;border-color:rgba(255,255,255,0.1);color:#fff;"></div>
+      <div class="form-group"><label class="form-label" id="lb-spass">Mot de passe</label>
+        <div style="position:relative;">
+          <input class="form-input" type="password" id="s-pass" placeholder="Min. 8 caractères" oninput="pwCheck()" style="width:100%;background:#18181c;border-color:rgba(255,255,255,0.1);color:#fff;padding-right:40px;">
+          <button type="button" class="pw-eye" id="s-pass-eye" onclick="togglePw('s-pass','s-pass-eye')" aria-label="Show password"><i class="ti ti-eye"></i></button>
+        </div>
+        <div class="pw-checklist" id="pw-checklist">
+          <div class="pw-req" data-k="len"><span class="pw-ico">✗</span><span class="pw-txt"></span></div>
+          <div class="pw-req" data-k="upper"><span class="pw-ico">✗</span><span class="pw-txt"></span></div>
+          <div class="pw-req" data-k="lower"><span class="pw-ico">✗</span><span class="pw-txt"></span></div>
+          <div class="pw-req" data-k="num"><span class="pw-ico">✗</span><span class="pw-txt"></span></div>
+          <div class="pw-req" data-k="special"><span class="pw-ico">✗</span><span class="pw-txt"></span></div>
+        </div>
+      </div>
       <div id="turnstile-signup" style="margin:16px 0 24px;min-height:65px;position:relative;z-index:1;"></div>
       <button class="btn-primary" id="btn-signup" onclick="doSignup()" style="width:100%;position:relative;z-index:5;pointer-events:auto;cursor:pointer;"></button>
       <a href="https://app.pillier.com.br" id="trial-link-signup" style="display:block;text-align:center;margin-top:10px;padding:10px;border-radius:10px;border:1px solid rgba(96,165,250,0.25);color:#60a5fa;font-size:13px;font-weight:500;text-decoration:none;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='#60a5fa';this.style.background='rgba(96,165,250,0.06)'" onmouseout="this.style.borderColor='rgba(96,165,250,0.25)';this.style.background='none'">Teste grátis 30 dias</a>
@@ -1189,6 +1209,35 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
       </div>
     </div>
 
+    <!-- Reset password (request link) form -->
+    <div id="form-reset" style="display:none;width:100%;max-width:380px;">
+      <div style="font-family:var(--font-d);font-size:18px;font-weight:700;color:#fff;margin-bottom:6px;" id="reset-title">Réinitialiser le mot de passe</div>
+      <div style="font-size:13px;color:#8a8a95;margin-bottom:18px;" id="reset-sub">Entrez votre email et nous vous enverrons un lien de réinitialisation.</div>
+      <div class="form-group"><label class="form-label" id="lb-remail">Email</label><input class="form-input" type="email" id="r-email" placeholder="jean@entreprise.fr" style="width:100%;background:#18181c;border-color:rgba(255,255,255,0.1);color:#fff;"></div>
+      <button class="btn-primary" id="btn-reset-send" onclick="sendResetLink()" style="width:100%;margin-top:6px;cursor:pointer;">Envoyer le lien de réinitialisation</button>
+      <div style="text-align:center;margin-top:14px;"><a onclick="backToAuth()" style="font-size:13px;color:#60a5fa;cursor:pointer;" id="reset-back">← Retour à la connexion</a></div>
+    </div>
+
+    <!-- Set new password (recovery landing) form -->
+    <div id="form-newpass" style="display:none;width:100%;max-width:380px;">
+      <div style="font-family:var(--font-d);font-size:18px;font-weight:700;color:#fff;margin-bottom:6px;" id="np-title">Nouveau mot de passe</div>
+      <div style="font-size:13px;color:#8a8a95;margin-bottom:18px;" id="np-sub">Choisissez un nouveau mot de passe pour votre compte.</div>
+      <div class="form-group"><label class="form-label" id="lb-np1">Nouveau mot de passe</label>
+        <div style="position:relative;">
+          <input class="form-input" type="password" id="np-pass" placeholder="••••••••" oninput="pwCheckNew()" style="width:100%;background:#18181c;border-color:rgba(255,255,255,0.1);color:#fff;padding-right:40px;">
+          <button type="button" class="pw-eye" id="np-pass-eye" onclick="togglePw('np-pass','np-pass-eye')" aria-label="Show password"><i class="ti ti-eye"></i></button>
+        </div>
+        <div class="pw-checklist" id="pw-checklist-new">
+          <div class="pw-req" data-k="len"><span class="pw-ico">✗</span><span class="pw-txt"></span></div>
+          <div class="pw-req" data-k="upper"><span class="pw-ico">✗</span><span class="pw-txt"></span></div>
+          <div class="pw-req" data-k="lower"><span class="pw-ico">✗</span><span class="pw-txt"></span></div>
+          <div class="pw-req" data-k="num"><span class="pw-ico">✗</span><span class="pw-txt"></span></div>
+          <div class="pw-req" data-k="special"><span class="pw-ico">✗</span><span class="pw-txt"></span></div>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label" id="lb-np2">Confirmer le mot de passe</label><input class="form-input" type="password" id="np-pass2" placeholder="••••••••" oninput="pwCheckNew()" style="width:100%;background:#18181c;border-color:rgba(255,255,255,0.1);color:#fff;"></div>
+      <button class="btn-primary" id="btn-newpass" onclick="submitNewPass()" style="width:100%;margin-top:6px;cursor:pointer;">Mettre à jour le mot de passe</button>
+    </div>
 
   </div>
   <div id="landing-solutions" class="auth-right-panel" style="background:#111114;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:70px 32px 55px 52px;border-left:0.5px solid rgba(96,165,250,0.1);overflow:hidden;position:relative;">
@@ -4025,7 +4074,132 @@ function switchTab(i){
   });
   document.getElementById("form-login").style.display=i===0?"block":"none";
   document.getElementById("form-signup").style.display=i===1?"block":"none";
+  var fr=document.getElementById("form-reset");if(fr)fr.style.display="none";
+  var fn=document.getElementById("form-newpass");if(fn)fn.style.display="none";
+  var tabs=document.querySelector(".auth-tabs")||(document.getElementById("tab-a")&&document.getElementById("tab-a").parentNode);
+  if(tabs)tabs.style.display="flex";
+  if(i===1){try{pwCheck();}catch(e){}}
   showMsg("","");
+}
+
+/* ── Password strength: live checklist + eye toggle ── */
+var PW_RULES=[
+  {k:"len",test:function(p){return p.length>=8;}},
+  {k:"upper",test:function(p){return /[A-Z]/.test(p);}},
+  {k:"lower",test:function(p){return /[a-z]/.test(p);}},
+  {k:"num",test:function(p){return /[0-9]/.test(p);}},
+  {k:"special",test:function(p){return /[^A-Za-z0-9]/.test(p);}}
+];
+function pwLabel(k){
+  return ({
+    len:plL("Au moins 8 caractères","At least 8 characters","Pelo menos 8 caracteres"),
+    upper:plL("1 lettre majuscule (A-Z)","1 uppercase letter (A-Z)","1 letra maiúscula (A-Z)"),
+    lower:plL("1 lettre minuscule (a-z)","1 lowercase letter (a-z)","1 letra minúscula (a-z)"),
+    num:plL("1 chiffre (0-9)","1 number (0-9)","1 número (0-9)"),
+    special:plL("1 caractère spécial (!@#$…)","1 special character (!@#$…)","1 caractere especial (!@#$…)")
+  })[k]||"";
+}
+function pwAllValid(p){return PW_RULES.every(function(r){return r.test(p);});}
+function _renderChecklist(listId,pw){
+  var list=document.getElementById(listId);if(!list)return;
+  Array.prototype.forEach.call(list.querySelectorAll(".pw-req"),function(el){
+    var k=el.getAttribute("data-k");var rule=PW_RULES.filter(function(r){return r.k===k;})[0];if(!rule)return;
+    var ok=rule.test(pw||"");
+    el.classList.toggle("ok",ok);
+    var ico=el.querySelector(".pw-ico");if(ico)ico.textContent=ok?"✓":"✗";
+    var txt=el.querySelector(".pw-txt");if(txt)txt.textContent=pwLabel(k);
+  });
+}
+function pwCheck(){
+  var el=document.getElementById("s-pass");var p=el?el.value:"";
+  _renderChecklist("pw-checklist",p);
+  var btn=document.getElementById("btn-signup");
+  if(btn){var ok=pwAllValid(p);btn.disabled=!ok;btn.style.opacity=ok?"1":"0.5";btn.style.cursor=ok?"pointer":"not-allowed";}
+}
+function pwCheckNew(){
+  var el=document.getElementById("np-pass");var p=el?el.value:"";
+  _renderChecklist("pw-checklist-new",p);
+  var el2=document.getElementById("np-pass2");var p2=el2?el2.value:"";
+  var btn=document.getElementById("btn-newpass");
+  if(btn){var ok=pwAllValid(p)&&p===p2;btn.disabled=!ok;btn.style.opacity=ok?"1":"0.5";btn.style.cursor=ok?"pointer":"not-allowed";}
+}
+function togglePw(inputId,eyeId){
+  var i=document.getElementById(inputId),e=document.getElementById(eyeId);if(!i)return;
+  var show=i.type==="password";i.type=show?"text":"password";
+  if(e)e.innerHTML=show?"<i class='ti ti-eye-off'></i>":"<i class='ti ti-eye'></i>";
+}
+
+/* ── Forgot-password / reset flow ── */
+function _authTabsBar(){return document.querySelector(".auth-tabs")||(document.getElementById("tab-a")&&document.getElementById("tab-a").parentNode);}
+function showResetView(){
+  document.getElementById("form-login").style.display="none";
+  document.getElementById("form-signup").style.display="none";
+  var fn=document.getElementById("form-newpass");if(fn)fn.style.display="none";
+  document.getElementById("form-reset").style.display="block";
+  var tabs=_authTabsBar();if(tabs)tabs.style.display="none";
+  applyResetLang();
+  showMsg("","");
+  var em=document.getElementById("l-email");var re=document.getElementById("r-email");if(em&&re&&em.value)re.value=em.value.trim();
+  setTimeout(function(){var r=document.getElementById("r-email");if(r)r.focus();},50);
+}
+function backToAuth(){
+  var tabs=_authTabsBar();if(tabs)tabs.style.display="flex";
+  switchTab(0);
+}
+async function sendResetLink(){
+  var em=(document.getElementById("r-email").value||"").trim();
+  var S=STRINGS[lang];
+  if(!em){showMsg(plL("Entrez votre email","Enter your email","Digite seu e-mail"),"err");return;}
+  var btn=document.getElementById("btn-reset-send");if(btn){btn.disabled=true;}
+  showLoad(true,plL("Envoi…","Sending…","Enviando…"));
+  try{
+    var r=await db.auth.resetPasswordForEmail(em,{redirectTo:location.origin+"/#reset"});
+    showLoad(false);if(btn)btn.disabled=false;
+    if(r.error){showMsg(plL("Erreur — vérifiez votre email","Error — check your email","Erro — verifique seu e-mail"),"err");return;}
+    showMsg(plL("Lien de réinitialisation envoyé ! Vérifiez votre boîte mail.","Reset link sent! Check your inbox.","Link de redefinição enviado! Verifique seu e-mail."),"ok");
+  }catch(e){showLoad(false);if(btn)btn.disabled=false;showMsg(plL("Erreur de connexion","Connection error","Erro de conexão"),"err");}
+}
+// Recovery landing: Supabase fires PASSWORD_RECOVERY when the emailed link opens.
+function showNewPassView(){
+  try{document.getElementById("s-auth").classList.add("active");}catch(e){}
+  var lg=document.getElementById("form-login");if(lg)lg.style.display="none";
+  var sg=document.getElementById("form-signup");if(sg)sg.style.display="none";
+  var fr=document.getElementById("form-reset");if(fr)fr.style.display="none";
+  var tabs=_authTabsBar();if(tabs)tabs.style.display="none";
+  var fn=document.getElementById("form-newpass");if(fn)fn.style.display="block";
+  applyResetLang();pwCheckNew();
+  setTimeout(function(){var n=document.getElementById("np-pass");if(n)n.focus();},60);
+}
+async function submitNewPass(){
+  var p=document.getElementById("np-pass").value,p2=document.getElementById("np-pass2").value;
+  if(!pwAllValid(p)){showMsg(plL("Le mot de passe ne respecte pas les critères","Password does not meet the requirements","A senha não atende aos critérios"),"err");return;}
+  if(p!==p2){showMsg(plL("Les mots de passe ne correspondent pas","Passwords do not match","As senhas não coincidem"),"err");return;}
+  var btn=document.getElementById("btn-newpass");if(btn)btn.disabled=true;
+  showLoad(true,plL("Mise à jour…","Updating…","Atualizando…"));
+  try{
+    var r=await db.auth.updateUser({password:p});
+    showLoad(false);if(btn)btn.disabled=false;
+    if(r.error){showMsg(r.error.message,"err");return;}
+    showMsg(plL("Mot de passe mis à jour ! Connexion…","Password updated! Signing in…","Senha atualizada! Entrando…"),"ok");
+    try{location.hash="";}catch(e){}
+    if(r.data&&r.data.user)setTimeout(function(){enterApp(r.data.user);},600);
+    else setTimeout(function(){backToAuth();},800);
+  }catch(e){showLoad(false);if(btn)btn.disabled=false;showMsg(plL("Erreur","Error","Erro"),"err");}
+}
+function applyResetLang(){
+  var set=function(id,t){var el=document.getElementById(id);if(el)el.textContent=t;};
+  set("reset-title",plL("Réinitialiser le mot de passe","Reset your password","Redefinir a senha"));
+  set("reset-sub",plL("Entrez votre email et nous vous enverrons un lien de réinitialisation.","Enter your email and we'll send you a reset link.","Digite seu e-mail e enviaremos um link de redefinição."));
+  set("lb-remail",plL("Email","Email","E-mail"));
+  set("btn-reset-send",plL("Envoyer le lien de réinitialisation","Send reset link","Enviar link de redefinição"));
+  set("reset-back",plL("← Retour à la connexion","← Back to sign in","← Voltar para o login"));
+  set("np-title",plL("Nouveau mot de passe","New password","Nova senha"));
+  set("np-sub",plL("Choisissez un nouveau mot de passe pour votre compte.","Choose a new password for your account.","Escolha uma nova senha para sua conta."));
+  set("lb-np1",plL("Nouveau mot de passe","New password","Nova senha"));
+  set("lb-np2",plL("Confirmer le mot de passe","Confirm password","Confirmar senha"));
+  set("btn-newpass",plL("Mettre à jour le mot de passe","Update password","Atualizar senha"));
+  try{_renderChecklist("pw-checklist",(document.getElementById("s-pass")||{}).value||"");}catch(e){}
+  try{_renderChecklist("pw-checklist-new",(document.getElementById("np-pass")||{}).value||"");}catch(e){}
 }
 function showMsg(txt,type){var el=document.getElementById("auth-msg");if(!txt){el.style.display="none";return;}el.className="auth-msg "+(type==="ok"?"ok":"err");el.textContent=txt;el.style.display="block";}
 
@@ -4102,6 +4276,7 @@ async function doSignup(){
   if(!/[A-Z]/.test(pw))pwErrors.push(S.pwUpper||"1 majuscule");
   if(!/[a-z]/.test(pw))pwErrors.push(S.pwLower||"1 minuscule");
   if(!/[0-9]/.test(pw))pwErrors.push(S.pwNum||"1 chiffre");
+  if(!/[^A-Za-z0-9]/.test(pw))pwErrors.push(plL("1 caractère spécial","1 special character","1 caractere especial"));
   if(pwErrors.length){showMsg((S.pwRequirements||"Mot de passe :")+" "+pwErrors.join(", "),"err");return;}
   // Get selected language
   var selectedLang=0;
@@ -4223,6 +4398,59 @@ async function doLogout(){
   // Restore Log in tab
   var loginTab=document.getElementById('ctab-login');if(loginTab)loginTab.style.display='';
   var mobLogin=document.getElementById('mob-tab-login');if(mobLogin)mobLogin.style.display='';
+}
+
+/* ── Account deletion (GDPR / LGPD) ── */
+function _delAcceptTokens(){var out=["DELETE"];if(me&&me.email)out.push(me.email.trim().toLowerCase());return out;}
+function _delConfirmCheck(){
+  var v=(document.getElementById("del-confirm-input").value||"").trim().toLowerCase();
+  var ok=_delAcceptTokens().some(function(t){return v===t.toLowerCase();});
+  var b=document.getElementById("del-confirm-btn");
+  if(b){b.disabled=!ok;b.style.opacity=ok?"1":"0.5";b.style.cursor=ok?"pointer":"not-allowed";}
+}
+function openDeleteAccount(){
+  var set=function(id,t){var el=document.getElementById(id);if(el)el.textContent=t;};
+  set("del-modal-title",plL("Supprimer le compte","Delete account","Excluir conta"));
+  set("del-modal-warn",plL("Cette action est définitive. Toutes vos données personnelles, associations de projet et fichiers seront supprimés définitivement. Ceci est irréversible.","This action is permanent. All your personal data, project associations and uploaded files will be permanently removed. This cannot be undone.","Esta ação é permanente. Todos os seus dados pessoais, associações de projeto e arquivos enviados serão removidos definitivamente. Isso não pode ser desfeito."));
+  var instr=document.getElementById("del-modal-instr");if(instr)instr.innerHTML=plL("Tapez <b>DELETE</b> ou votre email pour confirmer :","Type <b>DELETE</b> or your email to confirm:","Digite <b>DELETE</b> ou seu e-mail para confirmar:");
+  set("del-cancel",plL("Annuler","Cancel","Cancelar"));
+  set("del-confirm-btn",plL("Supprimer définitivement","Delete permanently","Excluir definitivamente"));
+  var inp=document.getElementById("del-confirm-input");if(inp){inp.value="";}
+  _delConfirmCheck();
+  document.getElementById("del-account-overlay").style.display="flex";
+  setTimeout(function(){var i=document.getElementById("del-confirm-input");if(i)i.focus();},60);
+}
+function closeDeleteAccount(){var o=document.getElementById("del-account-overlay");if(o)o.style.display="none";}
+async function confirmDeleteAccount(){
+  var v=(document.getElementById("del-confirm-input").value||"").trim().toLowerCase();
+  if(!_delAcceptTokens().some(function(t){return v===t.toLowerCase();}))return;
+  var btn=document.getElementById("del-confirm-btn");if(btn)btn.disabled=true;
+  showLoad(true,plL("Suppression du compte…","Deleting account…","Excluindo conta…"));
+  try{
+    var uid=(me&&me.uid)||null;
+    var token=null;
+    try{var sess=await db.auth.getSession();token=sess&&sess.data&&sess.data.session&&sess.data.session.access_token;}catch(e){}
+    var r=await fetch("/api/delete-account",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({user_id:uid,company_id:dbCoId,access_token:token})
+    });
+    var d={};try{d=await r.json();}catch(e){}
+    showLoad(false);
+    if(!r.ok||(d&&d.error)){
+      if(btn)btn.disabled=false;
+      toast("❌ "+((d&&d.error)||plL("Échec de la suppression","Deletion failed","Falha na exclusão")));
+      return;
+    }
+    // Clear local session + cached data, then send to landing.
+    try{await db.auth.signOut();}catch(e){}
+    try{["pillier-captures-v1","pillier-projects-cache","pillier-proj-meta","pillier-comm-v1","pillier-comm-mentions","pillier_folders","pillier_plan","pillier_trial_end","pillier_paid","pillier_team","pillier_acct","pillier_logged_in","bace-tab"].forEach(function(k){localStorage.removeItem(k);});}catch(e){}
+    closeDeleteAccount();
+    toast("✅ "+plL("Compte supprimé","Account deleted","Conta excluída"));
+    setTimeout(function(){location.href="/";},900);
+  }catch(e){
+    showLoad(false);if(btn)btn.disabled=false;
+    toast("❌ "+(e.message||plL("Erreur","Error","Erro")));
+  }
 }
 
 
@@ -4397,6 +4625,8 @@ function renderHYUB(){
 }
 
 function applyAuthLang(){
+  try{pwCheck();}catch(e){}
+  try{applyResetLang();}catch(e){}
   var lk=getLangKey();
   var h=AUTH_HEADLINES[lk];
   var l1=document.getElementById("auth-headline-line1");
@@ -4613,7 +4843,14 @@ window.addEventListener("load",async function(){
       document.getElementById('s-content').classList.add('active');
       showContentTab(0);
     }
-    db.auth.onAuthStateChange(function(event,session){if(event==="SIGNED_IN"&&session&&!document.getElementById("s-app").classList.contains("active"))enterApp(session.user);});
+    db.auth.onAuthStateChange(function(event,session){
+      if(event==="PASSWORD_RECOVERY"){try{showNewPassView();}catch(e){}return;}
+      if(event==="SIGNED_IN"&&session&&!document.getElementById("s-app").classList.contains("active")){
+        // Don't auto-enter the app while the user is setting a new password from a recovery link
+        if((location.hash||"").indexOf("reset")>=0&&document.getElementById("form-newpass")&&document.getElementById("form-newpass").style.display==="block")return;
+        enterApp(session.user);
+      }
+    });
   }
 });
 
@@ -8306,6 +8543,9 @@ function openSettingsModal(){
   lbl("set-role-label",_t3("Role","Rôle","Função"));
   lbl("set-firm-label",_t3("Firm","Entreprise","Empresa"));
   lbl("set-logout",_t3("Log out","Déconnexion","Sair"));
+  lbl("danger-zone-h",_t3("Danger zone","Zone de danger","Zona de perigo"));
+  lbl("danger-zone-desc",_t3("Deleting your account permanently removes all your personal data, projects and files.","Supprimer votre compte supprime définitivement toutes vos données personnelles, projets et fichiers.","Excluir sua conta remove permanentemente todos os seus dados pessoais, projetos e arquivos."));
+  lbl("btn-del-account",_t3("Delete account","Supprimer le compte","Excluir conta"));
   lbl("setp-privacy-h",_t3("Privacy","Confidentialité","Privacidade"));
   lbl("set-priv-loc",_t3("Location metadata","Métadonnées de localisation","Metadados de localização"));
   lbl("set-priv-analytics",_t3("Help improve the product","Aider à améliorer le produit","Ajudar a melhorar o produto"));
@@ -8816,6 +9056,12 @@ function cloudSiteName(proj){
         <div class="set-row"><span class="set-l" id="set-role-label">Função</span><span class="set-v" id="set-role">—</span></div>
         <div class="set-row"><span class="set-l" id="set-firm-label">Empresa</span><span class="set-v" id="set-firm">—</span></div>
         <button onclick="doLogout()" style="margin-top:18px;background:none;border:1px solid var(--border2);color:var(--text2);border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:8px;" id="set-logout"><i class="ti ti-logout"></i> Sair</button>
+        <!-- Danger zone (GDPR / LGPD) -->
+        <div style="margin-top:26px;padding-top:16px;border-top:1px solid rgba(248,113,113,0.25);">
+          <div style="font-size:10px;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;" id="danger-zone-h">Zona de perigo</div>
+          <div style="font-size:12px;color:var(--text3);line-height:1.5;margin-bottom:12px;" id="danger-zone-desc">Excluir sua conta remove permanentemente todos os seus dados pessoais, projetos e arquivos.</div>
+          <button onclick="openDeleteAccount()" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#f87171;border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:8px;"><i class="ti ti-trash"></i> <span id="btn-del-account">Excluir conta</span></button>
+        </div>
       </div>
       <!-- PRIVACY -->
       <div class="set-panel" id="setp-privacy" style="display:none">
@@ -8909,6 +9155,23 @@ function cloudSiteName(proj){
     <div style="display:flex;gap:8px;margin-top:20px;">
       <button id="fe-delete" onclick="deleteFolder()" style="display:none;align-items:center;gap:6px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;background:none;border:1px solid rgba(248,113,113,0.4);color:#f87171;">Delete</button>
       <button id="fe-save" onclick="saveFolderEditor()" style="flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:none;background:#60a5fa;color:#fff;">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete account confirmation modal -->
+<div id="del-account-overlay" onclick="if(event.target===this)closeDeleteAccount()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#18181c;border:1px solid rgba(248,113,113,0.3);border-radius:16px;padding:24px;width:440px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,0.6);">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <i class="ti ti-alert-triangle" style="font-size:22px;color:#f87171;"></i>
+      <div style="font-family:var(--font-d);font-size:17px;font-weight:800;color:#fff;" id="del-modal-title">Excluir conta</div>
+    </div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:14px;" id="del-modal-warn">Esta ação é permanente. Todos os seus dados pessoais, associações de projeto e arquivos enviados serão removidos definitivamente. Isso não pode ser desfeito.</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:6px;" id="del-modal-instr">Digite <b>DELETE</b> para confirmar:</div>
+    <input id="del-confirm-input" oninput="_delConfirmCheck()" autocomplete="off" placeholder="DELETE" style="width:100%;background:#111114;border:1px solid var(--border2);border-radius:8px;padding:10px 12px;font-size:13px;color:#fff;outline:none;font-family:inherit;">
+    <div style="display:flex;gap:8px;margin-top:18px;">
+      <button onclick="closeDeleteAccount()" style="flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;border:1px solid var(--border2);background:none;color:var(--text2);" id="del-cancel">Cancelar</button>
+      <button id="del-confirm-btn" onclick="confirmDeleteAccount()" disabled style="flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:not-allowed;font-family:inherit;border:none;background:#f87171;color:#fff;opacity:0.5;" >Excluir definitivamente</button>
     </div>
   </div>
 </div>
