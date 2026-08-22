@@ -4343,6 +4343,7 @@ async function sendLoginCode(){
     _show("login-code",false);_show("login-magic",false);
     var eg=document.getElementById("login-email-group");if(eg)eg.style.display="none";
     _show("login-code-wait",true);
+    _armOtpHandoff();
     _otpClear();showMsg("","");
     setTimeout(function(){var f=document.querySelector("#otp-inputs input");if(f)f.focus();},60);
   }catch(e){showLoad(false);if(btn)btn.disabled=false;showMsg(plL("Erreur de connexion","Connection error","Erro de conexão"),"err");}
@@ -4427,28 +4428,65 @@ async function showCodeReveal(){
   s.style.display="flex";
   var titleEl=document.getElementById("cr-title");
   if(titleEl)titleEl.textContent=plL("Votre code d'accès","Your access code","Seu código de acesso");
+  var sub=document.getElementById("cr-sub"),codeEl=document.getElementById("cr-code"),copyBtn=document.getElementById("cr-copy"),hint=document.getElementById("cr-hint");
   var code=_getCodeParam();
   if(code){
-    // Code is in the link — reveal it for the user to copy into the sign-in tab.
-    // This branch NEVER authenticates: the token is only consumed when the user
-    // types the code back into the waiting login tab (verifyLoginCode → verifyOtp).
-    document.getElementById("cr-sub").textContent=plL("Voici votre code de vérification","Here is your verification code","Aqui está seu código de verificação");
-    document.getElementById("cr-code").textContent=code;
-    document.getElementById("cr-copy").style.display="block";
-    document.getElementById("cr-copy").textContent=plL("Copier le code","Copy code","Copiar código");
-    document.getElementById("cr-hint").textContent=plL("Copiez ce code et collez-le dans l'onglet de connexion pour entrer.","Copy this code and paste it into the login tab to sign in.","Copie este código e cole na aba de login para entrar.");
+    // Code carried in the link (template uses {{ .Token }}) — reveal it. Works cross-device.
+    // This branch NEVER authenticates: the token is only consumed when the user types
+    // the code back into the waiting login tab (verifyLoginCode → verifyOtp).
+    sub.textContent=plL("Voici votre code de vérification","Here is your verification code","Aqui está seu código de verificação");
+    codeEl.textContent=code;
+    copyBtn.style.display="block";copyBtn.onclick=crCopy;copyBtn.textContent=plL("Copier le code","Copy code","Copiar código");
+    hint.textContent=plL("Copiez ce code et collez-le dans l'onglet de connexion pour entrer.","Copy this code and paste it into the login tab to sign in.","Copie este código e cole na aba de login para entrar.");
     return;
   }
-  // No raw code in the link. This should not happen once the email template links
-  // to /auth/verify-code?code={{ .Token }}. If we still land here (e.g. an old
-  // email whose link ran through Supabase's verify endpoint), do NOT drop the user
-  // into the dashboard — this route must stay a code-display page, distinct from the
-  // magic-link flow. Clear any session the link may have established and instruct.
-  try{if(db){await db.auth.signOut();}}catch(e){}
-  document.getElementById("cr-code").textContent="—";
-  document.getElementById("cr-copy").style.display="none";
-  document.getElementById("cr-sub").textContent=plL("Impossible d'afficher le code","Couldn't display your code","Não foi possível exibir o código");
-  document.getElementById("cr-hint").textContent=plL("Retournez à l'onglet de connexion et demandez un nouveau code.","Return to the login tab and request a new code.","Volte para a aba de login e solicite um novo código.");
+  // No numeric code in the link → the link ran through Supabase's verify endpoint and this
+  // tab is (or will shortly be) authenticated. Supabase mirrors the session into localStorage,
+  // which is shared with the ORIGINAL login tab in the same browser, so that tab signs itself
+  // in automatically (see _armOtpHandoff). This tab does NOT jump into the dashboard on its
+  // own — it confirms and points the user back — but offers a manual button so a user who
+  // opened the link on another device isn't stranded.
+  copyBtn.style.display="none";
+  codeEl.textContent="•";
+  sub.textContent=plL("Vérification…","Verifying…","Verificando…");
+  hint.textContent="";
+  var haveSession=async function(){try{var r=await db.auth.getSession();return !!(r&&r.data&&r.data.session);}catch(e){return false;}};
+  try{
+    var qp=new URLSearchParams(location.search),hp=new URLSearchParams((location.hash||"").replace(/^#/,""));
+    var th=qp.get("token_hash")||hp.get("token_hash"),ty=qp.get("type")||hp.get("type")||"email";
+    if(th&&db&&!(await haveSession())){try{await db.auth.verifyOtp({token_hash:th,type:ty});}catch(e){}}
+  }catch(e){}
+  // Wait for the (possibly async PKCE) session to settle.
+  var ok=false;
+  for(var i=0;i<12&&db;i++){ if(await haveSession()){ok=true;break;} await new Promise(function(r){setTimeout(r,300);}); }
+  if(ok){
+    // Signal the original waiting tab to enter the app.
+    try{localStorage.setItem("pillier-otp-signed-in",String(Date.now()));}catch(e){}
+    codeEl.textContent="✓";
+    sub.textContent=plL("E-mail confirmé !","Email confirmed!","E-mail confirmado!");
+    hint.textContent=plL("Retournez à l'onglet de connexion Pillier — vous êtes déjà connecté.","Return to the Pillier login tab — you're already signed in.","Volte para a aba de login da Pillier — você já está conectado.");
+    copyBtn.style.display="block";copyBtn.textContent=plL("Ouvrir le tableau de bord","Open dashboard","Abrir painel");copyBtn.onclick=function(){location.href="/";};
+    return;
+  }
+  // Truly nothing usable in the link.
+  codeEl.textContent="—";
+  sub.textContent=plL("Lien invalide ou expiré","Invalid or expired link","Link inválido ou expirado");
+  hint.textContent=plL("Demandez un nouveau code depuis l'onglet de connexion.","Request a new code from the login tab.","Solicite um novo código na aba de login.");
+}
+/* Same-browser handoff: the reveal tab authenticates → writes a flag → the original
+   login tab (armed here while it waits for the code) picks up the session and enters. */
+var _otpHandoffArmed=false;
+function _armOtpHandoff(){
+  if(_otpHandoffArmed)return;_otpHandoffArmed=true;
+  window.addEventListener("storage",function(e){
+    if(e.key==="pillier-otp-signed-in"&&db){
+      var app=document.getElementById("s-app");
+      if(app&&app.classList.contains("active"))return; // already in
+      db.auth.getSession().then(function(r){
+        if(r&&r.data&&r.data.session){try{showMsg("","");}catch(_){}enterApp(r.data.session.user);}
+      }).catch(function(){});
+    }
+  });
 }
 
 async function doLogin(){
