@@ -98,6 +98,8 @@ body.light-mode #s-login input.form-input,body.light-mode #s-login #l-email,body
 body.light-mode #s-login input::placeholder{color:#9ca3af !important;}
 body.light-mode #s-login .form-label{color:#6b7280 !important;}
 body.light-mode #s-login .auth-headline{color:#1a1a2e !important;}
+/* Login hero headline keeps the Pillier blue in both themes */
+#s-login #auth-headline-line1,body.light-mode #s-login #auth-headline-line1{color:#60a5fa !important;}
 /* Home button in light mode */
 body.light-mode #nav-home-btn{color:#2d2d3f !important;border-color:rgba(0,0,0,0.15) !important;}
 body.light-mode #nav-home-btn:hover{color:#3b82f6 !important;border-color:#3b82f6 !important;}
@@ -1149,9 +1151,9 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
     <div style="position:absolute;top:-150px;left:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(30,111,255,0.07) 0%,transparent 70%);pointer-events:none;"></div>
 
     <!-- Headline -->
-    <div id="auth-headline-line1" class="auth-headline" style="font-family:var(--font-d);font-size:48px;font-weight:600;color:#fff;line-height:1.1;letter-spacing:-1.2px;margin-bottom:16px;"></div>
+    <div id="auth-headline-line1" class="auth-headline" style="font-family:var(--font-d);font-size:34px;font-weight:600;color:#60a5fa;line-height:1.15;letter-spacing:-0.5px;margin-bottom:12px;text-align:center;"></div>
     <div id="auth-headline-line2" class="auth-headline" style="display:none;"></div>
-    <div id="auth-subline" style="font-family:var(--font-b);font-size:18px;font-weight:400;color:#94a3b8;line-height:1.6;max-width:420px;margin-bottom:40px;"></div>
+    <div id="auth-subline" style="font-family:var(--font-b);font-size:15px;font-weight:400;color:#94a3b8;line-height:1.6;max-width:400px;margin:0 auto 40px;text-align:center;"></div>
 
     <!-- Tabs -->
     <div style="display:flex;gap:2px;background:rgba(255,255,255,0.05);border-radius:10px;padding:3px;margin-bottom:24px;">
