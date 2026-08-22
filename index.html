@@ -4400,11 +4400,15 @@ async function sendMagicLink(){
 /* Code-reveal page: the email link opens /code?code=NNNNNN → show it big to copy. */
 function _getCodeParam(){
   try{
-    var q=new URLSearchParams(location.search).get("code");
-    if(q&&/^\d{4,8}$/.test(q))return q;
-    var h=(location.hash||"").replace(/^#/,"");
-    var hp=new URLSearchParams(h).get("code");
-    if(hp&&/^\d{4,8}$/.test(hp))return hp;
+    var names=["code","token","otp"];
+    var qp=new URLSearchParams(location.search);
+    var hp=new URLSearchParams((location.hash||"").replace(/^#/,""));
+    for(var i=0;i<names.length;i++){
+      var v=qp.get(names[i]);
+      if(v&&/^\d{4,8}$/.test(v))return v;
+      var vh=hp.get(names[i]);
+      if(vh&&/^\d{4,8}$/.test(vh))return vh;
+    }
   }catch(e){}
   return null;
 }
