@@ -1,7 +1,9 @@
 {
   "rewrites": [
     { "source": "/privacy", "destination": "/index.html" },
-    { "source": "/terms", "destination": "/index.html" }
+    { "source": "/terms", "destination": "/index.html" },
+    { "source": "/code", "destination": "/index.html" },
+    { "source": "/reset-password", "destination": "/index.html" }
   ],
   "headers": [
     {

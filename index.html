@@ -353,6 +353,16 @@ body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-heig
 .pw-req.ok .pw-ico{color:#4ade80;}
 .pw-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#8a8a95;cursor:pointer;font-size:18px;line-height:1;padding:2px;}
 .pw-eye:hover{color:#d0d0da;}
+/* Login method selector */
+.login-methods{display:flex;gap:6px;margin-bottom:16px;background:#18181c;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:4px;}
+.lm-pill{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:none;border:none;color:#8a8a95;font-family:inherit;font-size:12px;font-weight:600;padding:8px 6px;border-radius:7px;cursor:pointer;transition:all .12s;white-space:nowrap;}
+.lm-pill i{font-size:15px;}
+.lm-pill:hover{color:#d0d0da;}
+.lm-pill.active{background:rgba(96,165,250,0.18);color:#fff;}
+.otp-inputs{display:flex;gap:8px;justify-content:space-between;margin:6px 0 4px;}
+.otp-inputs input{width:100%;aspect-ratio:1;max-width:52px;text-align:center;font-size:22px;font-weight:700;background:#18181c;border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#fff;outline:none;font-family:var(--font-d);}
+.otp-inputs input:focus{border-color:#60a5fa;}
+.login-wait-ico{width:52px;height:52px;border-radius:50%;background:rgba(96,165,250,0.12);display:flex;align-items:center;justify-content:center;font-size:26px;color:#60a5fa;margin:0 auto 14px;}
 .form-group{margin-bottom:16px;}
 .form-label{display:block;font-size:12px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:7px;}
 .form-input,.form-select{width:100%;background:var(--navy2);border:1px solid var(--border2);border-radius:10px;padding:14px 16px;font-family:var(--font-b);font-size:15px;color:var(--text);outline:none;transition:border-color 0.15s;}
@@ -1154,12 +1164,60 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
 
     <!-- Login form -->
     <div id="form-login" style="width:100%;max-width:380px;">
-      <div class="form-group"><label class="form-label" id="lb-email">Email</label><input class="form-input" type="email" id="l-email" placeholder="vous@entreprise.com" style="width:100%;background:#18181c;border-color:rgba(255,255,255,0.1);color:#fff;"></div>
-      <div class="form-group"><label class="form-label" id="lb-pass">Mot de passe</label><input class="form-input" type="password" id="l-pass" placeholder="••••••••" style="width:100%;background:#18181c;border-color:rgba(255,255,255,0.1);color:#fff;"></div>
-      <div id="turnstile-login" style="margin:16px 0 24px;min-height:65px;position:relative;z-index:1;"></div>
-      <button class="btn-primary" id="btn-login" onclick="doLogin()" style="width:100%;margin-top:4px;position:relative;z-index:5;pointer-events:auto;cursor:pointer;"></button>
-      <div style="text-align:center;margin-top:12px;"><a onclick="showResetView()" style="font-size:12px;color:#6a6a75;cursor:pointer;" id="lnk-reset"></a></div>
-      <div class="auth-switch" style="margin-top:10px;font-size:12px;color:#6a6a75;"><span id="no-acc"></span> <a onclick="switchTab(1)" id="lnk-signup" style="color:#60a5fa;cursor:pointer;"></a></div>
+      <!-- Login method selector -->
+      <div class="login-methods" id="login-methods">
+        <button type="button" class="lm-pill active" data-m="password" onclick="setLoginMethod('password')" id="lm-password"><i class="ti ti-lock"></i><span>Password</span></button>
+        <button type="button" class="lm-pill" data-m="code" onclick="setLoginMethod('code')" id="lm-code"><i class="ti ti-number"></i><span>Code</span></button>
+        <button type="button" class="lm-pill" data-m="magic" onclick="setLoginMethod('magic')" id="lm-magic"><i class="ti ti-wand"></i><span>Magic link</span></button>
+      </div>
+
+      <div class="form-group" id="login-email-group"><label class="form-label" id="lb-email">Email</label><input class="form-input" type="email" id="l-email" placeholder="vous@entreprise.com" style="width:100%;background:#18181c;border-color:rgba(255,255,255,0.1);color:#fff;"></div>
+
+      <!-- Password method -->
+      <div id="login-password">
+        <div class="form-group"><label class="form-label" id="lb-pass">Mot de passe</label><input class="form-input" type="password" id="l-pass" placeholder="••••••••" style="width:100%;background:#18181c;border-color:rgba(255,255,255,0.1);color:#fff;"></div>
+        <div id="turnstile-login" style="margin:16px 0 24px;min-height:65px;position:relative;z-index:1;"></div>
+        <button class="btn-primary" id="btn-login" onclick="doLogin()" style="width:100%;margin-top:4px;position:relative;z-index:5;pointer-events:auto;cursor:pointer;"></button>
+        <div style="text-align:center;margin-top:12px;"><a onclick="showResetView()" style="font-size:12px;color:#6a6a75;cursor:pointer;" id="lnk-reset"></a></div>
+      </div>
+
+      <!-- Code method: request -->
+      <div id="login-code" style="display:none;">
+        <div style="font-size:12px;color:#8a8a95;line-height:1.5;margin:-4px 0 14px;" id="code-req-desc">Nous vous enverrons un code de vérification à 6 chiffres par email.</div>
+        <button class="btn-primary" id="btn-send-code" onclick="sendLoginCode()" style="width:100%;cursor:pointer;">Envoyer le code</button>
+      </div>
+      <!-- Code method: waiting for the 6-digit code -->
+      <div id="login-code-wait" style="display:none;text-align:center;">
+        <div class="login-wait-ico"><i class="ti ti-mail-fast"></i></div>
+        <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:4px;" id="code-wait-title">Entrez votre code</div>
+        <div style="font-size:12px;color:#8a8a95;line-height:1.5;margin-bottom:16px;" id="code-wait-sub">Ouvrez le lien dans votre email pour voir votre code à 6 chiffres, puis saisissez-le ci-dessous.</div>
+        <div class="otp-inputs" id="otp-inputs">
+          <input inputmode="numeric" maxlength="1" data-i="0"><input inputmode="numeric" maxlength="1" data-i="1"><input inputmode="numeric" maxlength="1" data-i="2"><input inputmode="numeric" maxlength="1" data-i="3"><input inputmode="numeric" maxlength="1" data-i="4"><input inputmode="numeric" maxlength="1" data-i="5">
+        </div>
+        <button class="btn-primary" id="btn-verify-code" onclick="verifyLoginCode()" style="width:100%;margin-top:12px;cursor:pointer;">Vérifier et se connecter</button>
+        <div style="display:flex;justify-content:space-between;margin-top:12px;font-size:12px;">
+          <a onclick="resendLoginCode()" style="color:#60a5fa;cursor:pointer;" id="code-resend">Renvoyer le code</a>
+          <a onclick="changeLoginEmail()" style="color:#6a6a75;cursor:pointer;" id="code-change">Changer d'email</a>
+        </div>
+      </div>
+
+      <!-- Magic link method: request -->
+      <div id="login-magic" style="display:none;">
+        <div style="font-size:12px;color:#8a8a95;line-height:1.5;margin:-4px 0 14px;" id="magic-req-desc">Nous vous enverrons un lien de connexion instantané par email.</div>
+        <button class="btn-primary" id="btn-send-magic" onclick="sendMagicLink()" style="width:100%;cursor:pointer;">Envoyer le lien magique</button>
+      </div>
+      <!-- Magic link: waiting -->
+      <div id="login-magic-wait" style="display:none;text-align:center;">
+        <div class="login-wait-ico"><i class="ti ti-mail-fast"></i></div>
+        <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:4px;" id="magic-wait-title">Vérifiez votre email</div>
+        <div style="font-size:12px;color:#8a8a95;line-height:1.5;margin-bottom:16px;" id="magic-wait-sub">Cliquez sur le lien de connexion dans votre email pour vous authentifier automatiquement.</div>
+        <div style="display:flex;justify-content:center;gap:16px;font-size:12px;">
+          <a onclick="sendMagicLink()" style="color:#60a5fa;cursor:pointer;" id="magic-resend">Renvoyer le lien</a>
+          <a onclick="changeLoginEmail()" style="color:#6a6a75;cursor:pointer;" id="magic-change">Changer d'email</a>
+        </div>
+      </div>
+
+      <div class="auth-switch" style="margin-top:14px;font-size:12px;color:#6a6a75;"><span id="no-acc"></span> <a onclick="switchTab(1)" id="lnk-signup" style="color:#60a5fa;cursor:pointer;"></a></div>
       <div id="consent-login" style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.06);font-size:11px;color:var(--text3);line-height:1.5;text-align:center;">
         <span id="consent-login-txt">By continuing, you agree to Pillier's</span>
         <a href="/terms" onclick="showTermsPage();return false;" style="color:#60a5fa;text-decoration:none;" id="consent-login-terms">Terms of Service</a>
@@ -4093,6 +4151,7 @@ function switchTab(i){
   var tabs=document.querySelector(".auth-tabs")||(document.getElementById("tab-a")&&document.getElementById("tab-a").parentNode);
   if(tabs)tabs.style.display="flex";
   if(i===1){try{pwCheck();}catch(e){}}
+  if(i===0){try{setLoginMethod("password");}catch(e){}}
   showMsg("","");
 }
 
@@ -4231,6 +4290,143 @@ function applyResetLang(){
   try{_renderChecklist("pw-checklist-new",(document.getElementById("np-pass")||{}).value||"");}catch(e){}
 }
 function showMsg(txt,type){var el=document.getElementById("auth-msg");if(!txt){el.style.display="none";return;}el.className="auth-msg "+(type==="ok"?"ok":"err");el.textContent=txt;el.style.display="block";}
+
+/* ─────────── Login methods: Password · Code (web-reveal OTP) · Magic link ─────────── */
+var _loginMethod="password";
+function _show(id,on){var el=document.getElementById(id);if(el)el.style.display=on?"block":"none";}
+function setLoginMethod(m){
+  _loginMethod=m;
+  document.querySelectorAll("#login-methods .lm-pill").forEach(function(b){b.classList.toggle("active",b.getAttribute("data-m")===m);});
+  // reset any waiting states when the user switches method
+  _show("login-password",m==="password");
+  _show("login-code",m==="code");
+  _show("login-magic",m==="magic");
+  _show("login-code-wait",false);
+  _show("login-magic-wait",false);
+  var eg=document.getElementById("login-email-group");if(eg)eg.style.display="block";
+  showMsg("","");
+  applyLoginMethodLang();
+}
+function applyLoginMethodLang(){
+  var set=function(id,t){var el=document.getElementById(id);if(el)el.textContent=t;};
+  var setHTML=function(id,t){var el=document.getElementById(id);if(el)el.innerHTML=t;};
+  var pm=document.querySelector('#lm-password span'),cm=document.querySelector('#lm-code span'),mm=document.querySelector('#lm-magic span');
+  if(pm)pm.textContent=plL("Mot de passe","Password","Senha");
+  if(cm)cm.textContent=plL("Code","Code","Código");
+  if(mm)mm.textContent=plL("Lien magique","Magic link","Link mágico");
+  set("code-req-desc",plL("Nous vous enverrons un code de vérification à 6 chiffres par email.","We'll email you a 6-digit verification code.","Enviaremos um código de verificação de 6 dígitos por e-mail."));
+  set("btn-send-code",plL("Envoyer le code","Send code","Enviar código"));
+  set("code-wait-title",plL("Entrez votre code","Enter your code","Digite seu código"));
+  set("code-wait-sub",plL("Ouvrez le lien dans votre email pour voir votre code à 6 chiffres, puis saisissez-le ci-dessous.","Open the link in your email to view your 6-digit code, then enter it below.","Abra o link no seu e-mail para ver seu código de 6 dígitos e digite-o abaixo."));
+  set("btn-verify-code",plL("Vérifier et se connecter","Verify & sign in","Verificar e entrar"));
+  set("code-resend",plL("Renvoyer le code","Resend code","Reenviar código"));
+  set("code-change",plL("Changer d'email","Change email","Alterar e-mail"));
+  set("magic-req-desc",plL("Nous vous enverrons un lien de connexion instantané par email.","We'll email you an instant sign-in link.","Enviaremos um link de acesso instantâneo por e-mail."));
+  set("btn-send-magic",plL("Envoyer le lien magique","Send magic link","Enviar link mágico"));
+  set("magic-wait-title",plL("Vérifiez votre email","Check your email","Verifique seu e-mail"));
+  set("magic-wait-sub",plL("Cliquez sur le lien de connexion dans votre email pour vous authentifier automatiquement.","Click the sign-in link in your email to authenticate automatically.","Clique no link de acesso no seu e-mail para autenticar automaticamente."));
+  set("magic-resend",plL("Renvoyer le lien","Resend link","Reenviar link"));
+  set("magic-change",plL("Changer d'email","Change email","Alterar e-mail"));
+}
+var _otpEmail="";
+async function sendLoginCode(){
+  var em=(document.getElementById("l-email").value||"").trim();
+  if(!em){showMsg(plL("Entrez votre email","Enter your email","Digite seu e-mail"),"err");return;}
+  _otpEmail=em;
+  var btn=document.getElementById("btn-send-code");if(btn)btn.disabled=true;
+  showLoad(true,plL("Envoi du code…","Sending code…","Enviando código…"));
+  try{
+    var r=await db.auth.signInWithOtp({email:em,options:{shouldCreateUser:false,emailRedirectTo:location.origin+"/code"}});
+    showLoad(false);if(btn)btn.disabled=false;
+    if(r.error){showMsg(r.error.message,"err");return;}
+    _show("login-code",false);_show("login-magic",false);
+    var eg=document.getElementById("login-email-group");if(eg)eg.style.display="none";
+    _show("login-code-wait",true);
+    _otpClear();showMsg("","");
+    setTimeout(function(){var f=document.querySelector("#otp-inputs input");if(f)f.focus();},60);
+  }catch(e){showLoad(false);if(btn)btn.disabled=false;showMsg(plL("Erreur de connexion","Connection error","Erro de conexão"),"err");}
+}
+function resendLoginCode(){var e=document.getElementById("l-email");if(e&&_otpEmail)e.value=_otpEmail;sendLoginCode();showMsg(plL("Code renvoyé","Code resent","Código reenviado"),"ok");}
+function changeLoginEmail(){_show("login-code-wait",false);_show("login-magic-wait",false);var eg=document.getElementById("login-email-group");if(eg)eg.style.display="block";setLoginMethod(_loginMethod);setTimeout(function(){var e=document.getElementById("l-email");if(e)e.focus();},50);}
+function _otpClear(){document.querySelectorAll("#otp-inputs input").forEach(function(i){i.value="";});}
+function _otpValue(){return Array.prototype.map.call(document.querySelectorAll("#otp-inputs input"),function(i){return i.value;}).join("");}
+function _otpBind(){
+  var ins=document.querySelectorAll("#otp-inputs input");
+  ins.forEach(function(inp,idx){
+    inp.addEventListener("input",function(){
+      inp.value=(inp.value||"").replace(/[^0-9]/g,"").slice(0,1);
+      if(inp.value&&idx<ins.length-1)ins[idx+1].focus();
+      if(_otpValue().length===6)verifyLoginCode();
+    });
+    inp.addEventListener("keydown",function(e){if(e.key==="Backspace"&&!inp.value&&idx>0)ins[idx-1].focus();});
+    inp.addEventListener("paste",function(e){
+      e.preventDefault();var t=(e.clipboardData||window.clipboardData).getData("text").replace(/[^0-9]/g,"").slice(0,6);
+      for(var j=0;j<6;j++){if(ins[j])ins[j].value=t[j]||"";}
+      if(t.length===6)verifyLoginCode();else if(ins[t.length])ins[t.length].focus();
+    });
+  });
+}
+async function verifyLoginCode(){
+  var token=_otpValue();
+  if(token.length!==6)return;
+  var em=_otpEmail||(document.getElementById("l-email").value||"").trim();
+  var btn=document.getElementById("btn-verify-code");if(btn)btn.disabled=true;
+  showLoad(true,plL("Vérification…","Verifying…","Verificando…"));
+  try{
+    var r=await db.auth.verifyOtp({email:em,token:token,type:"email"});
+    showLoad(false);if(btn)btn.disabled=false;
+    if(r.error){showMsg(plL("Code invalide ou expiré","Invalid or expired code","Código inválido ou expirado"),"err");_otpClear();var f=document.querySelector("#otp-inputs input");if(f)f.focus();return;}
+    _pillierLogAuthEvent&&_pillierLogAuthEvent("login_success",em,null);
+    if(r.data&&r.data.user)enterApp(r.data.user); // otherwise onAuthStateChange SIGNED_IN handles it
+  }catch(e){showLoad(false);if(btn)btn.disabled=false;showMsg(plL("Erreur","Error","Erro"),"err");}
+}
+async function sendMagicLink(){
+  var em=(document.getElementById("l-email").value||"").trim();
+  if(!em){showMsg(plL("Entrez votre email","Enter your email","Digite seu e-mail"),"err");return;}
+  _otpEmail=em;
+  var btn=document.getElementById("btn-send-magic");if(btn)btn.disabled=true;
+  showLoad(true,plL("Envoi du lien…","Sending link…","Enviando link…"));
+  try{
+    var r=await db.auth.signInWithOtp({email:em,options:{shouldCreateUser:false,emailRedirectTo:location.origin+"/"}});
+    showLoad(false);if(btn)btn.disabled=false;
+    if(r.error){showMsg(r.error.message,"err");return;}
+    _show("login-magic",false);_show("login-code",false);
+    var eg=document.getElementById("login-email-group");if(eg)eg.style.display="none";
+    _show("login-magic-wait",true);showMsg("","");
+  }catch(e){showLoad(false);if(btn)btn.disabled=false;showMsg(plL("Erreur de connexion","Connection error","Erro de conexão"),"err");}
+}
+
+/* Code-reveal page: the email link opens /code?code=NNNNNN → show it big to copy. */
+function _getCodeParam(){
+  try{
+    var q=new URLSearchParams(location.search).get("code");
+    if(q&&/^\d{4,8}$/.test(q))return q;
+    var h=(location.hash||"").replace(/^#/,"");
+    var hp=new URLSearchParams(h).get("code");
+    if(hp&&/^\d{4,8}$/.test(hp))return hp;
+  }catch(e){}
+  return null;
+}
+function isCodeRevealRoute(){
+  var path=(location.pathname||"").replace(/\/+$/,"");
+  return path==="/code"||!!_getCodeParam();
+}
+function crCopy(){
+  var c=(document.getElementById("cr-code").textContent||"").trim();
+  try{navigator.clipboard.writeText(c);}catch(e){}
+  var b=document.getElementById("cr-copy");if(b)b.textContent=plL("Copié !","Copied!","Copiado!");
+  setTimeout(function(){var b2=document.getElementById("cr-copy");if(b2)b2.textContent=plL("Copier le code","Copy code","Copiar código");},1500);
+}
+function showCodeReveal(){
+  var code=_getCodeParam();
+  var s=document.getElementById("code-reveal-screen");if(!s)return;
+  document.getElementById("cr-sub").textContent=code?plL("Voici votre code de vérification","Here is your verification code","Aqui está seu código de verificação"):plL("Aucun code dans ce lien","No code in this link","Nenhum código neste link");
+  document.getElementById("cr-code").textContent=code||"------";
+  document.getElementById("cr-copy").textContent=plL("Copier le code","Copy code","Copiar código");
+  document.getElementById("cr-copy").style.display=code?"block":"none";
+  document.getElementById("cr-hint").textContent=plL("Retournez à l'onglet de connexion Pillier et saisissez ce code pour vous connecter.","Return to the Pillier sign-in tab and enter this code to log in.","Volte para a aba de login da Pillier e digite este código para entrar.");
+  s.style.display="flex";
+}
 
 async function doLogin(){
   var btn = document.getElementById("btn-login");
@@ -4656,6 +4852,8 @@ function renderHYUB(){
 function applyAuthLang(){
   try{pwCheck();}catch(e){}
   try{applyResetLang();}catch(e){}
+  try{applyLoginMethodLang();}catch(e){}
+  try{if(!window._otpBound){_otpBind();window._otpBound=true;}}catch(e){}
   var lk=getLangKey();
   var h=AUTH_HEADLINES[lk];
   var l1=document.getElementById("auth-headline-line1");
@@ -4861,6 +5059,8 @@ window.addEventListener("load",async function(){
   applyLang();
   initLoginScreen();
 
+  // Code-reveal page (/code?code=NNNNNN opened from the email link) — just display the code.
+  if(isCodeRevealRoute()){try{showCodeReveal();}catch(e){}return;}
   if(!db)return;
   // Password-recovery callback: Supabase puts type=recovery in the URL (hash or query).
   // (Captured before the hash was stripped, plus a live check.) Show Set-New-Password, never the app.
@@ -9184,6 +9384,17 @@ function cloudSiteName(proj){
       <button id="fe-delete" onclick="deleteFolder()" style="display:none;align-items:center;gap:6px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;background:none;border:1px solid rgba(248,113,113,0.4);color:#f87171;">Delete</button>
       <button id="fe-save" onclick="saveFolderEditor()" style="flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:none;background:#60a5fa;color:#fff;">Save</button>
     </div>
+  </div>
+</div>
+
+<!-- Verification-code reveal page (opened from the email link) -->
+<div id="code-reveal-screen" style="display:none;position:fixed;inset:0;z-index:100000;background:#0b0f19;color:#fff;align-items:center;justify-content:center;padding:24px;">
+  <div style="max-width:420px;width:100%;text-align:center;">
+    <div style="font-family:var(--font-d);font-size:24px;font-weight:800;margin-bottom:8px;">Pillier</div>
+    <div style="font-size:14px;color:#8a8a95;margin-bottom:26px;" id="cr-sub">Voici votre code de vérification</div>
+    <div id="cr-code" style="font-family:var(--font-d);font-size:42px;font-weight:800;letter-spacing:10px;background:#161e2e;border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:22px 12px;color:#fff;">------</div>
+    <button onclick="crCopy()" id="cr-copy" style="margin-top:18px;width:100%;background:#3B82F6;color:#fff;border:none;border-radius:10px;padding:12px;font-family:var(--font-d);font-size:14px;font-weight:700;cursor:pointer;">Copier le code</button>
+    <div style="font-size:12px;color:#6a6a75;margin-top:16px;line-height:1.6;" id="cr-hint">Retournez à l'onglet de connexion Pillier et saisissez ce code pour vous connecter.</div>
   </div>
 </div>
 
