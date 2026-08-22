@@ -1149,9 +1149,9 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
     <div style="position:absolute;top:-150px;left:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(30,111,255,0.07) 0%,transparent 70%);pointer-events:none;"></div>
 
     <!-- Headline -->
-    <div id="auth-headline-line1" class="auth-headline" style="font-size:34px;font-weight:700;color:#fff;line-height:1.2;letter-spacing:-0.5px;"></div>
-    <div id="auth-headline-line2" class="auth-headline" style="font-size:34px;font-weight:700;color:#60a5fa;line-height:1.2;letter-spacing:-0.5px;margin-bottom:14px;"></div>
-    <div id="auth-subline" style="font-size:15px;color:#6a6a75;line-height:1.65;max-width:400px;margin-bottom:40px;"></div>
+    <div id="auth-headline-line1" class="auth-headline" style="font-family:var(--font-d);font-size:48px;font-weight:600;color:#fff;line-height:1.1;letter-spacing:-1.2px;margin-bottom:16px;"></div>
+    <div id="auth-headline-line2" class="auth-headline" style="display:none;"></div>
+    <div id="auth-subline" style="font-family:var(--font-b);font-size:18px;font-weight:400;color:#94a3b8;line-height:1.6;max-width:420px;margin-bottom:40px;"></div>
 
     <!-- Tabs -->
     <div style="display:flex;gap:2px;background:rgba(255,255,255,0.05);border-radius:10px;padding:3px;margin-bottom:24px;">
@@ -4805,9 +4805,9 @@ function buildFeatContent(type,lk){
 }
 
 var AUTH_HEADLINES={
-  fr:{l1:"Ce qui se passe,",l2:"ne se perd plus.",sub:"Chaque incident documenté, diagnostiqué et partagé — en quelques secondes."},
-  en:{l1:"Capture it now.",l2:"Find it forever.",sub:"Every incident documented, diagnosed and shared — in seconds."},
-  pt:{l1:"Viu, registrou.",l2:"Nunca mais se perde.",sub:"Cada incidente documentado, diagnosticado e compartilhado — em segundos."}
+  fr:{l1:"Bâtissez la suite.",l2:"",sub:"Votre partenaire d'intelligence pour bâtisseurs ambitieux."},
+  en:{l1:"Shape what's next.",l2:"",sub:"Your intelligence partner for ambitious builders."},
+  pt:{l1:"Trace novos horizontes.",l2:"",sub:"Seu parceiro operacional para obras de grande impacto."}
 };
 
 var currentFeat=0;
@@ -4884,7 +4884,7 @@ function applyAuthLang(){
   var l2=document.getElementById("auth-headline-line2");
   var sub=document.getElementById("auth-subline");
   if(l1)l1.textContent=h.l1;
-  if(l2)l2.textContent=h.l2;
+  if(l2){l2.textContent=h.l2||"";l2.style.display=h.l2?"block":"none";}
   if(sub)sub.textContent=h.sub;
   var S=STRINGS[lang];
   var ta=document.getElementById("tab-a");
