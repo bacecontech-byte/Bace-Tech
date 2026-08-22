@@ -55,7 +55,9 @@ export default async function handler(req, res) {
       if (!p) return res.status(400).json({ error: "Unknown provider" });
       if (!p.clientId) return res.status(400).json({ error: provider + " not configured (missing client ID in env)" });
 
-      const state = Buffer.from(JSON.stringify({ provider, company_id })).toString("base64");
+      // URL-safe base64 (base64url) — standard base64's +,/,= get corrupted when
+      // Google returns `state` in the redirect URL (+ becomes a space).
+      const state = Buffer.from(JSON.stringify({ provider, company_id })).toString("base64url");
       const redirectUri = `${appBase}/api/cloud-sync?action=callback`;
       const params = new URLSearchParams({
         client_id: p.clientId,
@@ -72,30 +74,36 @@ export default async function handler(req, res) {
 
     // ── OAUTH CALLBACK ──
     if (action === "callback") {
-      const { code, state } = req.query;
-      const { provider, company_id } = JSON.parse(Buffer.from(state, "base64").toString());
+      const code = req.query.code;
+      const stateRaw = req.query.state;
+      if (req.query.error) return res.redirect(302, appBase + "/#cloud-error=" + encodeURIComponent(req.query.error));
+      if (!code || !stateRaw) return res.redirect(302, appBase + "/#cloud-error=missing_code");
+      // Decode state robustly: base64url, else standard base64 with the +→space fix.
+      let parsed = null;
+      try { parsed = JSON.parse(Buffer.from(stateRaw, "base64url").toString()); }
+      catch (e) { try { parsed = JSON.parse(Buffer.from(String(stateRaw).replace(/ /g, "+"), "base64").toString()); } catch (e2) { parsed = null; } }
+      if (!parsed || !parsed.provider) return res.redirect(302, appBase + "/#cloud-error=bad_state");
+      const provider = parsed.provider, company_id = parsed.company_id;
       const p = PROVIDERS[provider];
+      if (!p) return res.redirect(302, appBase + "/#cloud-error=unknown_provider");
+      if (!p.clientSecret) return res.redirect(302, appBase + "/#cloud-error=missing_client_secret");
       const redirectUri = `${appBase}/api/cloud-sync?action=callback`;
 
-      // Exchange code for tokens
-      const tokenRes = await fetch(p.tokenUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          code,
-          client_id: p.clientId,
-          client_secret: p.clientSecret,
-          redirect_uri: redirectUri,
-          grant_type: "authorization_code",
-        }),
-      });
-      const tokens = await tokenRes.json();
-
-      // Save tokens to Supabase
-      await saveTokens(company_id, provider, tokens);
-
-      // Redirect back to app settings
-      return res.redirect(302, appBase + "/#cloud-connected=" + provider);
+      try {
+        const tokenRes = await fetch(p.tokenUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({ code, client_id: p.clientId, client_secret: p.clientSecret, redirect_uri: redirectUri, grant_type: "authorization_code" }),
+        });
+        const tokens = await tokenRes.json();
+        if (!tokens || tokens.error || !tokens.access_token) {
+          return res.redirect(302, appBase + "/#cloud-error=" + encodeURIComponent((tokens && (tokens.error_description || tokens.error)) || "token_exchange_failed"));
+        }
+        await saveTokens(company_id, provider, tokens);
+        return res.redirect(302, appBase + "/#cloud-connected=" + provider);
+      } catch (e) {
+        return res.redirect(302, appBase + "/#cloud-error=" + encodeURIComponent(e.message || "callback_error"));
+      }
     }
 
     // ── SAVE CREDENTIALS (S3, GCP, WebDAV — no OAuth) ──

@@ -8242,24 +8242,25 @@ async function syncDocToCloud(doc,proj,file){
   }catch(e){console.error("syncDocToCloud:",e);}
 }
 
-// Check cloud status on login
-window.addEventListener("hashchange",function(){
-  if(location.hash.indexOf("cloud-connected")>=0){
-    toast("\u2705 Armazenamento conectado!");
-    loadCloudStatus();
-  // Load recent team activity as notifications
-  if(dbOk&&dbCoId){
-    db.from("captures").select("title,created_by,created_at").eq("company_id",dbCoId).neq("created_by",me.name).order("created_at",{ascending:false}).limit(10).then(function(r){
-      if(r.data&&r.data.length){
-        r.data.reverse().forEach(function(d){
-          addNotif("<strong>"+(d.created_by||"Equipe")+"</strong> capturou: "+d.title);
-        });
-      }
-    }).catch(function(){});
-  }
+// Handle the OAuth popup return (success or error). Runs on load AND hashchange
+// because the popup lands on the app with the hash already set.
+function _handleCloudHash(){
+  var h=location.hash||"";
+  if(h.indexOf("cloud-connected")>=0){
+    // If this is the OAuth popup, tell the opener to refresh and close ourselves.
+    try{if(window.opener&&window.opener!==window){if(window.opener.loadCloudStatus)window.opener.loadCloudStatus();try{window.opener.toast&&window.opener.toast("\u2705 Armazenamento conectado!");}catch(e){}window.close();return;}}catch(e){}
+    try{toast("\u2705 Armazenamento conectado!");}catch(e){}
+    try{loadCloudStatus();}catch(e){}
+    location.hash="";
+  } else if(h.indexOf("cloud-error")>=0){
+    var err=decodeURIComponent(h.split("cloud-error=")[1]||"").replace(/[#&].*$/,"");
+    try{if(window.opener&&window.opener!==window){try{window.opener.toast&&window.opener.toast("\u2601\ufe0f "+(err||"erro de conex\u00e3o"));}catch(e){}window.close();return;}}catch(e){}
+    try{toast("\u2601\ufe0f "+(err||"erro de conex\u00e3o"));}catch(e){}
     location.hash="";
   }
-});
+}
+window.addEventListener("hashchange",_handleCloudHash);
+window.addEventListener("load",function(){setTimeout(_handleCloudHash,300);});
 
 // ── Settings Modal ───────────────────────────────────────────────────────
 var _settingsSection="general";
