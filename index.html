@@ -2282,6 +2282,7 @@ try{
     if(event==="PASSWORD_RECOVERY"){try{showNewPassView();}catch(e){}return;}
     if(event==="SIGNED_IN"&&session){
       if(_pwRecovery||_pwRecoveryPending)return; // mid password-reset — stay on the form
+      try{if(isCodeRevealRoute())return;}catch(e){} // code-reveal page: show the code, never auto-enter
       var app=document.getElementById("s-app");
       if(app&&!app.classList.contains("active"))enterApp(session.user);
     }
@@ -4336,7 +4337,7 @@ async function sendLoginCode(){
   var btn=document.getElementById("btn-send-code");if(btn)btn.disabled=true;
   showLoad(true,plL("Envoi du code…","Sending code…","Enviando código…"));
   try{
-    var r=await db.auth.signInWithOtp({email:em,options:{shouldCreateUser:false,emailRedirectTo:location.origin+"/code"}});
+    var r=await db.auth.signInWithOtp({email:em,options:{shouldCreateUser:false,emailRedirectTo:location.origin+"/auth/verify-code"}});
     showLoad(false);if(btn)btn.disabled=false;
     if(r.error){showMsg(r.error.message,"err");return;}
     _show("login-code",false);_show("login-magic",false);
@@ -4409,7 +4410,7 @@ function _getCodeParam(){
 }
 function isCodeRevealRoute(){
   var path=(location.pathname||"").replace(/\/+$/,"");
-  return path==="/code"||!!_getCodeParam();
+  return path==="/auth/verify-code"||path==="/code"||!!_getCodeParam();
 }
 function crCopy(){
   var c=(document.getElementById("cr-code").textContent||"").trim();
@@ -4420,36 +4421,30 @@ function crCopy(){
 async function showCodeReveal(){
   var s=document.getElementById("code-reveal-screen");if(!s)return;
   s.style.display="flex";
+  var titleEl=document.getElementById("cr-title");
+  if(titleEl)titleEl.textContent=plL("Votre code d'accès","Your access code","Seu código de acesso");
   var code=_getCodeParam();
   if(code){
     // Code is in the link — reveal it for the user to copy into the sign-in tab.
+    // This branch NEVER authenticates: the token is only consumed when the user
+    // types the code back into the waiting login tab (verifyLoginCode → verifyOtp).
     document.getElementById("cr-sub").textContent=plL("Voici votre code de vérification","Here is your verification code","Aqui está seu código de verificação");
     document.getElementById("cr-code").textContent=code;
     document.getElementById("cr-copy").style.display="block";
     document.getElementById("cr-copy").textContent=plL("Copier le code","Copy code","Copiar código");
-    document.getElementById("cr-hint").textContent=plL("Retournez à l'onglet de connexion Pillier et saisissez ce code pour vous connecter.","Return to the Pillier sign-in tab and enter this code to log in.","Volte para a aba de login da Pillier e digite este código para entrar.");
+    document.getElementById("cr-hint").textContent=plL("Copiez ce code et collez-le dans l'onglet de connexion pour entrer.","Copy this code and paste it into the login tab to sign in.","Copie este código e cole na aba de login para entrar.");
     return;
   }
-  // No raw code in the URL (default Supabase template uses token_hash). Fall back to signing in.
-  var qp=new URLSearchParams(location.search);
-  var hp=new URLSearchParams((location.hash||"").replace(/^#/,""));
-  var th=qp.get("token_hash")||hp.get("token_hash");
-  var ty=qp.get("type")||hp.get("type")||"email";
-  document.getElementById("cr-code").textContent="•••";
-  document.getElementById("cr-copy").style.display="none";
-  var showSigningIn=function(){document.getElementById("cr-sub").textContent=plL("Connexion en cours…","Signing you in…","Entrando…");document.getElementById("cr-hint").textContent=plL("Vous allez être redirigé vers votre tableau de bord.","You'll be redirected to your dashboard.","Você será redirecionado para o painel.");};
-  try{
-    if(db){
-      // If the link already established a session (implicit flow), just go in.
-      var sess=await db.auth.getSession();
-      if(sess&&sess.data&&sess.data.session){showSigningIn();setTimeout(function(){location.href="/";},500);return;}
-      if(th){showSigningIn();var r=await db.auth.verifyOtp({token_hash:th,type:ty});if(!r.error&&r.data&&r.data.user){setTimeout(function(){location.href="/";},500);return;}}
-    }
-  }catch(e){}
-  // Nothing usable in the link.
-  document.getElementById("cr-sub").textContent=plL("Lien invalide ou expiré","Invalid or expired link","Link inválido ou expirado");
+  // No raw code in the link. This should not happen once the email template links
+  // to /auth/verify-code?code={{ .Token }}. If we still land here (e.g. an old
+  // email whose link ran through Supabase's verify endpoint), do NOT drop the user
+  // into the dashboard — this route must stay a code-display page, distinct from the
+  // magic-link flow. Clear any session the link may have established and instruct.
+  try{if(db){await db.auth.signOut();}}catch(e){}
   document.getElementById("cr-code").textContent="—";
-  document.getElementById("cr-hint").textContent=plL("Demandez un nouveau code depuis l'onglet de connexion.","Request a new code from the sign-in tab.","Solicite um novo código na aba de login.");
+  document.getElementById("cr-copy").style.display="none";
+  document.getElementById("cr-sub").textContent=plL("Impossible d'afficher le code","Couldn't display your code","Não foi possível exibir o código");
+  document.getElementById("cr-hint").textContent=plL("Retournez à l'onglet de connexion et demandez un nouveau code.","Return to the login tab and request a new code.","Volte para a aba de login e solicite um novo código.");
 }
 
 async function doLogin(){
@@ -9414,11 +9409,12 @@ function cloudSiteName(proj){
 <!-- Verification-code reveal page (opened from the email link) -->
 <div id="code-reveal-screen" style="display:none;position:fixed;inset:0;z-index:100000;background:#0b0f19;color:#fff;align-items:center;justify-content:center;padding:24px;">
   <div style="max-width:420px;width:100%;text-align:center;">
-    <div style="font-family:var(--font-d);font-size:24px;font-weight:800;margin-bottom:8px;">Pillier</div>
+    <div style="font-family:var(--font-d);font-size:22px;font-weight:800;letter-spacing:-0.5px;margin-bottom:20px;">Pillier</div>
+    <div style="font-family:var(--font-d);font-size:26px;font-weight:800;margin-bottom:8px;" id="cr-title">Seu código de acesso</div>
     <div style="font-size:14px;color:#8a8a95;margin-bottom:26px;" id="cr-sub">Voici votre code de vérification</div>
     <div id="cr-code" style="font-family:var(--font-d);font-size:42px;font-weight:800;letter-spacing:10px;background:#161e2e;border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:22px 12px;color:#fff;">------</div>
-    <button onclick="crCopy()" id="cr-copy" style="margin-top:18px;width:100%;background:#3B82F6;color:#fff;border:none;border-radius:10px;padding:12px;font-family:var(--font-d);font-size:14px;font-weight:700;cursor:pointer;">Copier le code</button>
-    <div style="font-size:12px;color:#6a6a75;margin-top:16px;line-height:1.6;" id="cr-hint">Retournez à l'onglet de connexion Pillier et saisissez ce code pour vous connecter.</div>
+    <button onclick="crCopy()" id="cr-copy" style="margin-top:18px;width:100%;background:#3B82F6;color:#fff;border:none;border-radius:10px;padding:12px;font-family:var(--font-d);font-size:14px;font-weight:700;cursor:pointer;">Copiar código</button>
+    <div style="font-size:12px;color:#6a6a75;margin-top:16px;line-height:1.6;" id="cr-hint">Copie este código e cole na aba de login para entrar.</div>
   </div>
 </div>
 
