@@ -5587,6 +5587,7 @@ async function saveEntry(){
       plog("Photo compressed, size:",Math.round(thumbUrl.length/1024)+"KB");
     }catch(compErr){console.error("Photo compress error:",compErr);entry.photo_url=null;}
   }
+  var _origPhoto=window._lastPhotoData||null; // full-res original (before we clear it) for cloud mirroring
   entries.unshift(entry);
   saveEntriesLocal(); // persist immediately so it survives refresh regardless of DB
   window._lastPhotoData=null;window._lastPhotoFile=null;
@@ -5596,7 +5597,7 @@ async function saveEntry(){
   toast("✅ "+plL("Classé dans « ","Filed under « ","Arquivado em « ")+catLabel(entry.cat)+" »");
   renderDash();renderKB();renderCounts();
   try{ragIndex("incident",entry.id,entry.project,entry.title,[entry.title,catLabel(entry.cat),entry.desc,entry.action,entry.cause,entry.normes].filter(Boolean).join("\n"));}catch(e){}
-  syncToCloud(entry);
+  syncToCloud(entry,_origPhoto);
   if(dbOk)await saveDB(entry);
   setTimeout(function(){showTab(0,document.querySelectorAll(".sidebar-link")[0]);},700);
 }
@@ -8137,7 +8138,7 @@ async function loadCloudStatus(){
   }catch(e){console.error("Cloud status:",e);}
 }
 
-async function syncToCloud(entry){
+async function syncToCloud(entry,origPhoto){
   if(!dbCoId)return;
   try{
     var r=await fetch("/api/cloud-sync?action=status",{
@@ -8159,6 +8160,12 @@ async function syncToCloud(entry){
 
     var ts=new Date().toISOString().substring(0,10);
     var filename=ts+"_"+entry.title.substring(0,40).replace(/[^a-z0-9]/gi,"-")+".txt";
+    var imgName=filename.replace(/\.txt$/,".jpg");
+    // Prefer mirroring the full-resolution original photo as a real binary file; if it's
+    // too large for the request body, fall back to the compressed thumbnail (photoBase64).
+    var full=origPhoto||entry.photo||null;
+    var useBin=!!(full&&full.indexOf&&full.indexOf("data:")===0&&full.length<=_CLOUD_BIN_MAX);
+    var binB=useBin?full:null, thumbB=useBin?null:(entry.photo||null);
 
     for(var i=0;i<d.connections.length;i++){
       (function(conn){
@@ -8173,7 +8180,8 @@ async function syncToCloud(entry){
             filename:filename,
             content:report,
             contentType:"text/plain",
-            photoBase64:entry.photo||null
+            photoBase64:thumbB,
+            binBase64:binB,binName:binB?imgName:null,binMime:binB?"image/jpeg":null
           })
         }).then(function(r){return r.json();}).then(function(res){
           if(res&&res.ok===false){console.error("Cloud sync "+conn.provider+":",res.error);try{toast("☁️ "+conn.provider+": "+(""+res.error).substring(0,90));}catch(e){}}
