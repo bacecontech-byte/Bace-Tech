@@ -8174,7 +8174,7 @@ async function syncToCloud(entry,origPhoto){
           body:JSON.stringify({
             company_id:dbCoId,
             provider:conn.provider,
-            project:sanitizeProject(entry.project)||me.co||"General",
+            project:cloudSiteName(entry.project),
             tab:"files",
             category:catLabel(entry.cat)||"Documentação",
             filename:filename,
@@ -8202,7 +8202,7 @@ async function testCloudSync(){
     var d=await r.json();
     var conns=(d.connections||[]).filter(function(c){return c.provider&&c.provider.indexOf("app:")!==0;});
     if(!conns.length){setOut("⚠️ "+_t3("No cloud connected — connect one above first.","Aucun cloud connecté.","Nenhuma nuvem conectada — conecte uma acima."));return;}
-    var site=(getActiveSite&&getActiveSite())||me.co||"Teste";
+    var site=cloudSiteName((getActiveSite&&getActiveSite())||"");
     var lines=[];
     for(var i=0;i<conns.length;i++){
       var c=conns[i];
@@ -8245,7 +8245,7 @@ async function syncDocToCloud(doc,proj,file){
       if(blob&&blob.size&&blob.size<=_CLOUD_BIN_MAX){binBase64=await _blobToDataUrl(blob);binName=doc.name;binMime=(file&&file.type)||doc.type||"application/octet-stream";}
     }catch(e){}
     conns.forEach(function(c){
-      fetch("/api/cloud-sync?action=sync",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:dbCoId,provider:c.provider,project:sanitizeProject(proj||doc.project)||me.co||"General",tab:"docs",docType:dtype,filename:fname,content:content,contentType:"text/plain",binBase64:binBase64,binName:binName,binMime:binMime})}).then(function(r){return r.json();}).then(function(res){if(res&&res.ok===false){console.error("Doc cloud sync "+c.provider+":",res.error);try{toast("☁️ "+c.provider+": "+(""+res.error).substring(0,90));}catch(e){}}}).catch(function(){});
+      fetch("/api/cloud-sync?action=sync",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:dbCoId,provider:c.provider,project:cloudSiteName(proj||doc.project),tab:"docs",docType:dtype,filename:fname,content:content,contentType:"text/plain",binBase64:binBase64,binName:binName,binMime:binMime})}).then(function(r){return r.json();}).then(function(res){if(res&&res.ok===false){console.error("Doc cloud sync "+c.provider+":",res.error);try{toast("☁️ "+c.provider+": "+(""+res.error).substring(0,90));}catch(e){}}}).catch(function(){});
     });
   }catch(e){console.error("syncDocToCloud:",e);}
 }
@@ -8501,7 +8501,7 @@ async function syncAllToCloud(){
           body:JSON.stringify({
             company_id:dbCoId,
             provider:d.connections[c].provider,
-            project:e.project||"General",
+            project:cloudSiteName(e.project),
             tab:"files",
             category:catLabel(e.cat)||"Documentação",
             filename:filename,
@@ -8547,7 +8547,7 @@ async function syncAllToCloud(){
           body:JSON.stringify({
             company_id:dbCoId,
             provider:d.connections[c2].provider,
-            project:sanitizeProject(doc.project)||me.co||"General",
+            project:cloudSiteName(doc.project),
             tab:"docs",
             docType:docSubfolderFor(doc.name,doc.type),
             filename:docFilename+".txt",
@@ -8566,9 +8566,17 @@ async function syncAllToCloud(){
 // ── Sanitize project name for cloud folders ──────────────────────────────
 function sanitizeProject(proj){
   if(!proj)return null;
-  var placeholders=["Tous les chantiers","Todos os canteiros","All sites","Nenhum projeto","No project","Aucun projet","General","—",""];
+  var placeholders=["Tous les chantiers","Todos os canteiros","All sites","Nenhum projeto","No project","Aucun projet","General","Geral","—",""];
   for(var i=0;i<placeholders.length;i++){if(proj===placeholders[i])return null;}
   return proj;
+}
+// Resolve the canteiro/site folder name for cloud paths.
+// Priority: explicit project → active topbar site → "Geral".
+// NEVER falls back to the company name (that duplicated the "Pillier" root → Pillier/Pillier/...).
+function cloudSiteName(proj){
+  return sanitizeProject(proj)
+      || sanitizeProject((typeof getActiveSite==="function"&&getActiveSite())||"")
+      || "Geral";
 }
 </script>
 
