@@ -701,6 +701,9 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
 .pv-inline-s:focus{border-color:var(--blue);}
 .chat-wrap{display:flex;flex-direction:row;gap:20px;height:calc(100vh - 110px);position:relative;}
 .chat-sidebar{width:260px;flex-shrink:0;display:flex;flex-direction:column;background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:12px;overflow-y:auto;}
+@keyframes pMarkBreathe{0%,100%{transform:scale(1);filter:drop-shadow(0 0 0 rgba(44,190,255,0));}50%{transform:scale(1.1);filter:drop-shadow(0 0 5px rgba(44,190,255,0.6));}}
+.p-mark-anim{animation:pMarkBreathe 2.6s ease-in-out infinite;transform-origin:center;}
+@media (prefers-reduced-motion:reduce){.p-mark-anim{animation:none;}}
 .chat-sidebar-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:0 4px;}
 .chat-newbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:var(--navy3);border:1px solid var(--border2);color:var(--text);font-size:13px;font-weight:600;padding:10px;border-radius:10px;cursor:pointer;font-family:inherit;margin-bottom:10px;}
 .chat-newbtn:hover{border-color:var(--blue);color:#fff;}
@@ -2032,7 +2035,7 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
             <!-- Permanent left sidebar (Claude-style): logo + New chat + Today/Earlier -->
             <aside class="chat-sidebar" id="chat-sidebar">
               <div class="chat-sidebar-head">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2cbeff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/><path d="M9 19v-5h6v5"/></svg>
+                <svg class="p-mark-anim" viewBox="0 0 322.71 305.81" width="19" height="18" fill="none" aria-hidden="true" style="flex-shrink:0;"><path fill="#2cbeff" d="M67.65,200.75H0v105.05h67.66v-9.23s.12-52.48,0-95.83ZM67.66,305.81V56.54h136.2c10.68,0,19.73,1.78,27.15,5.34,7.41,3.55,13.05,8.6,16.91,15.13,3.86,6.54,5.78,14.39,5.78,23.59,0,13.65-4.38,24.33-13.14,32.05-8.75,7.73-20.98,11.57-36.71,11.57h-79.66l-56.55,56.51,154.91.03c20.18,0,37.74-4.3,52.73-12.9,14.99-8.62,26.63-20.55,34.94-35.83,8.3-15.28,12.48-32.56,12.48-51.86s-4.09-36.87-12.25-51.87c-8.16-14.97-19.59-26.77-34.27-35.38-14.68-8.6-31.97-12.91-51.86-12.91H62C27.77,0,0,27.77,0,62v82.22l67.61,56.53"/></svg>
                 <span id="hist-logo" style="font-family:var(--font-d);font-weight:800;font-size:15px;color:var(--white);">Pillier IA</span>
               </div>
               <button class="chat-newbtn" onclick="newChat()"><i class="ti ti-plus"></i> <span id="hist-newchat">New chat</span></button>
@@ -4105,6 +4108,7 @@ function applyLang(){
   Object.keys(_cpm).forEach(function(id){var el=document.getElementById(id);if(el&&S[_cpm[id]])el.textContent=S[_cpm[id]];});
   var _hl=document.getElementById("hist-logo");if(_hl)_hl.textContent="Pillier IA";
   var _hn=document.getElementById("hist-newchat");if(_hn)_hn.textContent=lang===1?"New chat":lang===2?"Novo chat":"Nouveau chat";
+  var _hl=document.getElementById("hist-logo");if(_hl)_hl.textContent=lang===1?"Pillier AI":"Pillier IA";
   try{renderChatUsagePill();}catch(e){}
   try{_setChatGreeting();}catch(e){}
   try{renderSavedChats();}catch(e){}
