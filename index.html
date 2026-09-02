@@ -1421,7 +1421,7 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
           <line x1="250" y1="250" x2="420" y2="370" stroke="var(--border2)" stroke-width="1"/>
           <!-- Center logo -->
           <circle cx="250" cy="250" r="48" fill="#2cbeff" opacity="0.12"/>
-          <text x="250" y="255" text-anchor="middle" font-family="Syne,sans-serif" font-weight="700" font-size="20" fill="var(--white)">Pillier</text>
+          <path transform="translate(213,215) scale(0.23)" fill="#ffffff" d="M67.65,200.75H0v105.05h67.66v-9.23s.12-52.48,0-95.83ZM67.66,305.81V56.54h136.2c10.68,0,19.73,1.78,27.15,5.34,7.41,3.55,13.05,8.6,16.91,15.13,3.86,6.54,5.78,14.39,5.78,23.59,0,13.65-4.38,24.33-13.14,32.05-8.75,7.73-20.98,11.57-36.71,11.57h-79.66l-56.55,56.51,154.91.03c20.18,0,37.74-4.3,52.73-12.9,14.99-8.62,26.63-20.55,34.94-35.83,8.3-15.28,12.48-32.56,12.48-51.86s-4.09-36.87-12.25-51.87c-8.16-14.97-19.59-26.77-34.27-35.38-14.68-8.6-31.97-12.91-51.86-12.91H62C27.77,0,0,27.77,0,62v82.22l67.61,56.53"/>
           <!-- Surrounding terms -->
           <text x="100" y="75" font-size="14" fill="var(--text2)" font-family="DM Sans,sans-serif" font-weight="600">Safety</text>
           <text x="370" y="95" font-size="13" fill="var(--text2)" font-family="DM Sans,sans-serif">Compliance</text>
@@ -1751,7 +1751,10 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
       <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px;" class="footer-grid">
         <!-- Brand column -->
         <div>
-          <a href="#" onclick="showAuthPage();return false;" style="font-family:var(--font-d);font-size:22px;font-weight:800;color:#2cbeff;text-decoration:none;letter-spacing:-0.4px;cursor:pointer;">Pillier</a>
+          <a href="#" onclick="showAuthPage();return false;" style="font-family:var(--font-d);font-size:22px;font-weight:800;color:#2cbeff;text-decoration:none;letter-spacing:-0.4px;cursor:pointer;display:inline-flex;align-items:flex-end;gap:9px;line-height:1;">
+            <svg width="43" height="41" viewBox="0 0 322.71 305.81" fill="none" aria-hidden="true" style="flex-shrink:0;display:block;"><path fill="#2cbeff" d="M67.65,200.75H0v105.05h67.66v-9.23s.12-52.48,0-95.83ZM67.66,305.81V56.54h136.2c10.68,0,19.73,1.78,27.15,5.34,7.41,3.55,13.05,8.6,16.91,15.13,3.86,6.54,5.78,14.39,5.78,23.59,0,13.65-4.38,24.33-13.14,32.05-8.75,7.73-20.98,11.57-36.71,11.57h-79.66l-56.55,56.51,154.91.03c20.18,0,37.74-4.3,52.73-12.9,14.99-8.62,26.63-20.55,34.94-35.83,8.3-15.28,12.48-32.56,12.48-51.86s-4.09-36.87-12.25-51.87c-8.16-14.97-19.59-26.77-34.27-35.38-14.68-8.6-31.97-12.91-51.86-12.91H62C27.77,0,0,27.77,0,62v82.22l67.61,56.53"/></svg>
+            <span>Pillier</span>
+          </a>
           <div style="font-size:14px;color:var(--text2);line-height:1.6;margin-top:16px;max-width:320px;" id="footer-tagline">Capture the field. Keep the knowledge.</div>
           <div style="display:flex;gap:12px;margin-top:20px;">
             <a href="mailto:contact@pillier.com.br" style="display:flex;align-items:center;gap:6px;color:var(--text2);text-decoration:none;font-size:13px;transition:color 0.15s;" onmouseover="this.style.color='#2cbeff'" onmouseout="this.style.color='var(--text2)'"><i class="ti ti-mail" style="font-size:16px;"></i> contact@pillier.com.br</a>
