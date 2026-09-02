@@ -6329,61 +6329,118 @@ function dashSearch(ev){
 var _insightsGenerated=false;
 var _insightsCount=-1;
 var _insightsTimer=null;
-async function generateInsights(){
-  var entries=activeSiteEntries(); // dashboard insights follow the selected canteiro
+// ── Insight Agent v2 — deterministic cross-project pattern & risk detection ──
+// Pure math on captured data (no LLM guessing → always correct & reproducible).
+// Returns ranked findings {rank, icon, text}; caller renders the top few.
+function _entryTime(e){var d=Date.parse((e&&(e.created_at||e.createdAt||e.date))||"");return isNaN(d)?null:d;}
+function pillierInsights(all){
+  var L=function(fr,en,pt){return lang===0?fr:lang===2?pt:en;};
+  var f=[];
+  if(!all||!all.length)return f;
+  var DAY=864e5, now=Date.now();
+  var open=all.filter(function(e){return e.status!=="resolved";});
+  var resolved=all.filter(function(e){return e.status==="resolved";});
+  var rate=all.length?Math.round(resolved.length/all.length*100):0;
+  var isHigh=function(e){return e.sev==="critical"||e.sev==="high";};
+  var critOpen=open.filter(isHigh);
+  var siteSelected=!!getActiveSite();
+  var projSet={};all.forEach(function(e){if(e.project)projSet[e.project]=1;});
+  var crossProject=!siteSelected && Object.keys(projSet).length>1;
+  var catCounts={};all.forEach(function(e){if(e.cat)catCounts[e.cat]=(catCounts[e.cat]||0)+1;});
+
+  // 1) Open critical/high (with up to 2 example titles)
+  if(critOpen.length){
+    var nm=critOpen.slice(0,2).map(function(e){return e.title;}).filter(Boolean).join(", ");
+    f.push({rank:100,icon:"⚠️",text:L(
+      critOpen.length+" incident(s) critique(s)/élevé(s) ouvert(s)"+(nm?" : "+nm:""),
+      critOpen.length+" high/critical open"+(nm?": "+nm:""),
+      critOpen.length+" incidente(s) crítico(s)/alto(s) aberto(s)"+(nm?": "+nm:""))});
+  }
+  // 2) Aging open criticals (>14 days) — needs a parseable date
+  var aging=critOpen.filter(function(e){var t=_entryTime(e);return t&&(now-t)>14*DAY;});
+  if(aging.length){
+    f.push({rank:95,icon:"⏳",text:L(
+      aging.length+" incident(s) critique(s) non résolu(s) depuis plus de 14 jours",
+      aging.length+" critical item(s) unresolved for over 14 days",
+      aging.length+" incidente(s) crítico(s) sem resolução há mais de 14 dias")});
+  }
+  // 3) Weekly activity spike (last 7d vs previous 7d)
+  if(all.some(function(e){return _entryTime(e)!=null;})){
+    var last7=all.filter(function(e){var t=_entryTime(e);return t&&(now-t)<=7*DAY;}).length;
+    var prev7=all.filter(function(e){var t=_entryTime(e);return t&&(now-t)>7*DAY&&(now-t)<=14*DAY;}).length;
+    if(last7>=3 && last7>=2*Math.max(prev7,1)){
+      f.push({rank:90,icon:"📈",text:L(
+        "Pic d'activité : "+last7+" incidents cette semaine (vs "+prev7+" la précédente)",
+        "Activity spike: "+last7+" incidents this week (vs "+prev7+" the week before)",
+        "Pico de atividade: "+last7+" incidentes esta semana (vs "+prev7+" na anterior)")});
+    }
+  }
+  // 4) Project needing attention (most open criticals) — cross-project only
+  if(crossProject){
+    var projCrit={};critOpen.forEach(function(e){if(e.project)projCrit[e.project]=(projCrit[e.project]||0)+1;});
+    var wProj=Object.keys(projCrit).sort(function(a,b){return projCrit[b]-projCrit[a];})[0];
+    if(wProj&&projCrit[wProj]>=2){
+      f.push({rank:85,icon:"🏗️",text:L(
+        wProj+" nécessite attention : "+projCrit[wProj]+" incidents critiques ouverts",
+        wProj+" needs attention: "+projCrit[wProj]+" open critical incidents",
+        wProj+" precisa de atenção: "+projCrit[wProj]+" incidentes críticos abertos")});
+    }
+    // 5) Recurring pattern: among categories spanning >=2 sites with >=3 incidents,
+    //    surface the one with the most incidents (tie-break: most sites).
+    var catProj={};all.forEach(function(e){if(e.cat&&e.project){(catProj[e.cat]=catProj[e.cat]||{})[e.project]=1;}});
+    var recCat=null;Object.keys(catProj).forEach(function(c){
+      var n=Object.keys(catProj[c]).length;
+      if(n>=2&&catCounts[c]>=3){
+        if(!recCat||catCounts[c]>catCounts[recCat]||(catCounts[c]===catCounts[recCat]&&n>Object.keys(catProj[recCat]).length))recCat=c;
+      }
+    });
+    if(recCat){
+      var recN=Object.keys(catProj[recCat]).length;
+      f.push({rank:80,icon:"🔁",text:L(
+        "Motif récurrent : "+catLabel(recCat)+" apparaît sur "+recN+" chantiers ("+catCounts[recCat]+" incidents)",
+        "Recurring pattern: "+catLabel(recCat)+" appears across "+recN+" sites ("+catCounts[recCat]+" incidents)",
+        "Padrão recorrente: "+catLabel(recCat)+" aparece em "+recN+" canteiros ("+catCounts[recCat]+" incidentes)")});
+    }
+  } else {
+    // Single-site / one project: volume note
+    var projCounts={};all.forEach(function(e){if(e.project)projCounts[e.project]=(projCounts[e.project]||0)+1;});
+    var topProj=Object.keys(projCounts).sort(function(a,b){return projCounts[b]-projCounts[a];})[0];
+    if(topProj&&projCounts[topProj]>=3){var po=open.filter(function(e){return e.project===topProj;}).length;
+      f.push({rank:60,icon:"🏗️",text:topProj+": "+projCounts[topProj]+L(" incidents"," incidents"," incidentes")+(po?" ("+po+L(" ouvert(s)"," open"," aberto(s)")+")":"")});}
+  }
+  // 6) Dominant category (≥40% concentration)
+  var topCat=Object.keys(catCounts).sort(function(a,b){return catCounts[b]-catCounts[a];})[0];
+  var topCatPct=topCat?Math.round(catCounts[topCat]/all.length*100):0;
+  if(topCat&&topCatPct>=40&&all.length>=4){
+    f.push({rank:70,icon:"📊",text:L(
+      catLabel(topCat)+" = "+topCatPct+"% des incidents — envisagez un audit ciblé.",
+      catLabel(topCat)+" = "+topCatPct+"% of incidents — consider a focused audit.",
+      catLabel(topCat)+" = "+topCatPct+"% dos incidentes — considere uma auditoria focada.")});
+  }
+  // 7) Resolution rate signal
+  if(all.length>=4){
+    if(rate>0&&rate<50) f.push({rank:50,icon:"📉",text:L("Taux de résolution "+rate+"% — priorisez la clôture.","Resolution rate "+rate+"% — prioritize closing open items.","Taxa de resolução "+rate+"% — priorize o fechamento.")});
+    else if(rate>=80) f.push({rank:40,icon:"✅",text:L("Taux de résolution "+rate+"% — excellente performance.","Resolution rate "+rate+"% — strong performance.","Taxa de resolução "+rate+"% — ótimo desempenho.")});
+  }
+  f.sort(function(a,b){return b.rank-a.rank;});
+  return f;
+}
+function generateInsights(){
+  var scoped=activeSiteEntries(); // follows the selected canteiro; all projects when "all sites"
   var panel=document.getElementById("ai-insights");
   var textEl=document.getElementById("ai-insights-text");
-  if(!panel||!textEl||!entries.length){if(panel)panel.style.display="none";return;}
-  // Only regenerate if entries count changed
-  var currentCount=entries.length+entries.filter(function(e){return e.status==="resolved";}).length;
-  if(_insightsGenerated&&currentCount===_insightsCount)return;
-  // Debounce: wait 2s after last change before regenerating
-  if(_insightsTimer)clearTimeout(_insightsTimer);
-  _insightsTimer=setTimeout(async function(){
-    _insightsGenerated=true;
-    _insightsCount=currentCount;
-  var now=new Date();
-  var open=entries.filter(function(e){return e.status!=="resolved";});
-  var resolved=entries.filter(function(e){return e.status==="resolved";});
-  var rate=entries.length?Math.round(resolved.length/entries.length*100):0;
-  var catCounts={};entries.forEach(function(e){catCounts[e.cat]=(catCounts[e.cat]||0)+1;});
-  var topCat=Object.keys(catCounts).sort(function(a,b){return catCounts[b]-catCounts[a];})[0];
-  var topCatPct=topCat?Math.round(catCounts[topCat]/entries.length*100):0;
-  var projCounts={};entries.forEach(function(e){if(e.project)projCounts[e.project]=(projCounts[e.project]||0)+1;});
-  var topProj=Object.keys(projCounts).sort(function(a,b){return projCounts[b]-projCounts[a];})[0];
-  var critOpen=entries.filter(function(e){return(e.sev==="critical"||e.sev==="high")&&e.status!=="resolved";});
+  if(!panel||!textEl)return;
+  if(!scoped.length){panel.style.display="none";return;}
+  // Regenerate only when the data or scope actually changed
+  var sig=scoped.length+"/"+scoped.filter(function(e){return e.status==="resolved";}).length+"/"+(getActiveSite()||"all")+"/"+lang;
+  if(_insightsGenerated&&sig===_insightsCount)return;
+  _insightsGenerated=true;_insightsCount=sig;
   var iLabel=document.getElementById("insights-label");
   if(iLabel)iLabel.textContent=lang===0?"Pillier IA — Analyses":lang===2?"Pillier IA — Análises":"Pillier IA — Insights";
-  var insights=[];
-  var _t={
-    critOpen:lang===0?"{n} incident(s) critique(s)/élevé(s) ouvert(s) : ":lang===2?"{n} incidente(s) crítico(s)/alto(s) aberto(s): ":"{n} high/critical open: ",
-    catAudit:lang===0?" = {p}% des incidents — envisagez un audit ciblé.":lang===2?" = {p}% dos incidentes — considere uma auditoria focada.":" = {p}% of incidents — consider a focused audit.",
-    projInc:lang===0?" incidents":lang===2?" incidentes":" incidents",
-    projOpen:lang===0?" ouvert(s)":lang===2?" aberto(s)":" open",
-    rateLow:lang===0?"Taux de résolution {r}% — priorisez la clôture des incidents.":lang===2?"Taxa de resolução {r}% — priorize o fechamento dos incidentes.":"Resolution rate {r}% — prioritize closing open items.",
-    rateHigh:lang===0?"Taux de résolution {r}% — excellente performance.":lang===2?"Taxa de resolução {r}% — ótimo desempenho.":"Resolution rate {r}% — strong performance."
-  };
-  if(critOpen.length>0){insights.push("⚠️ "+_t.critOpen.replace("{n}",critOpen.length)+critOpen.slice(0,2).map(function(e){return e.title;}).join(", "));}
-  if(topCat&&topCatPct>=40){insights.push("📊 "+catLabel(topCat)+_t.catAudit.replace("{p}",topCatPct));}
-  if(topProj&&projCounts[topProj]>=3){var po=open.filter(function(e){return e.project===topProj;}).length;insights.push("🏗️ "+topProj+": "+projCounts[topProj]+_t.projInc+(po?" ("+po+_t.projOpen+")":""));}
-  if(rate>0&&rate<50){insights.push("📈 "+_t.rateLow.replace("{r}",rate));}
-  else if(rate>=80){insights.push("✅ "+_t.rateHigh.replace("{r}",rate));}
-  if(!insights.length){panel.style.display="none";return;}
-  textEl.innerHTML=insights.slice(0,3).join("<br>");
+  var findings=pillierInsights(scoped);
+  if(!findings.length){panel.style.display="none";return;}
+  textEl.innerHTML=findings.slice(0,5).map(function(x){return x.icon+" "+String(x.text).replace(/</g,"&lt;").replace(/>/g,"&gt;");}).join("<br>");
   panel.style.display="block";
-  if(entries.length>=3){
-    try{
-      var summary="Total:"+entries.length+", Open:"+open.length+", Resolved:"+resolved.length+", Rate:"+rate+"%\n";
-      summary+="Cats: "+Object.keys(catCounts).map(function(c){return c+":"+catCounts[c];}).join(",")+"\n";
-      summary+="Projects: "+Object.keys(projCounts).map(function(p){return p+":"+projCounts[p];}).join(",")+"\n";
-      summary+="Crit/High open:"+critOpen.length+"\n";
-      entries.slice(0,8).forEach(function(e){summary+="["+e.sev+"/"+e.status+"] "+e.title+" ("+e.cat+","+e.project+")\n";});
-      var langName=lang===0?"French":lang===1?"English":"Portuguese";
-      var resp=await fetch("/api/groq",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:[{role:"user",content:"You are Pillier IA, construction AI. Give exactly 2-3 short actionable insights in "+langName+". One sentence each with emoji prefix. Mention project names, categories, numbers. No headers.\n\n"+summary}],model:"openai/gpt-oss-120b",temperature:0.3,max_tokens:200})});
-      if(resp.ok){var data=await resp.json();var t=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||"";if(t.trim().length>10){textEl.innerHTML=t.trim().replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");}}
-    }catch(e){plog("AI insights: local fallback",e);}
-  }
-  },2000);
 }
 
 // ── User-manageable category folders (My files) ──────────────────────────
