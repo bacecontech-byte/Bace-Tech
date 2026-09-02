@@ -1317,7 +1317,13 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
 <div id="s-content" class="screen active" style="min-height:100vh;background:var(--navy);">
   <!-- Content page header with tabs inline -->
   <div style="display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:56px;background:var(--navy2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;" id="content-header">
-    <a href="#" onclick="showContentTab(0);window.scrollTo({top:0,behavior:'smooth'});return false;" style="font-family:var(--font-d);font-size:16px;font-weight:800;color:#60a5fa;text-decoration:none;letter-spacing:-0.4px;cursor:pointer;flex-shrink:0;">Pillier</a>
+    <a href="#" onclick="showContentTab(0);window.scrollTo({top:0,behavior:'smooth'});return false;" style="font-family:var(--font-d);font-size:16px;font-weight:800;color:#60a5fa;text-decoration:none;letter-spacing:-0.4px;cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;gap:9px;">
+      <svg width="26" height="25" viewBox="0 0 200 192" fill="none" aria-hidden="true" style="flex-shrink:0;">
+        <path fill-rule="evenodd" clip-rule="evenodd" fill="#2cbeff" d="M8 8 L150 8 A50 50 0 0 1 150 108 L63 108 L40 150 L8 118 Z M58 38 L150 38 A30 30 0 0 1 150 98 L72 98 L46 130 L58 98 Z"/>
+        <path fill="#2cbeff" d="M8 168 L40 158 L40 190 L8 190 Z"/>
+      </svg>
+      <span>Pillier</span>
+    </a>
     <div style="display:flex;align-items:center;gap:0;" id="content-tabs">
       <button onclick="showContentTab(0)" class="content-tab active" id="ctab-0">Home</button>
       <div style="position:relative;" onmouseenter="document.getElementById('sol-tab-dropdown').style.display='block'" onmouseleave="document.getElementById('sol-tab-dropdown').style.display='none'">
