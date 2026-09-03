@@ -30,7 +30,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { messages, max_tokens, response_schema } = req.body || {};
+    const { messages, max_tokens } = req.body || {};
 
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: { message: 'Missing or invalid messages array in request body.' } });
@@ -77,9 +77,7 @@ export default async function handler(req, res) {
           generationConfig: {
             maxOutputTokens: max_tokens || 4096,
             temperature: 0.2,
-            thinkingConfig: { thinkingBudget: 0 },
-            // Optional strict-JSON structured output (only when the caller asks).
-            ...(response_schema ? { responseMimeType: 'application/json', responseSchema: response_schema } : {})
+            thinkingConfig: { thinkingBudget: 0 }
           }
         })
       }
