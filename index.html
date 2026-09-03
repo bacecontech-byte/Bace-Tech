@@ -704,6 +704,38 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
 @keyframes pMarkBreathe{0%,100%{transform:scale(1);filter:drop-shadow(0 0 0 rgba(44,190,255,0));}50%{transform:scale(1.1);filter:drop-shadow(0 0 5px rgba(44,190,255,0.6));}}
 .p-mark-anim{animation:pMarkBreathe 2.6s ease-in-out infinite;transform-origin:center;}
 @media (prefers-reduced-motion:reduce){.p-mark-anim{animation:none;}}
+/* Auto-RDO (Diário de Obra) */
+#rdo-overlay{display:none;position:fixed;inset:0;z-index:100050;background:rgba(4,14,18,.78);overflow:auto;padding:22px 12px;}
+#rdo-overlay.open{display:block;}
+.rdo-toolbar{display:flex;gap:8px;justify-content:flex-end;width:100%;max-width:800px;margin:0 auto 10px;position:sticky;top:0;}
+.rdo-tb-btn{background:#2cbeff;color:#04222b;border:none;border-radius:9px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+.rdo-tb-btn.ghost{background:rgba(255,255,255,.12);color:#fff;}
+#rdo-doc{background:#fff;color:#14202a;width:100%;max-width:800px;margin:0 auto;border-radius:8px;padding:34px 38px;box-shadow:0 20px 60px rgba(0,0,0,.4);}
+#rdo-doc h1{font-family:var(--font-d);font-size:21px;margin:0;color:#0c2027;}
+#rdo-doc .rdo-hd{display:flex;align-items:center;gap:12px;border-bottom:2px solid #0c4651;padding-bottom:14px;margin-bottom:16px;}
+#rdo-doc .rdo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:13px;margin-bottom:6px;}
+#rdo-doc .rdo-grid b{color:#0c4651;}
+#rdo-doc .rdo-sec{margin:18px 0;}
+#rdo-doc .rdo-sec h3{font-family:var(--font-d);font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#0c4651;border-bottom:1px solid #d8e3e5;padding-bottom:5px;margin:0 0 10px;}
+#rdo-doc .rdo-in{border:1px solid #c5d5d8;border-radius:6px;padding:6px 9px;font-size:13px;font-family:inherit;color:#14202a;width:100%;box-sizing:border-box;background:#fff;}
+#rdo-doc textarea.rdo-in{min-height:60px;resize:vertical;}
+#rdo-doc .rdo-occ{border:1px solid #e0e8ea;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;gap:10px;}
+#rdo-doc .rdo-occ img{width:64px;height:64px;object-fit:cover;border-radius:6px;flex-shrink:0;}
+#rdo-doc .rdo-occ .oc-t{font-weight:700;font-size:13px;}
+#rdo-doc .rdo-occ .oc-m{font-size:11px;color:#5b6f77;margin:2px 0 4px;}
+#rdo-doc .rdo-occ .oc-d{font-size:12px;color:#2d3d45;}
+#rdo-doc .rdo-sev{width:8px;border-radius:4px;flex-shrink:0;}
+#rdo-doc .rdo-sign{margin-top:34px;display:flex;justify-content:space-between;gap:30px;}
+#rdo-doc .rdo-sign div{flex:1;border-top:1px solid #14202a;padding-top:6px;font-size:12px;text-align:center;color:#5b6f77;}
+#rdo-doc .rdo-empty{color:#5b6f77;font-size:13px;font-style:italic;}
+@media print{
+  body *{visibility:hidden !important;}
+  #rdo-overlay,#rdo-overlay *{visibility:visible !important;}
+  #rdo-overlay{position:absolute !important;inset:0 !important;background:#fff !important;padding:0 !important;overflow:visible !important;}
+  #rdo-doc{box-shadow:none !important;max-width:100% !important;border-radius:0 !important;}
+  .rdo-toolbar{display:none !important;}
+  #rdo-doc .rdo-in{border:none !important;padding-left:0 !important;}
+}
 .chat-sidebar-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:0 4px;}
 .chat-newbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:var(--navy3);border:1px solid var(--border2);color:var(--text);font-size:13px;font-weight:600;padding:10px;border-radius:10px;cursor:pointer;font-family:inherit;margin-bottom:10px;}
 .chat-newbtn:hover{border-color:var(--blue);color:#fff;}
@@ -1909,7 +1941,8 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
               <div class="dash-card-hd">
                 <i class="ti ti-alert-circle" style="color:#f87171"></i>
                 <span class="dash-card-title" id="st-rec">Incidents récents</span>
-                <span class="dash-card-link" onclick="showTab(3,document.querySelectorAll('.sidebar-link')[3])" id="sl-all" onclick="showTab(3,null)" style="cursor:pointer;">Voir tout</span>
+                <button id="dash-rdo-btn" onclick="openRDO()" style="margin-left:auto;background:rgba(44,190,255,0.1);color:#2cbeff;border:1px solid rgba(44,190,255,0.28);border-radius:8px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;"><i class="ti ti-file-text"></i><span id="dash-rdo-lbl">RDO</span></button>
+                <span class="dash-card-link" onclick="showTab(3,document.querySelectorAll('.sidebar-link')[3])" id="sl-all" onclick="showTab(3,null)" style="cursor:pointer;margin-left:14px;">Voir tout</span>
               </div>
               <div id="dash-out"></div>
             </div>
@@ -5920,6 +5953,53 @@ function suggestedNormsCodes(cat,jur){
   return normsFor(cat,jur).map(function(n){return n.c;}).join(", ");
 }
 function normsLabel(){return lang===0?"Normes suggérées — à vérifier":lang===2?"Normas sugeridas — verifique":"Suggested standards — verify";}
+/* ── Auto-RDO: Diário de Obra compiled from the day's captures ───────────────── */
+function _rdoTodayStr(){return new Date().toLocaleDateString("fr-FR");}
+function openRDO(){
+  var L=function(fr,en,pt){return lang===0?fr:lang===2?pt:en;};
+  var site=getActiveSite();
+  var proj=(projects||[]).filter(function(p){return p.name===site;})[0]||{};
+  var today=_rdoTodayStr();
+  var day=(entries||[]).filter(function(e){return (!site||e.project===site)&&e.date===today;});
+  var sevColor={critical:"#c8372f",high:"#c96a12",medium:"#178fbe",low:"#2f8f63"};
+  var sevLabel=function(s){return L(
+    ({critical:"Critique",high:"Élevé",medium:"Moyen",low:"Faible"})[s]||s||"—",
+    ({critical:"Critical",high:"High",medium:"Medium",low:"Low"})[s]||s||"—",
+    ({critical:"Crítica",high:"Alta",medium:"Média",low:"Baixa"})[s]||s||"—");};
+  var statusLabel=function(st){return st==="resolved"?L("Résolu","Resolved","Resolvido"):L("Ouvert","Open","Aberto");};
+  var occ=day.length?day.map(function(e){
+    var sc=sevColor[e.sev]||"#178fbe";
+    var img=e.photo_url?"<img src=\""+escapeHTML(e.photo_url)+"\" alt=\"\">":"";
+    return "<div class='rdo-occ'><div class='rdo-sev' style='background:"+sc+"'></div>"+img+
+      "<div style='min-width:0'><div class='oc-t'>"+escapeHTML(e.title||"")+"</div>"+
+      "<div class='oc-m'>"+escapeHTML(catLabel(e.cat||""))+" · "+sevLabel(e.sev)+" · "+statusLabel(e.status)+"</div>"+
+      "<div class='oc-d'>"+escapeHTML(e.desc||"")+"</div></div></div>";
+  }).join(""):"<div class='rdo-empty'>"+L("Aucune occurrence enregistrée aujourd'hui.","No occurrences recorded today.","Nenhuma ocorrência registrada hoje.")+"</div>";
+  var rdoNo=new Date().toISOString().slice(0,10).replace(/-/g,"");
+  var wk=L("Praticable","Workable","Praticável");
+  var h="<div class='rdo-hd'>"+
+    "<div style='font-family:var(--font-d);font-weight:800;font-size:20px;color:#2cbeff'>Pillier</div>"+
+    "<div style='flex:1'><h1>"+L("Rapport journalier de chantier","Daily Site Report","Relatório Diário de Obra (RDO)")+"</h1></div>"+
+    "<div style='text-align:right;font-size:12px;color:#5b6f77'>Nº "+rdoNo+"<br>"+today+"</div></div>";
+  h+="<div class='rdo-grid'>"+
+    "<div><b>"+L("Chantier","Site","Obra")+":</b> "+escapeHTML(site||L("Tous les chantiers","All sites","Todos os canteiros"))+"</div>"+
+    "<div><b>"+L("Lieu","Location","Local")+":</b> "+escapeHTML(proj.location||"—")+"</div>"+
+    "<div><b>"+L("Responsable","Site manager","Responsável")+":</b> "+escapeHTML(proj.owner||me.name||"—")+"</div>"+
+    "<div><b>"+L("Date","Date","Data")+":</b> "+today+"</div></div>";
+  h+="<div class='rdo-sec'><h3>"+L("Conditions","Conditions","Condições")+"</h3><div class='rdo-grid'>"+
+    "<div><b>"+L("Météo matin","Weather AM","Clima manhã")+":</b> <input class='rdo-in' value='"+wk+"'></div>"+
+    "<div><b>"+L("Météo après-midi","Weather PM","Clima tarde")+":</b> <input class='rdo-in' value='"+wk+"'></div>"+
+    "<div style='grid-column:1/-1;margin-top:6px'><b>"+L("Effectif","Workforce","Efetivo")+":</b> <input class='rdo-in' placeholder='"+L("ex : 12 ouvriers","e.g. 12 workers","ex: 12 trabalhadores")+"'></div></div></div>";
+  h+="<div class='rdo-sec'><h3>"+L("Occurrences du jour","Today's occurrences","Ocorrências do dia")+" ("+day.length+")</h3>"+occ+"</div>";
+  h+="<div class='rdo-sec'><h3>"+L("Observations","Observations","Observações")+"</h3><textarea class='rdo-in' placeholder='"+L("Notes additionnelles…","Additional notes…","Observações adicionais…")+"'></textarea></div>";
+  h+="<div class='rdo-sign'><div>"+escapeHTML(proj.owner||me.name||"")+"<br>"+L("Responsable","Site manager","Responsável")+"</div><div>&nbsp;<br>"+L("Visa client","Client sign-off","Visto do cliente")+"</div></div>";
+  document.getElementById("rdo-doc").innerHTML=h;
+  document.getElementById("rdo-print-btn").textContent=L("Imprimer / Enregistrer PDF","Print / Save PDF","Imprimir / Salvar PDF");
+  document.getElementById("rdo-close-btn").textContent=L("Fermer","Close","Fechar");
+  document.getElementById("rdo-overlay").classList.add("open");
+}
+function printRDO(){window.print();}
+function closeRDO(){var o=document.getElementById("rdo-overlay");if(o)o.classList.remove("open");}
 function toggleCapMenu(e){if(e){e.preventDefault();e.stopPropagation();}var m=document.getElementById("cap-menu");if(m)m.style.display=(m.style.display==="block")?"none":"block";}
 function hideCapMenu(){var m=document.getElementById("cap-menu");if(m)m.style.display="none";}
 function capPick(which){hideCapMenu();var el=document.getElementById(which==="cam"?"cap-in-cam":"cap-in-gal");if(el)el.click();}
@@ -6290,6 +6370,7 @@ async function toggleStatus(id){
 
 function renderDash(){
   var S=STRINGS[lang];
+  var _rl=document.getElementById("dash-rdo-lbl");if(_rl)_rl.textContent=(lang===2?"RDO":lang===0?"Rapport":"Report");
   var entries=activeSiteEntries(); // scope the whole dashboard to the selected canteiro
   var criticals=entries.filter(function(e){return e.sev==="critical"&&e.status!=="resolved";});
   var resolved=entries.filter(function(e){return e.status==="resolved";});
@@ -9588,6 +9669,17 @@ function cloudSiteName(proj){
 </div>
 
 <!-- Delete account confirmation modal -->
+<!-- Auto-RDO (Diário de Obra) overlay -->
+<div id="rdo-overlay" onclick="if(event.target===this)closeRDO()">
+  <div style="width:100%;max-width:800px;margin:0 auto;">
+    <div class="rdo-toolbar">
+      <button class="rdo-tb-btn" onclick="printRDO()" id="rdo-print-btn">Imprimir / Salvar PDF</button>
+      <button class="rdo-tb-btn ghost" onclick="closeRDO()" id="rdo-close-btn">Fechar</button>
+    </div>
+    <div id="rdo-doc"></div>
+  </div>
+</div>
+
 <div id="del-account-overlay" onclick="if(event.target===this)closeDeleteAccount()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;align-items:center;justify-content:center;padding:20px;">
   <div style="background:#16323b;border:1px solid rgba(248,113,113,0.3);border-radius:16px;padding:24px;width:440px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,0.6);">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
