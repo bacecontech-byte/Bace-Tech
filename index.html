@@ -1936,6 +1936,7 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
             </div>
           </div>
           <!-- Two column: incidents + activity -->
+          <div id="dash-portfolio"></div>
           <div class="dash-two-col" style="grid-template-columns:1fr">
             <div class="dash-card">
               <div class="dash-card-hd">
@@ -6000,6 +6001,39 @@ function openRDO(){
 }
 function printRDO(){window.print();}
 function closeRDO(){var o=document.getElementById("rdo-overlay");if(o)o.classList.remove("open");}
+/* ── Portfolio risk radar: per-project risk, deterministic, all-sites view only ── */
+function renderPortfolio(){
+  var el=document.getElementById("dash-portfolio");if(!el)return;
+  var L=function(fr,en,pt){return lang===0?fr:lang===2?pt:en;};
+  if(getActiveSite()){el.innerHTML="";el.style.display="none";return;} // only when no single site is focused
+  var all=entries||[],byProj={};
+  all.forEach(function(e){var p=e.project||L("Sans chantier","No site","Sem canteiro");(byProj[p]=byProj[p]||[]).push(e);});
+  var names=Object.keys(byProj);
+  if(names.length<2){el.innerHTML="";el.style.display="none";return;} // radar needs 2+ projects to be meaningful
+  var now=Date.now(),DAY=864e5;
+  var cards=names.map(function(p){
+    var arr=byProj[p];
+    var open=arr.filter(function(e){return e.status!=="resolved";});
+    var crit=open.filter(function(e){return e.sev==="critical"||e.sev==="high";});
+    var last7=arr.filter(function(e){var t=_entryTime(e);return t&&(now-t)<=7*DAY;}).length;
+    var prev7=arr.filter(function(e){var t=_entryTime(e);return t&&(now-t)>7*DAY&&(now-t)<=14*DAY;}).length;
+    var spike=last7>=3&&last7>=2*Math.max(prev7,1);
+    return {p:p,total:arr.length,open:open.length,crit:crit.length,spike:spike,score:crit.length*3+open.length+(spike?3:0)};
+  }).sort(function(a,b){return b.score-a.score;});
+  var col={crit:"#c8372f",med:"#c96a12",low:"#2f8f63"};
+  var level=function(s){return s>=6?{k:"crit",t:L("Élevé","High","Alto")}:s>=3?{k:"med",t:L("Moyen","Medium","Médio")}:{k:"low",t:L("Faible","Low","Baixo")};};
+  var html="<div class='dash-card' style='margin-bottom:18px'><div class='dash-card-hd'><i class='ti ti-radar-2' style='color:#2cbeff'></i><span class='dash-card-title'>"+L("Radar des chantiers","Portfolio radar","Radar de canteiros")+"</span></div>"+
+    "<div style='display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;padding:4px 2px 2px'>";
+  html+=cards.map(function(c){var lv=level(c.score);return "<div onclick=\"setActiveSite('"+String(c.p).replace(/\\/g,"\\\\").replace(/'/g,"\\'")+"')\" style='cursor:pointer;background:var(--navy);border:1px solid var(--border);border-left:3px solid "+col[lv.k]+";border-radius:10px;padding:12px'>"+
+    "<div style='display:flex;justify-content:space-between;align-items:center;gap:8px'><div style='font-size:13px;font-weight:700;color:var(--white);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>"+escapeHTML(c.p)+"</div><span style='font-size:10px;font-weight:700;color:"+col[lv.k]+";background:"+col[lv.k]+"22;border-radius:6px;padding:2px 7px;white-space:nowrap'>"+lv.t+"</span></div>"+
+    "<div style='display:flex;gap:12px;margin-top:9px;font-size:11px;color:var(--text2)'>"+
+      "<span><b style='color:var(--white);font-size:14px;font-variant-numeric:tabular-nums'>"+c.crit+"</b> "+L("critiques","critical","críticos")+"</span>"+
+      "<span><b style='color:var(--white);font-size:14px;font-variant-numeric:tabular-nums'>"+c.open+"</b> "+L("ouverts","open","abertos")+"</span>"+
+      (c.spike?"<span style='color:#c96a12'>\u2197 "+L("pic","spike","pico")+"</span>":"")+
+    "</div></div>";}).join("");
+  html+="</div></div>";
+  el.innerHTML=html;el.style.display="block";
+}
 function toggleCapMenu(e){if(e){e.preventDefault();e.stopPropagation();}var m=document.getElementById("cap-menu");if(m)m.style.display=(m.style.display==="block")?"none":"block";}
 function hideCapMenu(){var m=document.getElementById("cap-menu");if(m)m.style.display="none";}
 function capPick(which){hideCapMenu();var el=document.getElementById(which==="cam"?"cap-in-cam":"cap-in-gal");if(el)el.click();}
@@ -6371,6 +6405,7 @@ async function toggleStatus(id){
 function renderDash(){
   var S=STRINGS[lang];
   var _rl=document.getElementById("dash-rdo-lbl");if(_rl)_rl.textContent=(lang===2?"RDO":lang===0?"Rapport":"Report");
+  try{renderPortfolio();}catch(e){}
   var entries=activeSiteEntries(); // scope the whole dashboard to the selected canteiro
   var criticals=entries.filter(function(e){return e.sev==="critical"&&e.status!=="resolved";});
   var resolved=entries.filter(function(e){return e.status==="resolved";});
