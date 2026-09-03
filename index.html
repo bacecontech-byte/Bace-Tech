@@ -5789,6 +5789,9 @@ function commMentionsMe(content){
   return content.toLowerCase().indexOf("@"+me.name.trim().toLowerCase())>=0;
 }
 
+// Strict-JSON schema for incident analysis (Gemini structured output). Severity is
+// enum-locked to canonical values so downstream colors/filters never break.
+var INCIDENT_SCHEMA={type:"object",properties:{title:{type:"string"},category:{type:"string"},severity:{type:"string",enum:["critical","high","medium","low"]},description:{type:"string"},cause:{type:"string"},solution:{type:"string"}},required:["title","description"]};
 var PROMPT_PHOTO="You are a senior civil engineer and construction site expert. Analyze this construction site image and respond ONLY in {LANG} using EXACTLY this format with no markdown, no asterisks, no bold:\nTitre: [short precise title of the problem]\nCategorie: [pick the SINGLE best match from this exact list, copy the name verbatim: {CATEGORIES}]\nSeverite: [ONE of: Faible / Moyen / Eleve / Critique]\nDescription: [2-4 sentences describing exactly what you see in the image - visible damage, materials affected, location, extent of the problem]\nCause: [2-3 sentences explaining the probable technical root cause based on engineering principles]\nSolution: [Numbered list of minimum 3 concrete action steps to fix this problem, based on engineering standards. Be specific and practical.]\nNormes: [List the exact applicable standards: BRAZIL use ABNT NBR (NBR 6118 for concrete structures, NBR 5410 for electrical, NBR 5626 for plumbing, NBR 8160 for sewage, NBR 14432 for fire, NBR 9050 for accessibility, NR-18 for site safety, NR-35 for work at height) | FRANCE use DTU and NF EN Eurocodes | EUROPE use EN Eurocodes. Always cite at least one standard relevant to the problem category.]\nSite: {PROJECT}";
 
 var PROMPT_VOICE="You are a senior civil engineer and construction site expert. Transcribe and structure this voice note from a construction site. Respond ONLY in {LANG} using EXACTLY this format with no markdown, no asterisks:\nTitre: [short precise title]\nCategorie: [pick the SINGLE best match from this exact list, copy the name verbatim: {CATEGORIES}]\nSeverite: [ONE of: Faible / Moyen / Eleve / Critique]\nDescription: [2-4 sentences describing the reported problem - what was said, materials affected, location]\nCause: [2-3 sentences explaining the probable technical root cause]\nSolution: [Numbered list of minimum 3 concrete action steps based on engineering standards]\nNormes: [BRAZIL: ABNT NBR relevant (NBR 6118 concrete, NBR 5410 electrical, NBR 5626 plumbing, NBR 8160 sewage, NBR 14432 fire, NR-18 site safety) | FRANCE: DTU and NF EN | EUROPE: EN Eurocodes. Always cite at least one relevant standard.]\nSite: {PROJECT}";
@@ -5798,7 +5801,7 @@ function saveKey(){
   toast("La clé API est gérée côté serveur — rien à configurer ici");
 }
 
-async function callAI(parts){
+async function callAI(parts,opts){
   showLoad(true,"Pillier IA...");
   try{
     var txt="",img=null;
@@ -5806,6 +5809,7 @@ async function callAI(parts){
     var msgs=img?[{role:"user",content:[{type:"image_url",image_url:{url:img}},{type:"text",text:txt.trim()}]}]:[{role:"user",content:txt.trim()}];
     var apiEndpoint=img?"/api/gemini":"/api/groq";
     var apiBody=img?{messages:msgs,max_tokens:2048}:{model:"openai/gpt-oss-120b",messages:msgs,max_tokens:1024};
+    if(opts&&opts.schema&&img)apiBody.response_schema=opts.schema; // strict-JSON (Gemini only)
     var res=await fetch(apiEndpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(apiBody)});
     var data=await res.json();
     showLoad(false);
@@ -6120,9 +6124,10 @@ async function handlePhoto(input){
   reader.onload=async function(e){
     window._lastPhotoData=e.target.result;
     window._lastPhotoFile=input.files[0];
-    var resp=await callAI([{img:e.target.result},{text:prompt}]);
-    if(resp){
-      var p=parseAI(resp);
+    var resp=await callAI([{img:e.target.result},{text:prompt}],{schema:INCIDENT_SCHEMA});
+    var p=resp?parseAI(resp):null;
+    if(!p||!p.title){var _r2=await callAI([{img:e.target.result},{text:prompt}]);if(_r2){resp=_r2;p=parseAI(_r2);}} // legacy fallback → never worse than before
+    if(p){
       document.getElementById("ai-photo").style.display="block";
       document.getElementById("ai-p-desc").textContent=p.desc||resp;
       document.getElementById("ai-p-cause").textContent=p.cause||"-";
@@ -6211,9 +6216,10 @@ async function processVoice(){
   reader.onload=async function(e){
     showLoad(true,"Pillier IA audio...");
     var b64=e.target.result.split(",")[1];
-    var resp=await callAI([{img:"data:audio/webm;base64,"+b64},{text:prompt}]);
-    if(resp){
-      var p=parseAI(resp);
+    var resp=await callAI([{img:"data:audio/webm;base64,"+b64},{text:prompt}],{schema:INCIDENT_SCHEMA});
+    var p=resp?parseAI(resp):null;
+    if(!p||!p.title){var _r2=await callAI([{img:"data:audio/webm;base64,"+b64},{text:prompt}]);if(_r2){resp=_r2;p=parseAI(_r2);}} // legacy fallback
+    if(p){
       document.getElementById("ai-voice").style.display="block";
       document.getElementById("ai-v-desc").textContent=p.desc||resp;
       document.getElementById("ai-v-cause").textContent=p.cause||"-";
