@@ -4679,7 +4679,7 @@ function enterApp(user){
     db.from("captures").select("title,created_by,created_at").eq("company_id",dbCoId).neq("created_by",me.name).order("created_at",{ascending:false}).limit(10).then(function(r){
       if(r.data&&r.data.length){
         r.data.reverse().forEach(function(d){
-          addNotif("<strong>"+(d.created_by||"Equipe")+"</strong> capturou: "+d.title);
+          addNotif("<strong>"+escapeHTML(d.created_by||"Equipe")+"</strong> capturou: "+escapeHTML(d.title||""));
         });
       }
     }).catch(function(){});
@@ -5078,7 +5078,7 @@ function openIncModal(id){
   document.getElementById("imd-meta").innerHTML=
     "<span class='inc-modal-tag'>"+catLabelStr+"</span>"+
     "<span class='inc-modal-tag badge "+(e.sev==="critical"?"b-crit":e.sev==="high"?"b-high":e.sev==="medium"?"b-med":"b-low")+"'>"+sevLabel2+"</span>"+
-    "<span class='inc-modal-tag'>"+(e.project||S.noProject||"Aucun projet")+"</span>"+
+    "<span class='inc-modal-tag'>"+escapeHTML(e.project||S.noProject||"Aucun projet")+"</span>"+
     "<span class='inc-modal-tag'>"+e.date+"</span>"+
     "<span class='inc-modal-tag'>"+statusLabel+"</span>";
   // Fields
@@ -5401,7 +5401,7 @@ function renderProjects(){
       +"<button class='proj-card-act del' title='"+plL("Supprimer","Delete","Excluir")+"' onclick=\"event.stopPropagation();deleteProject('"+String(p.id)+"')\"><i class='ti ti-trash'></i></button>"
       +"</div></div>"
       +"<div class='proj-card-body'>"
-      +"<div class='proj-card-name'>"+p.name+"</div>"
+      +"<div class='proj-card-name'>"+escapeHTML(p.name)+"</div>"
       +"<div class='proj-card-meta'>"+projSubtitle(p)+"</div></div>"
       +"<div class='proj-card-footer'>"
       +critHtml
@@ -5633,7 +5633,7 @@ async function submitProjectModal(){
 }
 
 function updateProjectDropdowns(){
-  var opts=projects.length?projects.map(function(p){return "<option>"+p.name+"</option>";}).join(""):"<option id='lbl-no-proj'>"+(STRINGS[lang].lblNoProj||"Aucun projet")+"</option>";
+  var opts=projects.length?projects.map(function(p){return "<option>"+escapeHTML(p.name)+"</option>";}).join(""):"<option id='lbl-no-proj'>"+(STRINGS[lang].lblNoProj||"Aucun projet")+"</option>";
   var cp=document.getElementById("c-proj");if(cp)cp.innerHTML=opts;
   updateSiteSelector();
   updateComposerAccess();
@@ -5710,7 +5710,7 @@ function startRealtime(){
       var aiRT={};try{aiRT=JSON.parse(d.ai_analysis||"{}");}catch(ex){aiRT={solution:d.ai_analysis||""};}
       entries.unshift({id:d.id,title:d.title,project:d.project||"",cat:canonCat(d.category||"Structure"),sev:d.severity||"medium",desc:d.description||"",action:d.action||"",cause:aiRT.cause||"",normes:aiRT.normes||"",date:new Date(d.created_at).toLocaleDateString("fr-FR"),status:d.status||"open",author:d.user_name||"",photo_url:d.photo_url||null});
       renderDash();renderKB();renderCounts();
-      addNotif("<strong>"+(d.user_name||"Equipe")+"</strong> "+(STRINGS[lang].notifCaptured||"capturou")+": "+d.title);
+      addNotif("<strong>"+escapeHTML(d.user_name||"Equipe")+"</strong> "+(STRINGS[lang].notifCaptured||"capturou")+": "+escapeHTML(d.title||""));
       toast(d.user_name+" : "+d.title);
     })
     .on("postgres_changes",{event:"DELETE",schema:"public",table:"captures",filter:"company_id=eq."+dbCoId},function(payload){
@@ -6273,7 +6273,7 @@ function rowHTML(e,ws){
   delBtn.setAttribute("onclick","deleteEntry('"+eid+"')");
   delBtn.style.cssText="background:none;border:none;color:#4a5a72;cursor:pointer;font-size:15px;padding:2px 4px";
   delBtn.innerHTML="&#x1F5D1;";
-  return "<tr><td style='font-weight:500;color:var(--white);cursor:pointer;' onclick='openIncModal(\""+eid+"\")'>"+cleanTitle(e.title)+"</td><td>"+e.project+"</td><td>"+(function(){var i=CATS_NORM.indexOf(normCat(e.cat));return(STRINGS[lang].cats&&STRINGS[lang].cats[i])||e.cat;}())+"</td><td><span class='badge "+sc+"'>"+sl+"</span></td><td>"+e.date+"</td>"+statusCell+"<td style='white-space:nowrap'>"+resBtn.outerHTML+editBtn.outerHTML+delBtn.outerHTML+"</td></tr>";
+  return "<tr><td style='font-weight:500;color:var(--white);cursor:pointer;' onclick='openIncModal(\""+eid+"\")'>"+escapeHTML(cleanTitle(e.title))+"</td><td>"+escapeHTML(e.project)+"</td><td>"+(function(){var i=CATS_NORM.indexOf(normCat(e.cat));return(STRINGS[lang].cats&&STRINGS[lang].cats[i])||e.cat;}())+"</td><td><span class='badge "+sc+"'>"+sl+"</span></td><td>"+e.date+"</td>"+statusCell+"<td style='white-space:nowrap'>"+resBtn.outerHTML+editBtn.outerHTML+delBtn.outerHTML+"</td></tr>";
 }
 
 async function toggleStatus(id){
@@ -6316,7 +6316,7 @@ function renderDash(){
         var initials=((e.author||me.name||"?").split(" ").map(function(w){return w[0]||"";}).join("").substring(0,2)||"?").toUpperCase();
         var cl=["av-b","av-g","av-a"][(initials.charCodeAt(0)||65)%3];
         var act=e.status==="resolved"?(lang===1?"resolved":lang===2?"resolveu":"a résolu"):(lang===1?"captured":lang===2?"capturou":"a capturé");
-        return "<div class='act-item' onclick=\"openIncModal('"+String(e.id)+"')\" style='cursor:pointer;'><div class='act-av "+cl+"'>"+initials+"</div><div style='flex:1'><div class='act-text'><b>"+(e.author||me.name)+"</b> "+act+" — "+e.title+"</div><div class='act-time'>"+e.date+"</div></div></div>";
+        return "<div class='act-item' onclick=\"openIncModal('"+String(e.id)+"')\" style='cursor:pointer;'><div class='act-av "+cl+"'>"+initials+"</div><div style='flex:1'><div class='act-text'><b>"+escapeHTML(e.author||me.name)+"</b> "+act+" — "+escapeHTML(e.title)+"</div><div class='act-time'>"+e.date+"</div></div></div>";
       }).join("");
     }
   }
@@ -6330,7 +6330,7 @@ function renderDash(){
   w.innerHTML=entries.slice(0,5).map(function(e){
     var sc=sevColor[e.sev]||"#2cbeff";
     var pill=e.status==="resolved"?"<span class='inc-pill pill-done'>"+(S.statusResolved||"Résolu")+"</span>":"<span class='inc-pill pill-open'>"+(S.statusOpen||"Ouvert")+"</span>";
-    return "<div class='inc-item' onclick=\"openIncModal('"+String(e.id)+"')\" style='cursor:pointer;'><div class='inc-sev' style='background:"+sc+"'></div><div class='inc-body'><div class='inc-name'>"+e.title+"</div><div class='inc-meta2'>"+catLabel(e.cat||"")+" · "+(e.date||"")+"</div></div>"+pill+"</div>";
+    return "<div class='inc-item' onclick=\"openIncModal('"+String(e.id)+"')\" style='cursor:pointer;'><div class='inc-sev' style='background:"+sc+"'></div><div class='inc-body'><div class='inc-name'>"+escapeHTML(e.title)+"</div><div class='inc-meta2'>"+catLabel(e.cat||"")+" · "+(e.date||"")+"</div></div>"+pill+"</div>";
   }).join("");
   generateInsights();
 }
@@ -6680,7 +6680,7 @@ function renderKB(){
     var statusBg=e.status==="resolved"?"rgba(99,153,34,0.1)":"rgba(44,190,255,0.1)";
     var statusColor=e.status==="resolved"?"#4ade80":"#2cbeff";
     var eid=String(e.id);
-    return "<div onclick=\"openIncModal(\'"+eid+"\')\" style=\"background:var(--navy2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;\"><div style=\"display:flex;align-items:flex-start;gap:8px;\"><div style=\"width:6px;height:6px;border-radius:50%;background:"+sc+";margin-top:5px;flex-shrink:0;\"></div><div style=\"flex:1;\"><div style=\"font-size:13px;font-weight:500;color:var(--white);line-height:1.4;margin-bottom:4px;\">"+cleanTitle(e.title)+"</div><div style=\"font-size:11px;color:var(--text3);margin-bottom:6px;\">"+catLabel(e.cat||"")+" \u00b7 "+(e.date||"")+"</div><div style=\"display:flex;gap:4px;\"><span style=\"font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(44,190,255,0.08);color:"+sc+";\">"+sl+"</span><span style=\"font-size:10px;padding:2px 8px;border-radius:10px;background:"+statusBg+";color:"+statusColor+";\">"+statusTxt+"</span></div></div></div></div>";
+    return "<div onclick=\"openIncModal(\'"+eid+"\')\" style=\"background:var(--navy2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;\"><div style=\"display:flex;align-items:flex-start;gap:8px;\"><div style=\"width:6px;height:6px;border-radius:50%;background:"+sc+";margin-top:5px;flex-shrink:0;\"></div><div style=\"flex:1;\"><div style=\"font-size:13px;font-weight:500;color:var(--white);line-height:1.4;margin-bottom:4px;\">"+escapeHTML(cleanTitle(e.title))+"</div><div style=\"font-size:11px;color:var(--text3);margin-bottom:6px;\">"+catLabel(e.cat||"")+" \u00b7 "+(e.date||"")+"</div><div style=\"display:flex;gap:4px;\"><span style=\"font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(44,190,255,0.08);color:"+sc+";\">"+sl+"</span><span style=\"font-size:10px;padding:2px 8px;border-radius:10px;background:"+statusBg+";color:"+statusColor+";\">"+statusTxt+"</span></div></div></div></div>";
   }).join("");
 }
 
@@ -7487,7 +7487,7 @@ function updateDocProjectDropdown(){
   var sel=document.getElementById("doc-proj-sel");
   if(!sel)return;
   var opts="<option id='docs-all-sites-opt'>"+( STRINGS[lang].docsAllSites||"Tous les chantiers")+"</option>";
-  projects.forEach(function(p){opts+="<option>"+p.name+"</option>";});
+  projects.forEach(function(p){opts+="<option>"+escapeHTML(p.name)+"</option>";});
   sel.innerHTML=opts;
 }
 
@@ -8083,7 +8083,7 @@ function renderDocs(proj){
     html+="<div class='doc-card-header'>";
     html+="<div class='doc-card-icon-wrap'>"+icon+"</div>";
     html+="<div class='doc-card-header-info'>";
-    html+="<div class='doc-card-name' title='"+d.name+"'>"+d.name+"</div>";
+    html+="<div class='doc-card-name' title='"+escapeHTML(d.name)+"'>"+escapeHTML(d.name)+"</div>";
     var displayProj=(d.project&&d.project!=="Tous les chantiers")?d.project:(S.docsAllSites||"Tous les chantiers");
     html+="<div class='doc-card-meta'>"+displayProj+" &bull; "+d.date+" &bull; "+(d.size||"")+"</div>";
     html+="<div class='doc-status ready'>&#x2714; "+(S.docsIndexed||"Indexé par Pillier IA")+"</div>";
@@ -8762,7 +8762,7 @@ async function saveCloudCredentials(provider){
     db.from("captures").select("title,created_by,created_at").eq("company_id",dbCoId).neq("created_by",me.name).order("created_at",{ascending:false}).limit(10).then(function(r){
       if(r.data&&r.data.length){
         r.data.reverse().forEach(function(d){
-          addNotif("<strong>"+(d.created_by||"Equipe")+"</strong> capturou: "+d.title);
+          addNotif("<strong>"+escapeHTML(d.created_by||"Equipe")+"</strong> capturou: "+escapeHTML(d.title||""));
         });
       }
     }).catch(function(){});
