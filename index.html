@@ -737,6 +737,7 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
   .no-print{display:none !important;}
   #rdo-doc .rdo-in{border:none !important;padding-left:0 !important;}
 }
+#ai-p-solution,#ai-v-solution,#imd-action{white-space:pre-line;}
 .chat-sidebar-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:0 4px;}
 .chat-newbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:var(--navy3);border:1px solid var(--border2);color:var(--text);font-size:13px;font-weight:600;padding:10px;border-radius:10px;cursor:pointer;font-family:inherit;margin-bottom:10px;}
 .chat-newbtn:hover{border-color:var(--blue);color:#fff;}
@@ -5789,9 +5790,9 @@ function commMentionsMe(content){
   return content.toLowerCase().indexOf("@"+me.name.trim().toLowerCase())>=0;
 }
 
-var PROMPT_PHOTO="You are a senior civil engineer and construction site expert. Analyze this construction site image and respond ONLY in {LANG} using EXACTLY this format with no markdown, no asterisks, no bold:\nTitre: [short precise title of the problem]\nCategorie: [pick the SINGLE best match from this exact list, copy the name verbatim: {CATEGORIES}]\nSeverite: [ONE of: Faible / Moyen / Eleve / Critique]\nDescription: [2-4 sentences describing exactly what you see in the image - visible damage, materials affected, location, extent of the problem]\nCause: [2-3 sentences explaining the probable technical root cause based on engineering principles]\nSolution: [Numbered list of minimum 3 concrete action steps to fix this problem, based on engineering standards. Be specific and practical.]\nNormes: [List the exact applicable standards: BRAZIL use ABNT NBR (NBR 6118 for concrete structures, NBR 5410 for electrical, NBR 5626 for plumbing, NBR 8160 for sewage, NBR 14432 for fire, NBR 9050 for accessibility, NR-18 for site safety, NR-35 for work at height) | FRANCE use DTU and NF EN Eurocodes | EUROPE use EN Eurocodes. Always cite at least one standard relevant to the problem category.]\nSite: {PROJECT}";
+var PROMPT_PHOTO="You are a senior civil engineer and construction site expert. Analyze this construction site image and respond ONLY in {LANG} using EXACTLY this format with no markdown, no asterisks, no bold:\nTitre: [short precise title of the problem]\nCategorie: [pick the SINGLE best match from this exact list, copy the name verbatim: {CATEGORIES}]\nSeverite: [ONE of: Faible / Moyen / Eleve / Critique]\nDescription: [2 to 3 sentences maximum — what you see: visible damage, materials, location. Be concise, no filler.]\nCause: [1 to 2 sentences on the probable technical root cause.]\nSolution: [Exactly 3 to 5 short numbered steps in the form '1. ... 2. ... 3. ...'. ONE sentence per step, max 20 words each. No introduction, no conclusion, no extra paragraphs, no repetition.]\nNormes: [List the exact applicable standards: BRAZIL use ABNT NBR (NBR 6118 for concrete structures, NBR 5410 for electrical, NBR 5626 for plumbing, NBR 8160 for sewage, NBR 14432 for fire, NBR 9050 for accessibility, NR-18 for site safety, NR-35 for work at height) | FRANCE use DTU and NF EN Eurocodes | EUROPE use EN Eurocodes. Always cite at least one standard relevant to the problem category.]\nSite: {PROJECT}";
 
-var PROMPT_VOICE="You are a senior civil engineer and construction site expert. Transcribe and structure this voice note from a construction site. Respond ONLY in {LANG} using EXACTLY this format with no markdown, no asterisks:\nTitre: [short precise title]\nCategorie: [pick the SINGLE best match from this exact list, copy the name verbatim: {CATEGORIES}]\nSeverite: [ONE of: Faible / Moyen / Eleve / Critique]\nDescription: [2-4 sentences describing the reported problem - what was said, materials affected, location]\nCause: [2-3 sentences explaining the probable technical root cause]\nSolution: [Numbered list of minimum 3 concrete action steps based on engineering standards]\nNormes: [BRAZIL: ABNT NBR relevant (NBR 6118 concrete, NBR 5410 electrical, NBR 5626 plumbing, NBR 8160 sewage, NBR 14432 fire, NR-18 site safety) | FRANCE: DTU and NF EN | EUROPE: EN Eurocodes. Always cite at least one relevant standard.]\nSite: {PROJECT}";
+var PROMPT_VOICE="You are a senior civil engineer and construction site expert. Transcribe and structure this voice note from a construction site. Respond ONLY in {LANG} using EXACTLY this format with no markdown, no asterisks:\nTitre: [short precise title]\nCategorie: [pick the SINGLE best match from this exact list, copy the name verbatim: {CATEGORIES}]\nSeverite: [ONE of: Faible / Moyen / Eleve / Critique]\nDescription: [2 to 3 sentences maximum — the reported problem, materials, location. Be concise.]\nCause: [1 to 2 sentences on the probable technical root cause.]\nSolution: [Exactly 3 to 5 short numbered steps in the form '1. ... 2. ... 3. ...'. ONE sentence per step, max 20 words each. No introduction, no conclusion, no extra paragraphs.]\nNormes: [BRAZIL: ABNT NBR relevant (NBR 6118 concrete, NBR 5410 electrical, NBR 5626 plumbing, NBR 8160 sewage, NBR 14432 fire, NR-18 site safety) | FRANCE: DTU and NF EN | EUROPE: EN Eurocodes. Always cite at least one relevant standard.]\nSite: {PROJECT}";
 
 
 function saveKey(){
@@ -5852,6 +5853,14 @@ function cleanTitle(t){
   return t.trim();
 }
 
+function _fmtSolution(s){
+  s=String(s||"");if(!s)return s;
+  s=s.replace(/\\n/g,"\n");                        // literal \n → real newline
+  s=s.replace(/\s+(\d{1,2})[\.\)]\s+/g,"\n$1. ");  // break before each numbered step
+  s=s.replace(/\n{2,}/g,"\n").replace(/^\n+/,"").trim();
+  return s;
+}
+function _finalizeAI(r){try{r.solution=_fmtSolution(r.solution);r.action=_fmtSolution(r.action);}catch(e){}return r;}
 function parseAI(txt){
   txt=cleanAI(txt);
   var r={title:"",cat:"Structure",sev:"medium",desc:"",action:"",cause:"",solution:"",normes:""};
@@ -5870,7 +5879,7 @@ function parseAI(txt){
         r.action=parsed.action||parsed.acao||parsed.solution||"";
         r.normes=parsed.norms||parsed.normas||parsed.normes||"";
         r.solution=parsed.solution||parsed.solucao||r.action||"";
-        return r;
+        return _finalizeAI(r);
       }
     }
   }catch(e){}
@@ -5892,7 +5901,7 @@ function parseAI(txt){
   if(!r.title)r.title=txt.split("\n")[0].replace(/\*\*/g,"").substring(0,80);
   if(!r.desc)r.desc=txt.substring(0,300);
   if(!r.action&&r.solution)r.action=r.solution;
-  return r;
+  return _finalizeAI(r);
 }
 
 function assignAI(r,key,val){
