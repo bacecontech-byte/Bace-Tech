@@ -5856,8 +5856,8 @@ function cleanTitle(t){
 function _fmtSolution(s){
   s=String(s||"");if(!s)return s;
   s=s.replace(/\\n/g,"\n");                        // literal \n → real newline
-  s=s.replace(/\s+(\d{1,2})[\.\)]\s+/g,"\n$1. ");  // break before each numbered step
-  s=s.replace(/\n{2,}/g,"\n").replace(/^\n+/,"").trim();
+  s=s.replace(/\s+(\d{1,2})[\.\)]\s+/g,"\n\n$1. ");  // blank line before each numbered step
+  s=s.replace(/\n{3,}/g,"\n\n").replace(/^\n+/,"").trim();
   return s;
 }
 function _finalizeAI(r){try{r.solution=_fmtSolution(r.solution);r.action=_fmtSolution(r.action);}catch(e){}return r;}
@@ -5958,7 +5958,9 @@ function siteJurisdiction(projName){
 }
 function normsFor(cat,jur){
   var j=NORMS_MAP[jur]||NORMS_MAP.EU;
-  var key=(typeof normCat==="function"?normCat(cat):String(cat||"").toLowerCase());
+  // Canonicalize the (possibly localized, e.g. "Estrutura") category before lookup.
+  var canon=(typeof canonCat==="function")?canonCat(cat):cat;
+  var key=(typeof normCat==="function"?normCat(canon):String(canon||"").toLowerCase());
   return j[key]||[];
 }
 function suggestedNormsCodes(cat,jur){
