@@ -5974,37 +5974,50 @@ function openRDO(){
   var site=getActiveSite();
   var proj=(projects||[]).filter(function(p){return p.name===site;})[0]||{};
   var today=_rdoTodayStr();
-  var day=(entries||[]).filter(function(e){return (!site||e.project===site)&&e.date===today;});
+  var list=(entries||[]).filter(function(e){return !site||e.project===site;}); // all in-scope incidents, not only today
   var sevColor={critical:"#c8372f",high:"#c96a12",medium:"#178fbe",low:"#2f8f63"};
   var sevLabel=function(s){return L(
     ({critical:"Critique",high:"Élevé",medium:"Moyen",low:"Faible"})[s]||s||"—",
     ({critical:"Critical",high:"High",medium:"Medium",low:"Low"})[s]||s||"—",
     ({critical:"Crítica",high:"Alta",medium:"Média",low:"Baixa"})[s]||s||"—");};
   var statusLabel=function(st){return st==="resolved"?L("Résolu","Resolved","Resolvido"):L("Ouvert","Open","Aberto");};
-  var occ=day.length?day.map(function(e){
+  var occ=list.length?list.map(function(e){
     var sc=sevColor[e.sev]||"#178fbe";
     var img=e.photo_url?"<img src=\""+escapeHTML(e.photo_url)+"\" alt=\"\">":"";
+    var sol=_fmtSolution(e.action||"");
     return "<div class='rdo-occ'><div class='rdo-sev' style='background:"+sc+"'></div>"+img+
       "<div style='min-width:0'><div class='oc-t'>"+escapeHTML(e.title||"")+"</div>"+
-      "<div class='oc-m'>"+escapeHTML(catLabel(e.cat||""))+" · "+sevLabel(e.sev)+" · "+statusLabel(e.status)+"</div>"+
-      "<div class='oc-d'>"+escapeHTML(e.desc||"")+"</div></div></div>";
-  }).join(""):"<div class='rdo-empty'>"+L("Aucune occurrence enregistrée aujourd'hui.","No occurrences recorded today.","Nenhuma ocorrência registrada hoje.")+"</div>";
+      "<div class='oc-m'>"+escapeHTML(catLabel(e.cat||""))+" · "+sevLabel(e.sev)+" · "+statusLabel(e.status)+(!site&&e.project?" · "+escapeHTML(e.project):"")+" · "+escapeHTML(e.date||"")+"</div>"+
+      "<div class='oc-d'>"+escapeHTML(e.desc||"")+"</div>"+
+      (sol?"<div style='white-space:pre-line;margin-top:5px;font-size:12px;color:#2d3d45'><b style='color:#0c4651'>"+L("Solution recommandée","Recommended solution","Solução recomendada")+" :</b>\n"+escapeHTML(sol)+"</div>":"")+
+      "</div></div>";
+  }).join(""):"<div class='rdo-empty'>"+L("Aucune occurrence.","No occurrences.","Nenhuma ocorrência.")+"</div>";
   var rdoNo=new Date().toISOString().slice(0,10).replace(/-/g,"");
   var wk=L("Praticable","Workable","Praticável");
+  var jur=siteJurisdiction(site);
+  var regLabel=jur==="BR"?"CREA / RNP nº":jur==="FR"?"N° d'ordre":L("Nº d'enregistrement","Registration / PE License","Nº de registro");
+  var meta=(proj&&proj.id!=null)?pmGetMeta(proj.id):{};
+  var addr=[meta.address,[meta.city,meta.state].filter(Boolean).join(", "),meta.country].filter(Boolean).join(" · ")||proj.location||"—";
+  var startD=meta.startDate||"—",endD=meta.endDate||"—";
   var h="<div class='rdo-hd'>"+
     "<div style='font-family:var(--font-d);font-weight:800;font-size:20px;color:#2cbeff'>Pillier</div>"+
     "<div style='flex:1'><h1>"+L("Rapport journalier de chantier","Daily Site Report","Relatório Diário de Obra (RDO)")+"</h1></div>"+
     "<div style='text-align:right;font-size:12px;color:#5b6f77'>Nº "+rdoNo+"<br>"+today+"</div></div>";
   h+="<div class='rdo-grid'>"+
     "<div><b>"+L("Chantier","Site","Obra")+":</b> "+escapeHTML(site||L("Tous les chantiers","All sites","Todos os canteiros"))+"</div>"+
-    "<div><b>"+L("Lieu","Location","Local")+":</b> "+escapeHTML(proj.location||"—")+"</div>"+
-    "<div><b>"+L("Responsable","Site manager","Responsável")+":</b> "+escapeHTML(proj.owner||me.name||"—")+"</div>"+
-    "<div><b>"+L("Date","Date","Data")+":</b> "+today+"</div></div>";
+    "<div><b>"+L("Adresse","Address","Endereço")+":</b> "+escapeHTML(addr)+"</div>"+
+    "<div><b>"+L("Client","Client","Cliente")+":</b> <input class='rdo-in' style='display:inline-block;width:auto;min-width:150px' placeholder='"+L("Nom du client","Client name","Nome do cliente")+"'></div>"+
+    "<div><b>"+L("Responsable","Site manager","Responsável")+":</b> "+escapeHTML(proj.owner||proj.lead||me.name||"—")+"</div>"+
+    "<div><b>"+regLabel+":</b> <input class='rdo-in' style='display:inline-block;width:auto;min-width:120px' placeholder='"+regLabel+"'></div>"+
+    "<div><b>"+L("Date du rapport","Report date","Data do relatório")+":</b> "+today+"</div>"+
+    "<div><b>"+L("Début du chantier","Site start","Início da obra")+":</b> "+escapeHTML(startD)+"</div>"+
+    "<div><b>"+L("Fin prévue","Planned end","Término previsto")+":</b> "+escapeHTML(endD)+"</div></div>";
   h+="<div class='rdo-sec'><h3>"+L("Conditions","Conditions","Condições")+"</h3><div class='rdo-grid'>"+
     "<div><b>"+L("Météo matin","Weather AM","Clima manhã")+":</b> <input class='rdo-in' value='"+wk+"'></div>"+
     "<div><b>"+L("Météo après-midi","Weather PM","Clima tarde")+":</b> <input class='rdo-in' value='"+wk+"'></div>"+
-    "<div style='grid-column:1/-1;margin-top:6px'><b>"+L("Effectif","Workforce","Efetivo")+":</b> <input class='rdo-in' placeholder='"+L("ex : 12 ouvriers","e.g. 12 workers","ex: 12 trabalhadores")+"'></div></div></div>";
-  h+="<div class='rdo-sec'><h3>"+L("Occurrences du jour","Today's occurrences","Ocorrências do dia")+" ("+day.length+")</h3>"+occ+"</div>";
+    "<div><b>"+L("Température","Temperature","Temperatura")+":</b> <input class='rdo-in' placeholder='°C'></div>"+
+    "<div><b>"+L("Effectif","Workforce","Efetivo")+":</b> <input class='rdo-in' placeholder='"+L("ex : 12 ouvriers","e.g. 12 workers","ex: 12 trabalhadores")+"'></div></div></div>";
+  h+="<div class='rdo-sec'><h3>"+L("Occurrences","Occurrences","Ocorrências")+" ("+list.length+")</h3>"+occ+"</div>";
   h+="<div class='rdo-sec'><h3>"+L("Observations","Observations","Observações")+"</h3><textarea class='rdo-in' placeholder='"+L("Notes additionnelles…","Additional notes…","Observações adicionais…")+"'></textarea></div>";
   h+="<div class='rdo-sign'><div>"+escapeHTML(proj.owner||me.name||"")+"<br>"+L("Responsable","Site manager","Responsável")+"</div><div>&nbsp;<br>"+L("Visa client","Client sign-off","Visto do cliente")+"</div></div>";
   document.getElementById("rdo-doc").innerHTML=h;
