@@ -734,6 +734,7 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
   #rdo-overlay{position:absolute !important;inset:0 !important;background:#fff !important;padding:0 !important;overflow:visible !important;}
   #rdo-doc{box-shadow:none !important;max-width:100% !important;border-radius:0 !important;}
   .rdo-toolbar{display:none !important;}
+  .no-print{display:none !important;}
   #rdo-doc .rdo-in{border:none !important;padding-left:0 !important;}
 }
 .chat-sidebar-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:0 4px;}
@@ -1943,6 +1944,7 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
                 <i class="ti ti-alert-circle" style="color:#f87171"></i>
                 <span class="dash-card-title" id="st-rec">Incidents récents</span>
                 <button id="dash-rdo-btn" onclick="openRDO()" style="margin-left:auto;background:rgba(44,190,255,0.1);color:#2cbeff;border:1px solid rgba(44,190,255,0.28);border-radius:8px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;"><i class="ti ti-file-text"></i><span id="dash-rdo-lbl">RDO</span></button>
+                <button id="dash-chk-btn" onclick="openChecklists()" style="margin-left:8px;background:rgba(44,190,255,0.1);color:#2cbeff;border:1px solid rgba(44,190,255,0.28);border-radius:8px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;"><i class="ti ti-checklist"></i><span id="dash-chk-lbl">Checklist</span></button>
                 <span class="dash-card-link" onclick="showTab(3,document.querySelectorAll('.sidebar-link')[3])" id="sl-all" onclick="showTab(3,null)" style="cursor:pointer;margin-left:14px;">Voir tout</span>
               </div>
               <div id="dash-out"></div>
@@ -5995,12 +5997,73 @@ function openRDO(){
   h+="<div class='rdo-sec'><h3>"+L("Observations","Observations","Observações")+"</h3><textarea class='rdo-in' placeholder='"+L("Notes additionnelles…","Additional notes…","Observações adicionais…")+"'></textarea></div>";
   h+="<div class='rdo-sign'><div>"+escapeHTML(proj.owner||me.name||"")+"<br>"+L("Responsable","Site manager","Responsável")+"</div><div>&nbsp;<br>"+L("Visa client","Client sign-off","Visto do cliente")+"</div></div>";
   document.getElementById("rdo-doc").innerHTML=h;
-  document.getElementById("rdo-print-btn").textContent=L("Imprimer / Enregistrer PDF","Print / Save PDF","Imprimir / Salvar PDF");
+  var pb=document.getElementById("rdo-print-btn");pb.style.display="";pb.textContent=L("Imprimer / Enregistrer PDF","Print / Save PDF","Imprimir / Salvar PDF");
   document.getElementById("rdo-close-btn").textContent=L("Fermer","Close","Fechar");
   document.getElementById("rdo-overlay").classList.add("open");
 }
 function printRDO(){window.print();}
 function closeRDO(){var o=document.getElementById("rdo-overlay");if(o)o.classList.remove("open");}
+/* ── Inspection checklists (norm-tied) → signed inspection record ────────────── */
+var CHECKLISTS=[
+ {id:"nr18",jur:"BR",title:["Sécurité chantier (NR-18)","Site safety (NR-18)","Segurança no canteiro (NR-18)"],items:[
+   {n:"NR-18",t:["Voies de circulation dégagées et signalées","Walkways clear and signposted","Áreas de circulação livres e sinalizadas"]},
+   {n:"NR-06",t:["EPI disponibles et utilisés","PPE available and worn","EPIs disponíveis e em uso"]},
+   {n:"NR-18",t:["Garde-corps / protection périphérique en place","Guardrails / perimeter protection in place","Guarda-corpos / proteção periférica instalados"]},
+   {n:"NR-23",t:["Extincteurs accessibles et valides","Fire extinguishers accessible and valid","Extintores acessíveis e válidos"]},
+   {n:"NBR 9077",t:["Sorties de secours dégagées","Emergency exits clear","Saídas de emergência desobstruídas"]}
+ ]},
+ {id:"nr35",jur:"BR",title:["Travail en hauteur (NR-35)","Work at height (NR-35)","Trabalho em altura (NR-35)"],items:[
+   {n:"NR-35",t:["Analyse de risque (APR) réalisée","Risk assessment (APR) completed","Análise de risco (APR) realizada"]},
+   {n:"NR-35",t:["Harnais et ligne de vie inspectés","Harness & lifeline inspected","Cinturão e linha de vida inspecionados"]},
+   {n:"NR-35",t:["Points d'ancrage certifiés","Certified anchor points","Pontos de ancoragem certificados"]},
+   {n:"NR-06",t:["Travailleurs formés et aptes","Workers trained and fit","Trabalhadores capacitados e aptos"]}
+ ]},
+ {id:"struct",jur:"*",title:["Contrôle qualité — Structure","Quality control — Structure","Controle de qualidade — Estrutura"],items:[
+   {n:"NBR 6118",t:["Enrobage des armatures conforme","Rebar cover as specified","Cobrimento das armaduras conforme"]},
+   {n:"NBR 6118",t:["Résistance du béton (fck) vérifiée","Concrete strength (fck) verified","Resistência do concreto (fck) verificada"]},
+   {n:"NBR 8681",t:["Étaiement / coffrage sécurisé","Shoring / formwork secured","Escoramento / fôrma seguros"]},
+   {n:"NBR 6118",t:["Absence de fissures structurelles visibles","No visible structural cracks","Ausência de fissuras estruturais visíveis"]}
+ ]},
+ {id:"secfr",jur:"FR",title:["Sécurité chantier","Site safety","Segurança do canteiro"],items:[
+   {n:"Code du travail",t:["Voies de circulation dégagées","Walkways clear","Vias de circulação livres"]},
+   {n:"NF EN 795",t:["Protection antichute en place","Fall protection in place","Proteção contra quedas instalada"]},
+   {n:"Code du travail",t:["EPI disponibles et adaptés","PPE available and adequate","EPIs disponíveis e adequados"]}
+ ]}
+];
+function _chkLi(){return lang===0?0:lang===2?2:1;}
+function _chkTemplates(){var j=siteJurisdiction(getActiveSite());return CHECKLISTS.filter(function(t){return t.jur===j||t.jur==="*";});}
+function openChecklists(){
+  var L=function(fr,en,pt){return lang===0?fr:lang===2?pt:en;};
+  var list=_chkTemplates(),li=_chkLi();
+  var h="<div class='rdo-hd'><div style='font-family:var(--font-d);font-weight:800;font-size:20px;color:#2cbeff'>Pillier</div><div style='flex:1'><h1>"+L("Inspections","Inspections","Inspeções")+"</h1></div></div>";
+  h+="<div class='rdo-empty' style='margin-bottom:12px'>"+L("Choisissez une check-list :","Choose a checklist:","Escolha uma checklist:")+"</div>";
+  h+="<div style='display:grid;gap:8px'>"+list.map(function(t){return "<button class='no-print' onclick=\"renderChecklist('"+t.id+"')\" style='text-align:left;background:#f5f9f9;border:1px solid #c5d5d8;border-radius:8px;padding:12px 14px;font-size:14px;font-weight:600;color:#0c2027;cursor:pointer;font-family:inherit'>"+escapeHTML(t.title[li])+" <span style='color:#5b6f77;font-weight:400'>· "+t.items.length+" "+L("points","items","itens")+"</span></button>";}).join("")+"</div>";
+  document.getElementById("rdo-doc").innerHTML=h;
+  document.getElementById("rdo-print-btn").style.display="none";
+  document.getElementById("rdo-close-btn").textContent=L("Fermer","Close","Fechar");
+  document.getElementById("rdo-overlay").classList.add("open");
+}
+function renderChecklist(id){
+  var L=function(fr,en,pt){return lang===0?fr:lang===2?pt:en;};
+  var t=CHECKLISTS.filter(function(x){return x.id===id;})[0];if(!t)return;
+  var li=_chkLi(),site=getActiveSite(),proj=(projects||[]).filter(function(p){return p.name===site;})[0]||{},today=_rdoTodayStr();
+  var h="<div class='rdo-hd'><div style='font-family:var(--font-d);font-weight:800;font-size:20px;color:#2cbeff'>Pillier</div><div style='flex:1'><h1>"+escapeHTML(t.title[li])+"</h1></div><div style='text-align:right;font-size:12px;color:#5b6f77'>"+today+"</div></div>";
+  h+="<div class='rdo-grid'><div><b>"+L("Chantier","Site","Obra")+":</b> "+escapeHTML(site||"—")+"</div><div><b>"+L("Lieu","Location","Local")+":</b> "+escapeHTML(proj.location||"—")+"</div><div><b>"+L("Inspecteur","Inspector","Inspetor")+":</b> "+escapeHTML(me.name||"—")+"</div><div><b>"+L("Date","Date","Data")+":</b> "+today+"</div></div>";
+  h+="<div class='rdo-sec'>"+t.items.map(function(it,i){
+    var nm="chk_"+id+"_"+i;
+    var opt=function(v,lab){return "<label style='font-size:11px;margin-right:12px;white-space:nowrap'><input type='radio' name='"+nm+"' value='"+v+"'> "+lab+"</label>";};
+    return "<div style='border-bottom:1px solid #e0e8ea;padding:9px 0'>"+
+      "<div style='display:flex;justify-content:space-between;gap:10px;align-items:baseline'><div style='font-size:13px;color:#14202a'>"+escapeHTML(it.t[li])+"</div>"+
+      "<span style='flex-shrink:0;font-size:10px;color:#0c4651;background:#0c465115;border-radius:5px;padding:2px 7px'>"+escapeHTML(it.n)+"</span></div>"+
+      "<div style='margin-top:6px'>"+opt("ok",L("Conforme","Compliant","Conforme"))+opt("nc",L("Non conforme","Non-compliant","Não conforme"))+opt("na","N/A")+
+      " <input class='rdo-in' style='display:inline-block;width:auto;min-width:150px;margin-top:4px' placeholder='"+L("Note…","Note…","Obs…")+"'></div></div>";
+  }).join("")+"</div>";
+  h+="<div class='rdo-sign'><div>"+escapeHTML(me.name||"")+"<br>"+L("Inspecteur","Inspector","Inspetor")+"</div><div>&nbsp;<br>"+L("Responsable","Site manager","Responsável")+"</div></div>";
+  h+="<div class='no-print' style='margin-top:16px'><a onclick='openChecklists()' style='color:#178fbe;cursor:pointer;font-size:13px'>← "+L("Retour","Back","Voltar")+"</a></div>";
+  document.getElementById("rdo-doc").innerHTML=h;
+  var pb=document.getElementById("rdo-print-btn");pb.style.display="";pb.textContent=L("Imprimer / Enregistrer PDF","Print / Save PDF","Imprimir / Salvar PDF");
+  document.getElementById("rdo-overlay").classList.add("open");
+}
 /* ── Portfolio risk radar: per-project risk, deterministic, all-sites view only ── */
 function renderPortfolio(){
   var el=document.getElementById("dash-portfolio");if(!el)return;
@@ -6405,6 +6468,7 @@ async function toggleStatus(id){
 function renderDash(){
   var S=STRINGS[lang];
   var _rl=document.getElementById("dash-rdo-lbl");if(_rl)_rl.textContent=(lang===2?"RDO":lang===0?"Rapport":"Report");
+  var _cl=document.getElementById("dash-chk-lbl");if(_cl)_cl.textContent=(lang===2?"Inspeção":lang===0?"Inspection":"Checklist");
   try{renderPortfolio();}catch(e){}
   var entries=activeSiteEntries(); // scope the whole dashboard to the selected canteiro
   var criticals=entries.filter(function(e){return e.sev==="critical"&&e.status!=="resolved";});
