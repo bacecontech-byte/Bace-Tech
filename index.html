@@ -7981,10 +7981,32 @@ async function sendChat(){
   btn.disabled=false;
 }
 
+// Chat greeting: the first empty chat after login is a time-of-day welcome;
+// each new chat after that rotates through varied openers, like Claude / Gemini.
+var _chatGreetShown=false;
+function _chatGreetPool(n){
+  var h=new Date().getHours();
+  var tod=lang===1?(h<12?"Good morning, "+n:h<18?"Good afternoon, "+n:"Good evening, "+n)
+         :lang===2?(h<12?"Bom dia, "+n:h<18?"Boa tarde, "+n:"Boa noite, "+n)
+         :(h<12?"Bonjour "+n:h<18?"Bon après-midi "+n:"Bonsoir "+n);
+  var varied=lang===1?[
+      "How can I help, "+n+"?","What are we tackling today, "+n+"?","Ready when you are, "+n+".",
+      "The floor is yours, "+n+".","Where should we start, "+n+"?","What's on the site today, "+n+"?"
+    ]:lang===2?[
+      "Como posso ajudar, "+n+"?","O que vamos resolver hoje, "+n+"?","É só começar, "+n+".",
+      "A palavra é sua, "+n+".","Por onde começamos, "+n+"?","Como está a obra hoje, "+n+"?"
+    ]:[
+      "Comment puis-je aider, "+n+" ?","Qu'attaquons-nous aujourd'hui, "+n+" ?","Quand vous voulez, "+n+".",
+      "À vous la parole, "+n+".","Par où commençons-nous, "+n+" ?","Quoi de neuf sur le chantier, "+n+" ?"
+    ];
+  return {tod:tod,all:[tod].concat(varied)};
+}
 function _setChatGreeting(){
   var el=document.getElementById("chat-empty-greet");if(!el)return;
   var firstName=(me&&me.name?me.name.split(" ")[0]:"");
-  el.textContent=lang===1?("Hello "+firstName+", how can I help?"):lang===2?("Olá "+firstName+", como posso ajudar?"):("Bonjour "+firstName+", comment puis-je aider ?");
+  var p=_chatGreetPool(firstName);
+  if(!_chatGreetShown){el.textContent=p.tod;_chatGreetShown=true;} // first chat → time-based
+  else{el.textContent=p.all[Math.floor(Math.random()*p.all.length)];} // later chats → varied
 }
 function showChatEmpty(show){
   var e=document.getElementById("chat-empty"),m=document.getElementById("chat-messages");
