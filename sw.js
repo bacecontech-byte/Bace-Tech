@@ -11,7 +11,7 @@
  *  - Non-GET requests are never touched.
  *  Bumping VERSION invalidates every old cache on activate.
  */
-var VERSION = 'pillier-v1';
+var VERSION = 'pillier-v2';
 var SHELL   = VERSION + '-shell';
 var RUNTIME = VERSION + '-runtime';
 
@@ -31,9 +31,17 @@ function isBypass(url) {
 
 self.addEventListener('install', function (e) {
   e.waitUntil(
-    caches.open(SHELL)
-      .then(function (c) { return c.addAll(SHELL_URLS).catch(function () {}); })
-      .then(function () { return self.skipWaiting(); })
+    caches.open(SHELL).then(function (c) {
+      // Cache each URL independently: cache.addAll() is atomic, so one failing
+      // request would leave the whole shell uncached and break offline load.
+      // We also fetch index.html explicitly and store it under both keys so a
+      // cold first-visit (before the fetch handler ever runs) is still covered.
+      return Promise.all(SHELL_URLS.map(function (u) {
+        return fetch(u, { cache: 'no-cache' }).then(function (res) {
+          if (res && res.ok) return c.put(u, res.clone());
+        }).catch(function () {});
+      }));
+    }).then(function () { return self.skipWaiting(); })
   );
 });
 
@@ -61,11 +69,20 @@ self.addEventListener('fetch', function (e) {
     e.respondWith(
       fetch(req).then(function (res) {
         if (res && res.ok) {
-          try { var copy = res.clone(); caches.open(SHELL).then(function (c) { c.put('/index.html', copy); }); } catch (_) {}
+          // Keep both shell keys warm so either the PWA start_url ('/') or a
+          // deep link ('/index.html') can be served on the next offline launch.
+          try {
+            caches.open(SHELL).then(function (c) {
+              c.put('/index.html', res.clone());
+              c.put('/', res.clone());
+            });
+          } catch (_) {}
         }
         return res;
       }).catch(function () {
-        return caches.match('/index.html').then(function (m) { return m || caches.match('/'); });
+        return caches.match('/index.html')
+          .then(function (m) { return m || caches.match('/'); })
+          .then(function (m) { return m || caches.match(req); });
       })
     );
     return;
