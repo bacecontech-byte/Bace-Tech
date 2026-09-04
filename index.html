@@ -5340,19 +5340,20 @@ async function syncPendingAnalyses(){
         var docCtx="";try{docCtx=getProjectDocContext(projName);}catch(_){}
         var prompt=PROMPT_PHOTO.replace("{PROJECT}",projName+locStr+(docCtx?"\n\nAvailable project documents:"+docCtx:"")).replace("{LANG}",langFull).replace("{CATEGORIES}",_aiCategoryList());
         var resp=await callAI([{img:img},{text:prompt}],{quiet:true});
-        if(resp===null&&(navigator.onLine===false)){delete _aiSyncing[oid];break;} // dropped again
-        if(resp){
-          var p=parseAI(resp);
-          // Only fill fields the field worker left blank — never overwrite their draft notes.
-          if(p.title&&(!e.title||e._autoTitle)){e.title=cleanTitle(p.title);e._autoTitle=false;}
-          if(p.desc&&!e.desc)e.desc=p.desc;
-          if((p.solution||p.action)&&!e.action)e.action=p.solution||p.action;
-          if(p.cause&&!e.cause)e.cause=p.cause;
-          if(p.cat)e.cat=canonCat(p.cat);
-          if(p.sev)e.sev=p.sev;
-          e.normes=suggestedNormsCodes(e.cat,siteJurisdiction(e.project))||e.normes||"";
-          e.ai=JSON.stringify({solution:e.action||"",cause:e.cause||"",normes:e.normes||""});
-        }
+        // Analysis failed (offline again, rate limit, or server error) — keep the
+        // entry pending so a later trigger retries it, rather than marking it done
+        // with no analysis. Stop the sweep here; the poll/next signal resumes it.
+        if(resp===null){delete _aiSyncing[oid];break;}
+        var p={};try{p=parseAI(resp)||{};}catch(_){p={};}
+        // Only fill fields the field worker left blank — never overwrite their draft notes.
+        if(p.title&&(!e.title||e._autoTitle)){e.title=cleanTitle(p.title);e._autoTitle=false;}
+        if(p.desc&&!e.desc)e.desc=p.desc;
+        if((p.solution||p.action)&&!e.action)e.action=p.solution||p.action;
+        if(p.cause&&!e.cause)e.cause=p.cause;
+        if(p.cat)e.cat=canonCat(p.cat);
+        if(p.sev)e.sev=p.sev;
+        e.normes=suggestedNormsCodes(e.cat,siteJurisdiction(e.project))||e.normes||"";
+        e.ai=JSON.stringify({solution:e.action||"",cause:e.cause||"",normes:e.normes||""});
       }
       e.ai_status="done";
       try{await _idbDel(e.id);}catch(_){}
@@ -5366,6 +5367,26 @@ async function syncPendingAnalyses(){
   }
   if(done){try{toast("🧠 "+plL(done+" capture(s) analysée(s)",done+" capture(s) analysed",done+" captura(s) analisada(s)"));}catch(_){}}
 }
+
+// Are there offline items still waiting to be analysed / uploaded?
+function _hasPendingSync(){
+  return (entries||[]).some(function(e){return e.ai_status==="pending_sync"||/^\d+$/.test(String(e.id));});
+}
+// Single entry point to drain both offline queues. Fired from several signals
+// because the browser 'online' event is unreliable on mobile (often missed when
+// the app was backgrounded during the network toggle, notably on iOS Safari).
+var _syncKickBusy=false;
+async function _kickOfflineSync(){
+  if(_syncKickBusy)return;
+  if(typeof navigator!=="undefined"&&navigator.onLine===false)return;
+  if(!_hasPendingSync())return;
+  _syncKickBusy=true;
+  try{await syncPendingAnalyses();}catch(_){}
+  try{await syncPendingCaptures();}catch(_){}
+  _syncKickBusy=false;
+}
+// Lightweight safety net: re-check every 20s (cheap — early-returns when idle).
+setInterval(function(){try{_kickOfflineSync();}catch(_){}},20000);
 
 async function fileStorage(e){
   try{
@@ -8998,12 +9019,14 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
     navigator.serviceWorker.register('/sw.js').catch(function(err){try{plog('sw register failed',err);}catch(_){}});
   });
 }
-// When connectivity returns: analyse offline photos first, then push local captures.
-window.addEventListener('online',function(){
-  _showOfflineBanner(false);
-  try{syncPendingAnalyses();}catch(e){}
-  try{syncPendingCaptures();}catch(e){}
-});
+// Drain offline queues on every signal that we might be back online. The 'online'
+// event alone is unreliable on mobile (frequently missed when the app was
+// backgrounded during the network toggle, especially iOS Safari), so we also
+// react to the app regaining focus / visibility, plus the 20s poll above.
+window.addEventListener('online',function(){_showOfflineBanner(false);try{_kickOfflineSync();}catch(e){}});
+window.addEventListener('focus',function(){try{_kickOfflineSync();}catch(e){}});
+window.addEventListener('pageshow',function(){try{_kickOfflineSync();}catch(e){}});
+document.addEventListener('visibilitychange',function(){if(!document.hidden){try{_kickOfflineSync();}catch(e){}}});
 window.addEventListener('offline',function(){/* capture path checks navigator.onLine directly */});
 
 // ── Session timeout: auto-logout after 30 min inactivity ─────────────────
