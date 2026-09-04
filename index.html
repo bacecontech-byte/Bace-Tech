@@ -243,6 +243,7 @@ body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-heig
   #feat-preview-wrap{padding:14px !important;min-height:140px !important;}
   .sidebar{display:none !important;}
   .app-main{margin-left:0 !important;}
+  .sb-collapse{display:none !important;}
 
   .app-main{padding-bottom:60px;}
   .app-topbar .bell-btn{display:flex !important;}
@@ -414,6 +415,8 @@ body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-heig
 .sb-foot-icons i{font-size:17px;}
 .sb-pro{font-size:9px;font-weight:700;letter-spacing:0.5px;color:#2cbeff;background:rgba(44,190,255,0.12);border-radius:6px;padding:3px 6px;flex-shrink:0;}
 /* Collapsed rail (desktop) */
+/* Collapse is a DESKTOP-only rail — never let it affect the mobile drawer. */
+@media(min-width:769px){
 .app-wrap.sb-collapsed .sidebar{width:72px;}
 .app-wrap.sb-collapsed .app-main{margin-left:72px;}
 .app-wrap.sb-collapsed .sb-word,
@@ -443,6 +446,7 @@ body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-heig
 .app-wrap.sb-collapsed .sidebar-bottom>div{flex-direction:column;gap:8px;align-items:center;}
 .app-wrap.sb-collapsed .sb-foot-status{display:none;}
 .app-wrap.sb-collapsed .sb-foot-icons{margin-left:0;flex-direction:column;}
+}
 
 .notif-bell{position:relative;cursor:pointer;color:var(--text2);font-size:18px;transition:color 0.12s;}
 .notif-bell:hover{color:var(--white);}
