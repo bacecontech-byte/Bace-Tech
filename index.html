@@ -5264,7 +5264,9 @@ async function saveDB(e){
 // never reached the cloud, then swaps in the real id. Fires on reconnect and after loadDB.
 async function syncPendingCaptures(){
   if(!dbOk||!dbCoId)return;
-  if(typeof navigator!=="undefined"&&navigator.onLine===false)return;
+  // Note: we deliberately do NOT gate on navigator.onLine — it lies on mobile
+  // (often stuck "offline" after reconnect). A failed insert just keeps the record
+  // pending, so letting the real request decide is safe and far more reliable.
   // pending_sync records are owned by syncPendingAnalyses (AI runs first, then it
   // pushes to the cloud itself) — skip them here so the two queues never double-insert.
   var pending=(entries||[]).filter(function(e){return /^\d+$/.test(String(e.id))&&!_capSyncing[String(e.id)]&&e.ai_status!=="pending_sync"&&!_aiSyncing[String(e.id)];});
@@ -5322,7 +5324,8 @@ function _idbDel(id){return _idbOpen().then(function(d){return new Promise(funct
 // Enrich queued offline captures with AI once the connection returns.
 var _aiSyncing={};
 async function syncPendingAnalyses(){
-  if(typeof navigator!=="undefined"&&navigator.onLine===false)return;
+  // No navigator.onLine gate on purpose — it's unreliable on mobile. If we're
+  // really offline the AI fetch returns null and the record stays pending (retried).
   var pend=(entries||[]).filter(function(e){return e.ai_status==="pending_sync"&&!_aiSyncing[String(e.id)];});
   if(!pend.length)return;
   var done=0;
@@ -5339,7 +5342,8 @@ async function syncPendingAnalyses(){
         var langFull=["French","English","Portuguese"][lang]||"English";
         var docCtx="";try{docCtx=getProjectDocContext(projName);}catch(_){}
         var prompt=PROMPT_PHOTO.replace("{PROJECT}",projName+locStr+(docCtx?"\n\nAvailable project documents:"+docCtx:"")).replace("{LANG}",langFull).replace("{CATEGORIES}",_aiCategoryList());
-        var resp=await callAI([{img:img},{text:prompt}],{quiet:true});
+        var aiImg=await _aiReadyImage(img); // shrink for the 4.5MB API limit (mobile photos)
+        var resp=await callAI([{img:aiImg},{text:prompt}],{quiet:true});
         // Analysis failed (offline again, rate limit, or server error) — keep the
         // entry pending so a later trigger retries it, rather than marking it done
         // with no analysis. Stop the sweep here; the poll/next signal resumes it.
@@ -5378,7 +5382,8 @@ function _hasPendingSync(){
 var _syncKickBusy=false;
 async function _kickOfflineSync(){
   if(_syncKickBusy)return;
-  if(typeof navigator!=="undefined"&&navigator.onLine===false)return;
+  // No navigator.onLine gate — it's unreliable on mobile. _hasPendingSync keeps this
+  // cheap when idle; the actual network call decides success and keeps items pending on failure.
   if(!_hasPendingSync())return;
   _syncKickBusy=true;
   try{await syncPendingAnalyses();}catch(_){}
@@ -6339,7 +6344,8 @@ async function handlePhoto(input){
       return;
     }
     window._offlineCapture=false;
-    var resp=await callAI([{img:e.target.result},{text:prompt}]);
+    var aiImg=await _aiReadyImage(e.target.result); // shrink for the 4.5MB API limit (mobile photos)
+    var resp=await callAI([{img:aiImg},{text:prompt}]);
     if(resp){
       var p=parseAI(resp);
       document.getElementById("ai-photo").style.display="block";
@@ -6353,6 +6359,13 @@ async function handlePhoto(input){
       if(p.sev)document.getElementById("c-sev").value=p.sev;
       window._lastAI=p;
       toast(STRINGS[lang].toastAIPhoto||"Analyse IA complète");
+    }else{
+      // AI unreachable even though we appeared online (flaky mobile network).
+      // Queue like an offline capture so the photo isn't lost — it's analysed on
+      // the next successful connection instead of failing at a dead end.
+      window._lastAI=null;window._offlineCapture=true;
+      var apf=document.getElementById("ai-photo");if(apf)apf.style.display="none";
+      _showOfflineBanner(true);
     }
   };
   reader.readAsDataURL(input.files[0]);
@@ -6540,6 +6553,14 @@ function compressPhoto(dataUrl,maxWidth,quality){
     img.onerror=function(){reject(new Error("Image load failed"));};
     img.src=dataUrl;
   });
+}
+// Downscale a photo before sending it to the AI endpoint. Phone-camera photos are
+// several MB; base64-encoded they exceed Vercel's 4.5MB request-body limit and the
+// call 413s ("Erro de conexão") — mobile-only, since desktop test images are small.
+// 1280px @ 0.8 is ample for Gemini vision. Falls back to the original on failure.
+async function _aiReadyImage(dataUrl){
+  if(!dataUrl)return dataUrl;
+  try{return await compressPhoto(dataUrl,1280,0.8);}catch(_){return dataUrl;}
 }
 
 async function saveEntry(){
