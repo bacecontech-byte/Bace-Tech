@@ -735,6 +735,7 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
   #rdo-doc{box-shadow:none !important;max-width:100% !important;border-radius:0 !important;}
   .rdo-toolbar{display:none !important;}
   .no-print{display:none !important;}
+  .rdo-print-only{display:inline !important;}
   #rdo-doc .rdo-in{border:none !important;padding-left:0 !important;}
 }
 #ai-p-solution,#ai-v-solution,#imd-action{white-space:pre-line;}
@@ -5969,18 +5970,41 @@ function suggestedNormsCodes(cat,jur){
 function normsLabel(){return lang===0?"Normes suggérées — à vérifier":lang===2?"Normas sugeridas — verifique":"Suggested standards — verify";}
 /* ── Auto-RDO: Diário de Obra compiled from the day's captures ───────────────── */
 function _rdoTodayStr(){return new Date().toLocaleDateString("fr-FR");}
-function openRDO(){
+function _rdoPad2(n){n=String(n);return n.length<2?"0"+n:n;}
+function _rdoIsoDay(d){return d.getFullYear()+"-"+_rdoPad2(d.getMonth()+1)+"-"+_rdoPad2(d.getDate());}
+// Normalise an entry's date to a comparable "yyyy-mm-dd" key.
+// entry.date is stored as fr-FR "dd/mm/yyyy"; fall back to ISO created_at/createdAt.
+function _dayKey(e){
+  if(e){
+    if(e.date&&/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(e.date)){
+      var p=e.date.split("/");return p[2]+"-"+_rdoPad2(p[1])+"-"+_rdoPad2(p[0]);
+    }
+    var raw=e.created_at||e.createdAt||e.ts||e.time;
+    if(raw){var d=new Date(raw);if(!isNaN(d.getTime()))return _rdoIsoDay(d);}
+  }
+  return "";
+}
+// Human-readable date for the report header, from a "yyyy-mm-dd" key.
+function _rdoDayLabel(iso){
+  if(!iso)return _rdoTodayStr();
+  var p=iso.split("-");if(p.length!==3)return iso;
+  return p[2]+"/"+p[1]+"/"+p[0];
+}
+// Build the occurrences section HTML for a single day (or all, if dayIso is empty).
+function _rdoBuildOcc(dayIso){
   var L=function(fr,en,pt){return lang===0?fr:lang===2?pt:en;};
   var site=getActiveSite();
-  var proj=(projects||[]).filter(function(p){return p.name===site;})[0]||{};
-  var today=_rdoTodayStr();
-  var list=(entries||[]).filter(function(e){return !site||e.project===site;}); // all in-scope incidents, not only today
   var sevColor={critical:"#c8372f",high:"#c96a12",medium:"#178fbe",low:"#2f8f63"};
   var sevLabel=function(s){return L(
     ({critical:"Critique",high:"Élevé",medium:"Moyen",low:"Faible"})[s]||s||"—",
     ({critical:"Critical",high:"High",medium:"Medium",low:"Low"})[s]||s||"—",
     ({critical:"Crítica",high:"Alta",medium:"Média",low:"Baixa"})[s]||s||"—");};
   var statusLabel=function(st){return st==="resolved"?L("Résolu","Resolved","Resolvido"):L("Ouvert","Open","Aberto");};
+  var list=(entries||[]).filter(function(e){
+    if(site&&e.project!==site)return false;
+    if(dayIso&&_dayKey(e)!==dayIso)return false;
+    return true;
+  });
   var occ=list.length?list.map(function(e){
     var sc=sevColor[e.sev]||"#178fbe";
     var img=e.photo_url?"<img src=\""+escapeHTML(e.photo_url)+"\" alt=\"\">":"";
@@ -5991,8 +6015,27 @@ function openRDO(){
       "<div class='oc-d'>"+escapeHTML(e.desc||"")+"</div>"+
       (sol?"<div style='white-space:pre-line;margin-top:5px;font-size:12px;color:#2d3d45'><b style='color:#0c4651'>"+L("Solution recommandée","Recommended solution","Solução recomendada")+" :</b>\n"+escapeHTML(sol)+"</div>":"")+
       "</div></div>";
-  }).join(""):"<div class='rdo-empty'>"+L("Aucune occurrence.","No occurrences.","Nenhuma ocorrência.")+"</div>";
-  var rdoNo=new Date().toISOString().slice(0,10).replace(/-/g,"");
+  }).join(""):"<div class='rdo-empty'>"+L("Aucune occurrence ce jour.","No occurrences on this day.","Nenhuma ocorrência neste dia.")+"</div>";
+  return {count:list.length,html:occ};
+}
+// Re-fill only the occurrences section when the report date changes (keeps typed fields).
+function renderRDODay(){
+  var L=function(fr,en,pt){return lang===0?fr:lang===2?pt:en;};
+  var di=document.getElementById("rdo-date");
+  var dayIso=di?di.value:_rdoIsoDay(new Date());
+  var built=_rdoBuildOcc(dayIso);
+  var sec=document.getElementById("rdo-occ-sec");
+  if(sec)sec.innerHTML="<h3>"+L("Occurrences","Occurrences","Ocorrências")+" ("+built.count+")</h3>"+built.html;
+  var dl=document.getElementById("rdo-date-lbl");if(dl)dl.textContent=_rdoDayLabel(dayIso);
+}
+function openRDO(){
+  var L=function(fr,en,pt){return lang===0?fr:lang===2?pt:en;};
+  var site=getActiveSite();
+  var proj=(projects||[]).filter(function(p){return p.name===site;})[0]||{};
+  var today=_rdoTodayStr();
+  var todayIso=_rdoIsoDay(new Date());
+  var built=_rdoBuildOcc(todayIso); // default to today only — each day's report is independent
+  var rdoNo=todayIso.replace(/-/g,"");
   var wk=L("Praticable","Workable","Praticável");
   var jur=siteJurisdiction(site);
   var regLabel=jur==="BR"?"CREA / RNP nº":jur==="FR"?"N° d'ordre":L("Nº d'enregistrement","Registration / PE License","Nº de registro");
@@ -6009,7 +6052,7 @@ function openRDO(){
     "<div><b>"+L("Client","Client","Cliente")+":</b> <input class='rdo-in' style='display:inline-block;width:auto;min-width:150px' placeholder='"+L("Nom du client","Client name","Nome do cliente")+"'></div>"+
     "<div><b>"+L("Responsable","Site manager","Responsável")+":</b> "+escapeHTML(proj.owner||proj.lead||me.name||"—")+"</div>"+
     "<div><b>"+regLabel+":</b> <input class='rdo-in' style='display:inline-block;width:auto;min-width:120px' placeholder='"+regLabel+"'></div>"+
-    "<div><b>"+L("Date du rapport","Report date","Data do relatório")+":</b> "+today+"</div>"+
+    "<div><b>"+L("Date du rapport","Report date","Data do relatório")+":</b> <input type='date' id='rdo-date' class='rdo-in no-print' style='display:inline-block;width:auto;min-width:140px' value='"+todayIso+"' onchange='renderRDODay()'><span class='rdo-print-only' id='rdo-date-lbl' style='display:none'>"+_rdoDayLabel(todayIso)+"</span></div>"+
     "<div><b>"+L("Début du chantier","Site start","Início da obra")+":</b> "+escapeHTML(startD)+"</div>"+
     "<div><b>"+L("Fin prévue","Planned end","Término previsto")+":</b> "+escapeHTML(endD)+"</div></div>";
   h+="<div class='rdo-sec'><h3>"+L("Conditions","Conditions","Condições")+"</h3><div class='rdo-grid'>"+
@@ -6017,7 +6060,7 @@ function openRDO(){
     "<div><b>"+L("Météo après-midi","Weather PM","Clima tarde")+":</b> <input class='rdo-in' value='"+wk+"'></div>"+
     "<div><b>"+L("Température","Temperature","Temperatura")+":</b> <input class='rdo-in' placeholder='°C'></div>"+
     "<div><b>"+L("Effectif","Workforce","Efetivo")+":</b> <input class='rdo-in' placeholder='"+L("ex : 12 ouvriers","e.g. 12 workers","ex: 12 trabalhadores")+"'></div></div></div>";
-  h+="<div class='rdo-sec'><h3>"+L("Occurrences","Occurrences","Ocorrências")+" ("+list.length+")</h3>"+occ+"</div>";
+  h+="<div class='rdo-sec' id='rdo-occ-sec'><h3>"+L("Occurrences","Occurrences","Ocorrências")+" ("+built.count+")</h3>"+built.html+"</div>";
   h+="<div class='rdo-sec'><h3>"+L("Observations","Observations","Observações")+"</h3><textarea class='rdo-in' placeholder='"+L("Notes additionnelles…","Additional notes…","Observações adicionais…")+"'></textarea></div>";
   h+="<div class='rdo-sign'><div>"+escapeHTML(proj.owner||me.name||"")+"<br>"+L("Responsable","Site manager","Responsável")+"</div><div>&nbsp;<br>"+L("Visa client","Client sign-off","Visto do cliente")+"</div></div>";
   document.getElementById("rdo-doc").innerHTML=h;
