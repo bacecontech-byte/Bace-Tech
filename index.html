@@ -5242,13 +5242,52 @@ async function loadDB(){
   entries=(r&&r.error&&!dbEntries.length)?local.slice():localOnly.concat(dbEntries);
   saveEntriesLocal();
   renderDash();renderKB();renderCounts();
+  try{syncPendingCaptures();}catch(e){} // flush any offline captures now that we're loaded
 }
 
+function _capturePayload(e){return {company_id:dbCoId,user_name:me.name,title:e.title,category:e.cat,severity:e.sev,description:e.desc,action:e.action,project:e.project,status:e.status,photo_url:e.photo_url||null,ai_analysis:e.ai||""};}
+// Ids currently being inserted — prevents saveDB and the offline sync sweep from double-inserting the same record.
+var _capSyncing={};
 async function saveDB(e){
   if(!dbOk||!dbCoId)return;
-  var r=await db.from("captures").insert({company_id:dbCoId,user_name:me.name,title:e.title,category:e.cat,severity:e.sev,description:e.desc,action:e.action,project:e.project,status:e.status,photo_url:e.photo_url||null,ai_analysis:e.ai||""}).select();
-  if(r.error){console.error("saveDB ERROR:",r.error);toast("⚠️ "+plL("Enregistré localement (cloud indisponible)","Saved locally (cloud unavailable)","Salvo localmente (nuvem indisponível)"));}
-  else{plog("saveDB OK, id:",r.data&&r.data[0]&&r.data[0].id);if(r.data&&r.data[0]){var idx=entries.findIndex(function(x){return String(x.id)===String(e.id);});if(idx>=0)entries[idx].id=r.data[0].id;saveEntriesLocal();}fileStorage(e);incrementPillierUsage("captures");}
+  var oid=String(e.id);_capSyncing[oid]=1;
+  try{
+    var r=await db.from("captures").insert(_capturePayload(e)).select();
+    if(r.error){console.error("saveDB ERROR:",r.error);toast("⚠️ "+plL("Enregistré localement (cloud indisponible)","Saved locally (cloud unavailable)","Salvo localmente (nuvem indisponível)"));}
+    else{plog("saveDB OK, id:",r.data&&r.data[0]&&r.data[0].id);if(r.data&&r.data[0]){var idx=entries.findIndex(function(x){return String(x.id)===oid;});if(idx>=0)entries[idx].id=r.data[0].id;saveEntriesLocal();}fileStorage(e);incrementPillierUsage("captures");}
+  }finally{delete _capSyncing[oid];}
+}
+// Offline sync queue: captures made without a connection keep their numeric temp id
+// (a UUID from Supabase replaces it on a successful insert). This re-inserts any that
+// never reached the cloud, then swaps in the real id. Fires on reconnect and after loadDB.
+async function syncPendingCaptures(){
+  if(!dbOk||!dbCoId)return;
+  if(typeof navigator!=="undefined"&&navigator.onLine===false)return;
+  var pending=(entries||[]).filter(function(e){return /^\d+$/.test(String(e.id))&&!_capSyncing[String(e.id)];});
+  if(!pending.length)return;
+  var synced=0;
+  for(var i=0;i<pending.length;i++){
+    var e=pending[i],oid=String(e.id);
+    if(_capSyncing[oid])continue;
+    _capSyncing[oid]=1;
+    try{
+      var r=await db.from("captures").insert(_capturePayload(e)).select();
+      if(r&&r.error){delete _capSyncing[oid];break;} // still failing → stop, keep the rest pending
+      if(r&&r.data&&r.data[0]){
+        var idx=entries.findIndex(function(x){return String(x.id)===oid;});
+        if(idx>=0)entries[idx].id=r.data[0].id;
+        try{fileStorage(e);}catch(_){}
+        try{incrementPillierUsage("captures");}catch(_){}
+        synced++;
+      }
+    }catch(err){delete _capSyncing[oid];break;} // network dropped again → stop
+    delete _capSyncing[oid];
+  }
+  if(synced){
+    saveEntriesLocal();
+    try{renderDash();renderKB();renderCounts();}catch(_){}
+    try{toast("☁️ "+plL(synced+" capture(s) synchronisée(s)",synced+" capture(s) synced",synced+" captura(s) sincronizada(s)"));}catch(_){}
+  }
 }
 
 async function fileStorage(e){
@@ -8829,6 +8868,18 @@ window.addEventListener('appinstalled',function(){
   var r=document.getElementById('pwa-install-row');if(r)r.style.display='none';
   var s=document.getElementById('pwa-install-sidebar');if(s)s.style.display='none';
 });
+
+// ── Offline-first: register the app-shell Service Worker ─────────────────
+// The SW is network-first for HTML, so online users always get the latest app;
+// offline, it serves the cached shell so the field team can still open Pillier.
+// Registration failure is swallowed so it can never break the page.
+if('serviceWorker' in navigator&&location.protocol==='https:'){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(err){try{plog('sw register failed',err);}catch(_){}});
+  });
+}
+// When connectivity returns, push any captures that were saved offline.
+window.addEventListener('online',function(){try{syncPendingCaptures();}catch(e){}});
 
 // ── Session timeout: auto-logout after 30 min inactivity ─────────────────
 var SESSION_TIMEOUT=30*60*1000; // 30 minutes
