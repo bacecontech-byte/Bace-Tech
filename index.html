@@ -426,12 +426,23 @@ body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-heig
 .app-wrap.sb-collapsed .sb-foot-status span,
 .app-wrap.sb-collapsed .sb-pro,
 .app-wrap.sb-collapsed .u-chevron{display:none;}
-.app-wrap.sb-collapsed .sb-brand{justify-content:center;padding:14px 0;}
-.app-wrap.sb-collapsed .sb-collapse{display:none;}
+.app-wrap.sb-collapsed .sb-brand{flex-direction:column;align-items:center;gap:10px;padding:14px 0;}
+.app-wrap.sb-collapsed .sb-home{flex:0 0 auto;justify-content:center;}
+.app-wrap.sb-collapsed .sb-collapse{display:flex;justify-content:center;margin:0 auto;}
+.app-wrap.sb-collapsed .sb-switch-wrap{padding:10px 12px 0;}
 .app-wrap.sb-collapsed .sb-switch,
 .app-wrap.sb-collapsed .sb-capture{justify-content:center;}
+.app-wrap.sb-collapsed .sb-switch{padding:9px 0;}
+.app-wrap.sb-collapsed .sb-switch>i{margin:0;}
 .app-wrap.sb-collapsed .sb-capture{margin:12px auto 4px;width:44px;padding:12px 0;}
-.app-wrap.sb-collapsed .sidebar-link{justify-content:center;padding:10px 0;}
+.app-wrap.sb-collapsed .sidebar-link{justify-content:center;padding:10px 0;margin:1px 8px;}
+.app-wrap.sb-collapsed .sidebar-link.active::before{left:-8px;}
+.app-wrap.sb-collapsed .sb-badge,
+.app-wrap.sb-collapsed .sb-dot{display:none;}
+.app-wrap.sb-collapsed .sidebar-bottom{padding:12px 8px;}
+.app-wrap.sb-collapsed .sidebar-bottom>div{flex-direction:column;gap:8px;align-items:center;}
+.app-wrap.sb-collapsed .sb-foot-status{display:none;}
+.app-wrap.sb-collapsed .sb-foot-icons{margin-left:0;flex-direction:column;}
 
 .notif-bell{position:relative;cursor:pointer;color:var(--text2);font-size:18px;transition:color 0.12s;}
 .notif-bell:hover{color:var(--white);}
@@ -1933,7 +1944,7 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
           </div>
           <span class="sb-pro" id="sb-plan-badge" style="display:none;">PRO</span>
           <div class="sb-foot-icons">
-            <button onclick="event.stopPropagation();showTab(8,null)" title="Paramètres"><i class="ti ti-settings"></i></button>
+            <button onclick="event.stopPropagation();openSettingsModal()" title="Paramètres"><i class="ti ti-settings"></i></button>
             <button onclick="event.stopPropagation();doLogout()" title="Déconnexion"><i class="ti ti-logout"></i></button>
           </div>
         </div>
