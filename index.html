@@ -382,28 +382,78 @@ body{font-family:var(--font-b);background:var(--navy);color:var(--text);min-heig
 .lang-btn{background:none;border:none;color:var(--text2);font-size:11px;font-weight:600;padding:4px 10px;border-radius:4px;cursor:pointer;transition:all 0.12s;}
 .lang-btn.active{background:var(--blue);color:white;}
 .app-wrap{display:flex;min-height:100vh;}
-.sidebar{width:180px;background:var(--navy2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;position:fixed;height:100vh;z-index:100;padding:0;}
+.sidebar{width:248px;background:var(--navy2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;position:fixed;height:100vh;z-index:100;padding:0;transition:width 0.16s ease;}
 .sidebar-logo{font-family:var(--font-d);font-size:16px;font-weight:800;letter-spacing:-0.5px;padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0;}
+/* ── Redesigned sidebar: brand, site switcher, capture CTA, footer ─────── */
+.sb-brand{display:flex;align-items:center;gap:10px;padding:14px 14px;border-bottom:1px solid var(--border);}
+.sb-home{display:flex;align-items:center;gap:10px;cursor:pointer;flex:1;min-width:0;}
+.sb-plogo{width:34px;height:34px;border-radius:9px;background:var(--navy3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sb-plogo svg{width:19px;height:19px;fill:#2cbeff;}
+.sb-word{font-family:var(--font-d);font-weight:800;font-size:20px;color:var(--white);letter-spacing:0.3px;}
+.sb-collapse{background:none;border:none;color:var(--text3);cursor:pointer;padding:4px;display:flex;align-items:center;flex-shrink:0;transition:color 0.12s;}
+.sb-collapse:hover{color:var(--text);}
+.sb-collapse i{font-size:18px;}
+.sb-switch-wrap{position:relative;padding:12px 12px 0;}
+.sb-switch{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:11px;background:var(--navy3);cursor:pointer;}
+.sb-switch:hover{border-color:var(--border2);}
+.sb-switch>i{font-size:18px;color:#2cbeff;flex-shrink:0;}
+.sb-switch-txt{display:flex;flex-direction:column;line-height:1.15;min-width:0;flex:1;}
+.sb-switch-txt small{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);font-weight:700;}
+.sb-switch-txt b{font-size:13.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-switch .sb-switch-cd{margin-left:auto;font-size:15px;color:var(--text3);flex-shrink:0;}
+.sb-switch-wrap .site-menu{left:12px;right:12px;top:calc(100% - 2px);}
+.sb-capture{display:flex;align-items:center;justify-content:center;gap:9px;background:#2cbeff;color:#062430;font-weight:700;font-size:14.5px;font-family:inherit;padding:12px;border:none;border-radius:12px;margin:12px 12px 4px;cursor:pointer;box-shadow:0 6px 18px rgba(44,190,255,0.20);transition:filter 0.12s;width:calc(100% - 24px);}
+.sb-capture:hover{filter:brightness(1.06);}
+.sb-capture i{font-size:19px;}
+.sb-nav{overflow-y:auto;flex:1;padding-bottom:6px;}
+.sb-foot-status{display:flex;align-items:center;gap:8px;font-size:11.5px;color:#fbbf24;background:rgba(251,191,36,0.09);border:1px solid rgba(251,191,36,0.25);border-radius:9px;padding:8px 10px;margin-bottom:10px;line-height:1.35;}
+.sb-foot-status i{font-size:14px;flex-shrink:0;}
+.sb-foot-icons{display:flex;gap:4px;margin-left:auto;flex-shrink:0;}
+.sb-foot-icons button{background:none;border:none;color:var(--text3);cursor:pointer;padding:6px;border-radius:8px;display:flex;align-items:center;transition:all 0.12s;}
+.sb-foot-icons button:hover{color:var(--text);background:var(--navy3);}
+.sb-foot-icons i{font-size:17px;}
+.sb-pro{font-size:9px;font-weight:700;letter-spacing:0.5px;color:#2cbeff;background:rgba(44,190,255,0.12);border-radius:6px;padding:3px 6px;flex-shrink:0;}
+/* Collapsed rail (desktop) */
+.app-wrap.sb-collapsed .sidebar{width:72px;}
+.app-wrap.sb-collapsed .app-main{margin-left:72px;}
+.app-wrap.sb-collapsed .sb-word,
+.app-wrap.sb-collapsed .sidebar-link span,
+.app-wrap.sb-collapsed .sidebar-section,
+.app-wrap.sb-collapsed .sb-switch-txt,
+.app-wrap.sb-collapsed .sb-switch-cd,
+.app-wrap.sb-collapsed .sb-capture span,
+.app-wrap.sb-collapsed .sb-foot-info,
+.app-wrap.sb-collapsed .sb-foot-status span,
+.app-wrap.sb-collapsed .sb-pro,
+.app-wrap.sb-collapsed .u-chevron{display:none;}
+.app-wrap.sb-collapsed .sb-brand{justify-content:center;padding:14px 0;}
+.app-wrap.sb-collapsed .sb-collapse{display:none;}
+.app-wrap.sb-collapsed .sb-switch,
+.app-wrap.sb-collapsed .sb-capture{justify-content:center;}
+.app-wrap.sb-collapsed .sb-capture{margin:12px auto 4px;width:44px;padding:12px 0;}
+.app-wrap.sb-collapsed .sidebar-link{justify-content:center;padding:10px 0;}
 
 .notif-bell{position:relative;cursor:pointer;color:var(--text2);font-size:18px;transition:color 0.12s;}
 .notif-bell:hover{color:var(--white);}
 .notif-badge{position:absolute;top:-4px;right:-4px;background:var(--red);color:white;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:none;align-items:center;justify-content:center;}
 .notif-badge.show{display:flex;}
-.sidebar-section{font-size:9px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:14px 18px 4px;}
-.sidebar-link{display:flex;align-items:center;gap:10px;padding:8px 18px;font-size:12px;color:var(--text3);cursor:pointer;transition:all 0.15s;border-radius:0;position:relative;}
+.sidebar-section{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.4px;padding:16px 20px 6px;}
+.sidebar-link{display:flex;align-items:center;gap:12px;margin:1px 8px;padding:10px 12px;font-size:14px;font-weight:500;color:var(--text3);cursor:pointer;transition:all 0.15s;border-radius:11px;position:relative;}
 .sidebar-link:hover{color:var(--text);background:rgba(44,190,255,0.06);}
-.sidebar-link.active{color:#2cbeff;background:rgba(44,190,255,0.08);}
-.sidebar-link.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:20px;background:#2cbeff;border-radius:0 3px 3px 0;}
+.sidebar-link.active{color:#2cbeff;background:rgba(44,190,255,0.10);font-weight:600;}
+.sidebar-link.active::before{content:'';position:absolute;left:-8px;top:9px;bottom:9px;width:3px;background:#2cbeff;border-radius:0 3px 3px 0;}
 .worker-ico{display:inline-flex;vertical-align:middle;margin-right:0;color:inherit;}
-.worker-ico svg{width:18px;height:18px;}
-.sidebar-link i{font-size:16px;width:18px;}
-.sidebar-link span{display:inline;}
-.sidebar-bottom{margin-top:auto;border-top:1px solid var(--border);padding:12px 18px;width:100%;}
+.worker-ico svg{width:21px;height:21px;}
+.sidebar-link i{font-size:20px;width:21px;flex-shrink:0;}
+.sidebar-link span{display:inline;flex:1;min-width:0;}
+.sidebar-link span.sb-badge{flex:0 0 auto;margin-left:auto;background:#2cbeff;color:#062430;font-size:11px;font-weight:700;min-width:19px;width:auto;height:19px;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0 6px;}
+.sidebar-link span.sb-dot{flex:0 0 auto;margin-left:auto;width:7px;height:7px;border-radius:50%;background:#2cbeff;padding:0;min-width:0;}
+.sidebar-bottom{margin-top:auto;border-top:1px solid var(--border);padding:12px 14px;width:100%;}
 .user-chip{display:flex;align-items:center;gap:8px;}
 .user-avatar{width:30px;height:30px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;font-family:var(--font-d);flex-shrink:0;}
 .user-name{font-size:12px;font-weight:500;color:var(--text);}
 .user-company{font-size:11px;color:var(--text3);}
-.app-main{flex:1;margin-left:180px;display:flex;flex-direction:column;min-height:100vh;}
+.app-main{flex:1;margin-left:248px;display:flex;flex-direction:column;min-height:100vh;transition:margin-left 0.16s ease;}
 .app-topbar{height:54px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 20px;background:var(--navy);position:sticky;top:0;z-index:50;}
 .topbar-title{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--white);}
 .topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;}
@@ -1845,28 +1895,47 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
 <div id="s-app" class="screen">
   <div class="app-wrap">
     <div class="sidebar">
-      <div class="sidebar-logo">
-        <span style="color:#2cbeff;letter-spacing:-0.4px;font-weight:800;">Pillier</span>
+      <div class="sb-brand">
+        <div class="sb-home" onclick="showTab(0,document.querySelectorAll('.sidebar-link')[0])" title="Dashboard">
+          <div class="sb-plogo"><svg viewBox="0 0 322.71 305.81"><path d="M67.65,200.75H0v105.05h67.66v-9.23s.12-52.48,0-95.83ZM67.66,305.81V56.54h136.2c10.68,0,19.73,1.78,27.15,5.34,7.41,3.55,13.05,8.6,16.91,15.13,3.86,6.54,5.78,14.39,5.78,23.59,0,13.65-4.38,24.33-13.14,32.05-8.75,7.73-20.98,11.57-36.71,11.57h-79.66l-56.55,56.51,154.91.03c20.18,0,37.74-4.3,52.73-12.9,14.99-8.62,26.63-20.55,34.94-35.83,8.3-15.28,12.48-32.56,12.48-51.86s-4.09-36.87-12.25-51.87c-8.16-14.97-19.59-26.77-34.27-35.38-14.68-8.6-31.97-12.91-51.86-12.91H62C27.77,0,0,27.77,0,62v82.22l67.61,56.53"/></svg></div>
+          <div class="sb-word">Pillier</div>
+        </div>
+        <button class="sb-collapse" onclick="toggleSidebarCollapse()" title="Recolher"><i class="ti ti-chevron-left" id="sb-collapse-ico"></i></button>
       </div>
+      <div class="sb-switch-wrap site-chip-wrap">
+        <div class="sb-switch" onclick="toggleSiteMenu(event)">
+          <i class="ti ti-building-community"></i>
+          <div class="sb-switch-txt"><small id="sb-switch-lbl">Chantier</small><b id="site-chip-label">—</b></div>
+          <i class="ti ti-chevron-down sb-switch-cd"></i>
+        </div>
+        <div class="site-menu" id="site-menu"></div>
+      </div>
+      <button class="sb-capture" onclick="showTab(1,document.querySelectorAll('.sidebar-link')[1])"><i class="ti ti-camera"></i><span id="sb-cap-lbl">Capturer un incident</span></button>
+      <div class="sb-nav">
       <div class="sidebar-section"><span id="sidebar-main">Principal</span></div>
       <div class="sidebar-link active" onclick="showTab(0,this)"><i class="ti ti-layout-dashboard"></i><span id="nav-dash">Dashboard</span></div>
-      <div class="sidebar-link" onclick="showTab(1,this)"><i class="ti ti-camera"></i><span id="nav-cap">Capturer</span></div>
+      <div class="sidebar-link" onclick="showTab(1,this)" style="display:none;"><i class="ti ti-camera"></i><span id="nav-cap">Capturer</span></div>
       <div class="sidebar-link" onclick="showTab(2,this)"><i class="ti ti-folder"></i><span id="nav-files">Mes dossiers</span></div>
       <div class="sidebar-link" onclick="showTab(3,this)"><i class="ti ti-database"></i><span id="nav-kb">Base de connaissances</span></div>
-      <div class="sidebar-link" onclick="showTab(4,this)"><span class="worker-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C9.5 2 7.5 3.5 7 5.5L6 9h12l-1-3.5C16.5 3.5 14.5 2 12 2z"/><path d="M4 9h16v1a2 2 0 01-2 2H6a2 2 0 01-2-2V9z"/><circle cx="12" cy="16" r="4"/><path d="M10 15.5l1 1.5 2.5-2.5" stroke-width="1.2"/></svg></span><span id="nav-search">Pillier IA</span></div>
+      <div class="sidebar-link" onclick="showTab(4,this)"><span class="worker-ico"><svg viewBox="0 0 322.71 305.81" width="21" height="21" fill="currentColor" stroke="none"><path d="M67.65,200.75H0v105.05h67.66v-9.23s.12-52.48,0-95.83ZM67.66,305.81V56.54h136.2c10.68,0,19.73,1.78,27.15,5.34,7.41,3.55,13.05,8.6,16.91,15.13,3.86,6.54,5.78,14.39,5.78,23.59,0,13.65-4.38,24.33-13.14,32.05-8.75,7.73-20.98,11.57-36.71,11.57h-79.66l-56.55,56.51,154.91.03c20.18,0,37.74-4.3,52.73-12.9,14.99-8.62,26.63-20.55,34.94-35.83,8.3-15.28,12.48-32.56,12.48-51.86s-4.09-36.87-12.25-51.87c-8.16-14.97-19.59-26.77-34.27-35.38-14.68-8.6-31.97-12.91-51.86-12.91H62C27.77,0,0,27.77,0,62v82.22l67.61,56.53"/></svg></span><span id="nav-search">Pillier IA</span><span class="sb-dot" id="sb-ia-dot" style="display:none;"></span></div>
       <div class="sidebar-section"><span id="sidebar-site">Chantier</span></div>
-      <div class="sidebar-link" onclick="showTab(5,this)"><i class="ti ti-users"></i><span id="nav-comm">Communauté</span></div>
+      <div class="sidebar-link" onclick="showTab(5,this)"><i class="ti ti-users"></i><span id="nav-comm">Communauté</span><span class="sb-badge" id="sb-comm-badge" style="display:none;">0</span></div>
       <div class="sidebar-link" onclick="showTab(6,this)"><i class="ti ti-building-skyscraper"></i><span id="nav-proj">Mes projets</span></div>
       <div class="sidebar-link" onclick="showTab(7,this)"><i class="ti ti-files"></i><span id="nav-docs">Documents</span></div>
-
-      
-      
+      </div>
     <div class="sidebar-bottom hide-on-mobile">
         <div id="pwa-install-sidebar" class="sidebar-link" onclick="installPWA()" style="display:none;"><i class="ti ti-download"></i><span>Install</span></div>
-        <div style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:4px 0;" onclick="openProfilePanel()">
-          <div class="user-avatar" id="u-av" style="width:32px;height:32px;border-radius:9px;font-size:11px;">DM</div>
-          <div style="flex:1;min-width:0;"><div class="user-name" id="u-name" style="font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">...</div><div class="user-company" id="u-co" style="font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">...</div></div>
-          <i class="ti ti-chevron-right" style="font-size:14px;color:var(--text3);flex-shrink:0;"></i>
+        <div class="sb-foot-status" id="sb-sync-status" style="display:none;"><i class="ti ti-cloud-off"></i><span id="sb-sync-txt"></span></div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="sb-home" style="flex:1;min-width:0;padding:2px 0;" onclick="openProfilePanel()">
+            <div class="user-avatar" id="u-av" style="width:34px;height:34px;border-radius:50%;font-size:12px;">DM</div>
+            <div class="sb-foot-info" style="flex:1;min-width:0;"><div class="user-name" id="u-name" style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">...</div><div class="user-company" id="u-co" style="font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">...</div></div>
+          </div>
+          <span class="sb-pro" id="sb-plan-badge" style="display:none;">PRO</span>
+          <div class="sb-foot-icons">
+            <button onclick="event.stopPropagation();showTab(8,null)" title="Paramètres"><i class="ti ti-settings"></i></button>
+            <button onclick="event.stopPropagation();doLogout()" title="Déconnexion"><i class="ti ti-logout"></i></button>
+          </div>
         </div>
       </div>
     </div>
@@ -1877,14 +1946,6 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
         <button id="hamburger-btn" onclick="toggleSidebar()" style="display:none;background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:4px 8px;margin-right:4px;-webkit-tap-highlight-color:rgba(44,190,255,0.3);"><i class="ti ti-menu-2"></i></button>
         <div class="topbar-title" id="top-title">Dashboard</div>
         <div class="topbar-right">
-          <div class="site-chip-wrap">
-            <div class="site-chip" id="site-chip" onclick="toggleSiteMenu(event)">
-              <i class="ti ti-map-pin"></i>
-              <span id="site-chip-label">—</span>
-              <i class="ti ti-chevron-down"></i>
-            </div>
-            <div class="site-menu" id="site-menu"></div>
-          </div>
           <div class="bell-btn notif-bell" onclick="toggleNotifPanel()" title="Notifications">
             <i class="ti ti-bell"></i>
             <div class="bell-dot" id="bell-dot" style="display:none;"></div>
@@ -3983,6 +4044,8 @@ function changeLang(i){
 function applyLang(){
   translateNav();
   syncLangSelects();
+  try{var _cb=document.getElementById("sb-cap-lbl");if(_cb)_cb.textContent=plL("Capturer un incident","Capture incident","Capturar incidente");}catch(e){}
+  try{renderSyncBadge();}catch(e){}
   // Sync Resources page translations to main app language
   try{translateResources(lang===0?'fr':lang===2?'pt':'en');}catch(e){}
   try{renderUsageWidgets();}catch(e){}
@@ -4032,7 +4095,7 @@ function applyLang(){
     "lb-first":"lbFirst","lb-last":"lbLast","lb-semail":"lbSemail",
     "lb-co":"lbCo","lb-spass":"lbSpass","btn-signup":"btnSignup",
     "have-acc":"haveAcc","lnk-login":"lnkLogin","lnk-reset":"lnkReset",
-    "nav-dash":"navDash","nav-cap":"navCap","nav-files":"navFiles",
+    "nav-dash":"navDash","nav-cap":"navCap","nav-files":"navFiles","sb-switch-lbl":"sidebarSite",
     "nav-kb":"navKb","nav-search":"navSearch","nav-comm":"navComm",
     "nav-proj":"navProj","nav-docs":"navDocs","nav-profile":"navProfile","nav-logout":"navLogout","settings-lang-label":"settingsLangLabel","settings-ai-label":"settingsAiLabel","settings-account-label":"settingsAccountLabel",
     "btn-cap":"btnCap","ut-photo":"utPhoto","ut-camera":"utCamera",
@@ -4685,6 +4748,9 @@ function enterApp(user){
   document.getElementById("u-av").textContent=me.av;
   document.getElementById("u-name").textContent=me.name;
   document.getElementById("u-co").textContent=me.co;
+  try{var _pb=document.getElementById("sb-plan-badge");if(_pb){var _pl=(typeof _pUsage!=="undefined"&&_pUsage&&_pUsage.plan)?String(_pUsage.plan):"";if(_pl&&_pl.toLowerCase()!=="free"){_pb.textContent=_pl.toUpperCase();_pb.style.display="";}else{_pb.style.display="none";}}}catch(e){}
+  try{renderSyncBadge();}catch(e){}
+  try{if(localStorage.getItem("pillier-sb-collapsed")==="1"){var _w=document.querySelector(".app-wrap");if(_w)_w.classList.add("sb-collapsed");var _ci=document.getElementById("sb-collapse-ico");if(_ci)_ci.className="ti ti-chevron-right";}}catch(e){}
   document.getElementById("s-login").classList.remove("active");
   document.getElementById("s-content").classList.remove("active");
   document.getElementById("s-app").classList.add("active");
@@ -5854,7 +5920,24 @@ function renderSiteChip(){
   var lbl=document.getElementById("site-chip-label");if(!lbl)return;
   var act=getActiveSite();
   if(act&&projects.some(function(p){return p.name===act;}))lbl.textContent=act;
-  else lbl.textContent=projects.length?allSitesLabel():allSitesLabel();
+  else lbl.textContent=allSitesLabel();
+}
+// Collapse / expand the desktop sidebar to an icon-only rail (persisted).
+function toggleSidebarCollapse(){
+  var w=document.querySelector(".app-wrap");if(!w)return;
+  var c=w.classList.toggle("sb-collapsed");
+  try{localStorage.setItem("pillier-sb-collapsed",c?"1":"0");}catch(e){}
+  var ico=document.getElementById("sb-collapse-ico");if(ico)ico.className=c?"ti ti-chevron-right":"ti ti-chevron-left";
+}
+// Sidebar footer strip: how many captures are still waiting to sync (offline queue).
+function renderSyncBadge(){
+  var el=document.getElementById("sb-sync-status");if(!el)return;
+  var n=(typeof entries!=="undefined"?entries:[]).filter(function(e){return e&&e.ai_status==="pending_sync";}).length;
+  if(n>0){
+    var txt=document.getElementById("sb-sync-txt");
+    if(txt)txt.textContent=n+" "+plL(n>1?"captures en attente de synchro":"capture en attente de synchro",n>1?"captures awaiting sync":"capture awaiting sync",n>1?"capturas em espera de sincronização":"captura em espera de sincronização");
+    el.style.display="flex";
+  }else{el.style.display="none";}
 }
 function renderSiteMenu(){
   var m=document.getElementById("site-menu");if(!m)return;
@@ -6735,6 +6818,7 @@ async function toggleStatus(id){
 
 function renderDash(){
   var S=STRINGS[lang];
+  try{renderSyncBadge();}catch(e){}
   var _rl=document.getElementById("dash-rdo-lbl");if(_rl)_rl.textContent=(lang===2?"RDO":lang===0?"Rapport":"Report");
   var _cl=document.getElementById("dash-chk-lbl");if(_cl)_cl.textContent=(lang===2?"Inspeção":lang===0?"Inspection":"Checklist");
   try{renderPortfolio();}catch(e){}
