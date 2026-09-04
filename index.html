@@ -1975,6 +1975,7 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
                   <button type="button" onclick="capPick('gal')" style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:var(--text);font-size:14px;font-family:inherit;padding:12px 14px;border-radius:10px;cursor:pointer;text-align:left;" onmouseover="this.style.background='rgba(44,190,255,0.1)'" onmouseout="this.style.background='none'"><i class="ti ti-photo" style="font-size:18px;color:#2cbeff;"></i><span id="cap-opt-gal">From gallery</span></button>
                 </div>
               </div>
+              <div id="cap-offline-banner" style="display:none;align-items:center;gap:8px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.35);border-radius:10px;padding:10px 14px;font-size:13px;color:#fbbf24;line-height:1.45;margin-bottom:14px;"></div>
               <div class="ai-solution-box" id="ai-photo">
                 <div class="ai-solution-header">
                   <div class="ai-solution-tag">Pillier IA</div>
@@ -5242,6 +5243,7 @@ async function loadDB(){
   entries=(r&&r.error&&!dbEntries.length)?local.slice():localOnly.concat(dbEntries);
   saveEntriesLocal();
   renderDash();renderKB();renderCounts();
+  try{syncPendingAnalyses();}catch(e){} // analyse any photos captured offline
   try{syncPendingCaptures();}catch(e){} // flush any offline captures now that we're loaded
 }
 
@@ -5263,7 +5265,9 @@ async function saveDB(e){
 async function syncPendingCaptures(){
   if(!dbOk||!dbCoId)return;
   if(typeof navigator!=="undefined"&&navigator.onLine===false)return;
-  var pending=(entries||[]).filter(function(e){return /^\d+$/.test(String(e.id))&&!_capSyncing[String(e.id)];});
+  // pending_sync records are owned by syncPendingAnalyses (AI runs first, then it
+  // pushes to the cloud itself) — skip them here so the two queues never double-insert.
+  var pending=(entries||[]).filter(function(e){return /^\d+$/.test(String(e.id))&&!_capSyncing[String(e.id)]&&e.ai_status!=="pending_sync"&&!_aiSyncing[String(e.id)];});
   if(!pending.length)return;
   var synced=0;
   for(var i=0;i<pending.length;i++){
@@ -5288,6 +5292,79 @@ async function syncPendingCaptures(){
     try{renderDash();renderKB();renderCounts();}catch(_){}
     try{toast("☁️ "+plL(synced+" capture(s) synchronisée(s)",synced+" capture(s) synced",synced+" captura(s) sincronizada(s)"));}catch(_){}
   }
+}
+
+/* ── Offline capture queue: IndexedDB photo store + deferred AI analysis ──────
+ * When the device is offline the AI endpoint is unreachable, so we skip it, keep
+ * the full-resolution photo in IndexedDB (too large for localStorage) and mark
+ * the entry ai_status:"pending_sync". On reconnect syncPendingAnalyses() runs the
+ * AI pipeline on each queued photo, enriches the entry in place, then lets it
+ * sync to the cloud. localStorage still holds the entry + a thumbnail, so nothing
+ * is lost even if IndexedDB is unavailable. */
+var _IDB_NAME="pillier-offline",_IDB_STORE="captures",_idbP=null;
+function _idbOpen(){
+  if(_idbP)return _idbP;
+  _idbP=new Promise(function(res,rej){
+    try{
+      if(typeof indexedDB==="undefined"){rej(new Error("no-idb"));return;}
+      var r=indexedDB.open(_IDB_NAME,1);
+      r.onupgradeneeded=function(){var d=r.result;if(!d.objectStoreNames.contains(_IDB_STORE))d.createObjectStore(_IDB_STORE,{keyPath:"id"});};
+      r.onsuccess=function(){res(r.result);};
+      r.onerror=function(){rej(r.error||new Error("idb-open"));};
+    }catch(e){rej(e);}
+  });
+  return _idbP;
+}
+function _idbPut(rec){return _idbOpen().then(function(d){return new Promise(function(res,rej){var t=d.transaction(_IDB_STORE,"readwrite");t.objectStore(_IDB_STORE).put(rec);t.oncomplete=function(){res(1);};t.onerror=function(){rej(t.error);};});});}
+function _idbGet(id){return _idbOpen().then(function(d){return new Promise(function(res,rej){var t=d.transaction(_IDB_STORE,"readonly");var q=t.objectStore(_IDB_STORE).get(id);q.onsuccess=function(){res(q.result||null);};q.onerror=function(){rej(q.error);};});});}
+function _idbDel(id){return _idbOpen().then(function(d){return new Promise(function(res){var t=d.transaction(_IDB_STORE,"readwrite");t.objectStore(_IDB_STORE).delete(id);t.oncomplete=function(){res(1);};t.onerror=function(){res(0);};});}).catch(function(){return 0;});}
+
+// Enrich queued offline captures with AI once the connection returns.
+var _aiSyncing={};
+async function syncPendingAnalyses(){
+  if(typeof navigator!=="undefined"&&navigator.onLine===false)return;
+  var pend=(entries||[]).filter(function(e){return e.ai_status==="pending_sync"&&!_aiSyncing[String(e.id)];});
+  if(!pend.length)return;
+  var done=0;
+  for(var i=0;i<pend.length;i++){
+    var e=pend[i],oid=String(e.id);
+    _aiSyncing[oid]=1;
+    try{
+      var rec=null;try{rec=await _idbGet(e.id);}catch(_){rec=null;}
+      var img=(rec&&rec.photoFull)||e.photo_url||null;
+      if(img){
+        var projName=e.project||"the site";
+        var projObj=(projects||[]).filter(function(p){return p.name===projName;})[0];
+        var locStr=projObj&&projObj.location?" ("+projObj.location+")":"";
+        var langFull=["French","English","Portuguese"][lang]||"English";
+        var docCtx="";try{docCtx=getProjectDocContext(projName);}catch(_){}
+        var prompt=PROMPT_PHOTO.replace("{PROJECT}",projName+locStr+(docCtx?"\n\nAvailable project documents:"+docCtx:"")).replace("{LANG}",langFull).replace("{CATEGORIES}",_aiCategoryList());
+        var resp=await callAI([{img:img},{text:prompt}],{quiet:true});
+        if(resp===null&&(navigator.onLine===false)){delete _aiSyncing[oid];break;} // dropped again
+        if(resp){
+          var p=parseAI(resp);
+          // Only fill fields the field worker left blank — never overwrite their draft notes.
+          if(p.title&&(!e.title||e._autoTitle)){e.title=cleanTitle(p.title);e._autoTitle=false;}
+          if(p.desc&&!e.desc)e.desc=p.desc;
+          if((p.solution||p.action)&&!e.action)e.action=p.solution||p.action;
+          if(p.cause&&!e.cause)e.cause=p.cause;
+          if(p.cat)e.cat=canonCat(p.cat);
+          if(p.sev)e.sev=p.sev;
+          e.normes=suggestedNormsCodes(e.cat,siteJurisdiction(e.project))||e.normes||"";
+          e.ai=JSON.stringify({solution:e.action||"",cause:e.cause||"",normes:e.normes||""});
+        }
+      }
+      e.ai_status="done";
+      try{await _idbDel(e.id);}catch(_){}
+      done++;
+      saveEntriesLocal();
+      try{renderDash();renderKB();renderCounts();}catch(_){}
+      try{ragIndex("incident",e.id,e.project,e.title,[e.title,catLabel(e.cat),e.desc,e.action,e.cause,e.normes].filter(Boolean).join("\n"));}catch(_){}
+      try{if(dbOk)await saveDB(e);}catch(_){} // push the enriched record to the cloud
+    }catch(err){delete _aiSyncing[oid];break;}
+    delete _aiSyncing[oid];
+  }
+  if(done){try{toast("🧠 "+plL(done+" capture(s) analysée(s)",done+" capture(s) analysed",done+" captura(s) analisada(s)"));}catch(_){}}
 }
 
 async function fileStorage(e){
@@ -5839,8 +5916,9 @@ function saveKey(){
   toast("La clé API est gérée côté serveur — rien à configurer ici");
 }
 
-async function callAI(parts){
-  showLoad(true,"Pillier IA...");
+async function callAI(parts,opts){
+  opts=opts||{}; // opts.quiet → no global loader / no error toasts (used by the offline sync sweep)
+  if(!opts.quiet)showLoad(true,"Pillier IA...");
   try{
     var txt="",img=null;
     parts.forEach(function(p){if(p.text)txt+=p.text+"\n";if(p.img)img=p.img;});
@@ -5849,18 +5927,20 @@ async function callAI(parts){
     var apiBody=img?{messages:msgs,max_tokens:2048}:{model:"openai/gpt-oss-120b",messages:msgs,max_tokens:1024};
     var res=await fetch(apiEndpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(apiBody)});
     var data=await res.json();
-    showLoad(false);
+    if(!opts.quiet)showLoad(false);
     if(data.error){
       console.error("AI API error:",data.error);
       var msg=data.error.message||"Erreur inconnue";
-      if(res.status===401)toast(STRINGS[lang].toastErrServer||"❌ Erreur serveur");
-      else if(res.status===429)toast(STRINGS[lang].toastErrLimit||"❌ Limite API atteinte");
-      else toast("❌ Erreur IA: "+msg.substring(0,80));
+      if(!opts.quiet){
+        if(res.status===401)toast(STRINGS[lang].toastErrServer||"❌ Erreur serveur");
+        else if(res.status===429)toast(STRINGS[lang].toastErrLimit||"❌ Limite API atteinte");
+        else toast("❌ Erreur IA: "+msg.substring(0,80));
+      }
       return null;
     }
     if(!data.choices||!data.choices[0]){
       console.error("AI unexpected response:",data);
-      toast("❌ Réponse IA invalide — réessayez");
+      if(!opts.quiet)toast("❌ Réponse IA invalide — réessayez");
       return null;
     }
     var raw=data.choices[0].message.content;
@@ -5868,9 +5948,9 @@ async function callAI(parts){
     raw=raw.replace(/<think>[\s\S]*?<\/think>/gi,"").trim();
     return raw;
   }catch(e){
-    showLoad(false);
+    if(!opts.quiet)showLoad(false);
     console.error("callAI exception:",e);
-    toast(STRINGS[lang].toastErrNet||"❌ Erreur de connexion");
+    if(!opts.quiet)toast(STRINGS[lang].toastErrNet||"❌ Erreur de connexion");
     return null;
   }
 }
@@ -6226,6 +6306,18 @@ async function handlePhoto(input){
   reader.onload=async function(e){
     window._lastPhotoData=e.target.result;
     window._lastPhotoFile=input.files[0];
+    // Offline: do NOT reach the AI endpoint. Keep the photo, flag the capture as
+    // pending, and show the banner. It gets analysed automatically on reconnect.
+    if(typeof navigator!=="undefined"&&navigator.onLine===false){
+      window._lastAI=null;window._offlineCapture=true;
+      var ap=document.getElementById("ai-photo");if(ap)ap.style.display="none";
+      _showOfflineBanner(true);
+      var t=document.getElementById("c-title");
+      if(t&&!t.value)t.placeholder=plL("Photo capturée — ajoutez un titre (optionnel)","Photo captured — add a title (optional)","Foto capturada — adicione um título (opcional)");
+      toast("📴 "+plL("Hors ligne — la photo sera analysée à la reconnexion","Offline — photo will be analysed when back online","Offline — a foto será analisada ao reconectar"));
+      return;
+    }
+    window._offlineCapture=false;
     var resp=await callAI([{img:e.target.result},{text:prompt}]);
     if(resp){
       var p=parseAI(resp);
@@ -6450,13 +6542,23 @@ async function saveEntry(){
       return;
     }
   }
+  var isOffline=(typeof navigator!=="undefined"&&navigator.onLine===false)||window._offlineCapture===true;
+  var _autoTitle=false;
   var title=document.getElementById("c-title").value.trim();
-  if(!title){toast(STRINGS[lang].toastNoTitle||"Ajoutez un titre");return;}
+  if(!title){
+    // Offline photo capture shouldn't be blocked by a missing title — auto-name it;
+    // the AI supplies a real title on reconnect. Any other case still requires one.
+    if(isOffline&&window._lastPhotoData){title=plL("Capture hors ligne","Offline capture","Captura offline")+" — "+new Date().toLocaleDateString("fr-FR");_autoTitle=true;}
+    else{toast(STRINGS[lang].toastNoTitle||"Ajoutez un titre");return;}
+  }
   var p=window._lastAI||{};
   // Norm Agent: deterministic suggested references from the final category + jurisdiction
   p.normes=suggestedNormsCodes(canonCat(document.getElementById("c-cat").value),siteJurisdiction(document.getElementById("c-proj").value))||p.normes||"";
   var ai=JSON.stringify({solution:p.solution||p.action||"",cause:p.cause||"",normes:p.normes||""});
-  var entry={id:Date.now(),title:title,project:document.getElementById("c-proj").value,cat:canonCat(document.getElementById("c-cat").value),sev:document.getElementById("c-sev").value||"medium",desc:document.getElementById("c-desc").value,action:document.getElementById("c-action").value,date:new Date().toLocaleDateString("fr-FR"),status:"open",ai:ai,cause:p.cause||"",normes:p.normes||"",photo:window._lastPhotoData||null,photo_url:null};
+  var pendingSync=isOffline&&!!window._lastPhotoData; // photo saved offline → AI runs on reconnect
+  var entry={id:Date.now(),title:title,project:document.getElementById("c-proj").value,cat:canonCat(document.getElementById("c-cat").value),sev:document.getElementById("c-sev").value||"medium",desc:document.getElementById("c-desc").value,action:document.getElementById("c-action").value,date:new Date().toLocaleDateString("fr-FR"),status:"open",ai:ai,cause:p.cause||"",normes:p.normes||"",photo:window._lastPhotoData||null,photo_url:null,ai_status:pendingSync?"pending_sync":"done"};
+  if(_autoTitle)entry._autoTitle=true;
+  var _origPhoto=window._lastPhotoData||null; // full-res original (before we clear it)
   // Compress photo to thumbnail and store as base64 in photo_url
   if(window._lastPhotoData){
     try{
@@ -6466,19 +6568,35 @@ async function saveEntry(){
       plog("Photo compressed, size:",Math.round(thumbUrl.length/1024)+"KB");
     }catch(compErr){console.error("Photo compress error:",compErr);entry.photo_url=null;}
   }
-  var _origPhoto=window._lastPhotoData||null; // full-res original (before we clear it) for cloud mirroring
+  // Keep the full-resolution photo in IndexedDB so the deferred AI analysis has the
+  // best image to work with (localStorage can't hold it). Thumbnail is the fallback.
+  if(pendingSync&&_origPhoto){try{await _idbPut({id:entry.id,photoFull:_origPhoto,createdAt:Date.now()});}catch(_){}}
   entries.unshift(entry);
   saveEntriesLocal(); // persist immediately so it survives refresh regardless of DB
-  window._lastPhotoData=null;window._lastPhotoFile=null;
+  window._lastPhotoData=null;window._lastPhotoFile=null;window._offlineCapture=false;
+  _showOfflineBanner(false);
   ["ai-photo","ai-voice"].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display="none";});
   ["c-title","c-desc","c-action"].forEach(function(id){document.getElementById(id).value="";});
-  // Immediate success feedback: filed into its category folder + Knowledge Base
-  toast("✅ "+plL("Classé dans « ","Filed under « ","Arquivado em « ")+catLabel(entry.cat)+" »");
   renderDash();renderKB();renderCounts();
   try{ragIndex("incident",entry.id,entry.project,entry.title,[entry.title,catLabel(entry.cat),entry.desc,entry.action,entry.cause,entry.normes].filter(Boolean).join("\n"));}catch(e){}
-  syncToCloud(entry,_origPhoto);
-  if(dbOk)await saveDB(entry);
+  if(pendingSync){
+    // Deferred: cloud sync + AI happen on reconnect (syncPendingAnalyses).
+    toast("💾 "+plL("Enregistré localement. Sera analysé dès le retour de la connexion.","Saved locally. Will be analysed as soon as the connection returns.","Salvo localmente. Será analisado assim que a conexão retornar."));
+  }else{
+    toast("✅ "+plL("Classé dans « ","Filed under « ","Arquivado em « ")+catLabel(entry.cat)+" »");
+    syncToCloud(entry,_origPhoto);
+    if(dbOk)await saveDB(entry);
+  }
   setTimeout(function(){showTab(0,document.querySelectorAll(".sidebar-link")[0]);},700);
+}
+// Offline capture banner (shown in the capture panel while offline).
+function _showOfflineBanner(show){
+  var b=document.getElementById("cap-offline-banner");
+  if(!b)return;
+  if(show){
+    b.textContent="📴 "+plL("Hors ligne — la photo est enregistrée et sera analysée dès le retour de la connexion.","Offline — the photo is saved and will be analysed as soon as the connection returns.","Offline — a foto foi salva e será analisada assim que a conexão retornar.");
+    b.style.display="flex";
+  }else{b.style.display="none";}
 }
 
 function badge(sev){return{low:"b-low",medium:"b-medium",high:"b-high",critical:"b-critical"}[sev]||"b-low";}
@@ -6615,7 +6733,9 @@ function renderDash(){
   var sevColor={critical:"#f87171",high:"#fbbf24",medium:"#2cbeff",low:"#4ade80",critical:"#f87171"};
   w.innerHTML=entries.slice(0,5).map(function(e){
     var sc=sevColor[e.sev]||"#2cbeff";
-    var pill=e.status==="resolved"?"<span class='inc-pill pill-done'>"+(S.statusResolved||"Résolu")+"</span>":"<span class='inc-pill pill-open'>"+(S.statusOpen||"Ouvert")+"</span>";
+    var pill=e.ai_status==="pending_sync"
+      ?"<span class='inc-pill' style='background:rgba(251,191,36,0.14);color:#fbbf24;'>"+plL("Analyse en attente","Pending analysis","Análise pendente")+"</span>"
+      :(e.status==="resolved"?"<span class='inc-pill pill-done'>"+(S.statusResolved||"Résolu")+"</span>":"<span class='inc-pill pill-open'>"+(S.statusOpen||"Ouvert")+"</span>");
     return "<div class='inc-item' onclick=\"openIncModal('"+String(e.id)+"')\" style='cursor:pointer;'><div class='inc-sev' style='background:"+sc+"'></div><div class='inc-body'><div class='inc-name'>"+escapeHTML(e.title)+"</div><div class='inc-meta2'>"+catLabel(e.cat||"")+" · "+(e.date||"")+"</div></div>"+pill+"</div>";
   }).join("");
   generateInsights();
@@ -8878,8 +8998,13 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
     navigator.serviceWorker.register('/sw.js').catch(function(err){try{plog('sw register failed',err);}catch(_){}});
   });
 }
-// When connectivity returns, push any captures that were saved offline.
-window.addEventListener('online',function(){try{syncPendingCaptures();}catch(e){}});
+// When connectivity returns: analyse offline photos first, then push local captures.
+window.addEventListener('online',function(){
+  _showOfflineBanner(false);
+  try{syncPendingAnalyses();}catch(e){}
+  try{syncPendingCaptures();}catch(e){}
+});
+window.addEventListener('offline',function(){/* capture path checks navigator.onLine directly */});
 
 // ── Session timeout: auto-logout after 30 min inactivity ─────────────────
 var SESSION_TIMEOUT=30*60*1000; // 30 minutes
