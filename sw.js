@@ -11,7 +11,7 @@
  *  - Non-GET requests are never touched.
  *  Bumping VERSION invalidates every old cache on activate.
  */
-var VERSION = 'pillier-v2';
+var VERSION = 'pillier-v3';
 var SHELL   = VERSION + '-shell';
 var RUNTIME = VERSION + '-runtime';
 
