@@ -3742,7 +3742,7 @@ var SOL_CONTENT={
     i4:{cat:'Industry',title:'Infrastructure & public works',lead:'Complex projects with heavy regulatory and audit requirements.',body:['Roads, bridges, tunnels, water systems, public buildings. Projects where compliance documentation is a legal requirement, not a nice-to-have.','Pillier generates timestamped, geotagged, norm-referenced records that hold up in audits, tenders, and dispute resolution.','Multi-contractor coordination: every subcontractor captures in the same platform, so the general contractor has unified visibility.'],cta:'See infrastructure case'},
     i5:{cat:'Industry',title:'Renovation & retrofit',lead:'Existing buildings hide surprises. Pillier documents them.',body:['Renovations reveal what plans do not show: hidden pipes, unexpected structural conditions, materials that no longer comply with current codes.','Capture these discoveries as you find them. The Document Agent references the original plans (if available) so deviations are traceable.','Especially valuable for heritage and historic building work, where every intervention needs justification.'],cta:'See renovation case'},
     i6:{cat:'Industry',title:'Real estate development',lead:'Portfolio-scale visibility across multiple sites.',body:['Developers running several projects simultaneously use Pillier for portfolio dashboards, cross-project pattern detection, and early warning on troubled sites.','Insight Agent helps allocate attention: which projects are performing well, which need intervention, which subcontractors are consistently causing issues.','ROI shows up in reduced rework, faster resolution, and stronger defensible documentation for investor reporting.'],cta:'See developer case'},
-    s1:{cat:'Company size',title:'Independent professionals',lead:'Solo architects, engineers, and consultants.',body:['If you are an independent professional running quality control, inspection, or consulting engagements, Pillier gives you a professional-grade documentation system without the enterprise price tag.','Capture site observations for client reports, maintain a personal knowledge base across all your projects, and produce defensible records for professional liability protection.','Starter plan: from R$ 299 / month.'],cta:'Try the Starter plan'},
+    s1:{cat:'Company size',title:'Independent professionals',lead:'Solo architects, engineers, and consultants.',body:['If you are an independent professional running quality control, inspection, or consulting engagements, Pillier gives you a professional-grade documentation system without the enterprise price tag.','Capture site observations for client reports, maintain a personal knowledge base across all your projects, and produce defensible records for professional liability protection.','Starter plan: from US$ 59 / month.'],cta:'Try the Starter plan'},
     s2:{cat:'Company size',title:'Small construction firms',lead:'Teams of 5 to 20 people.',body:['Small contractors get the biggest lift from Pillier — because the alternative (paper logs, WhatsApp groups, hand-copied reports) is where the most time is lost.','Everyone on the team captures in the same platform. The office sees what is happening on site in real time. Documentation is ready when inspectors show up.','Professional plan covers up to 15 users with unlimited projects.'],cta:'Try the Professional plan'},
     s3:{cat:'Company size',title:'Mid-size contractors',lead:'20 to 200 people, multiple active projects.',body:['At this scale, coordination becomes the bottleneck. Pillier centralizes what would otherwise be fragmented across superintendents, project managers, and subcontractors.','Cross-project insights become valuable: patterns detected on one project inform decisions on another. Institutional knowledge starts compounding.','Professional plan for standard use, Enterprise for advanced integrations and dedicated support.'],cta:'Talk to sales'},
     s4:{cat:'Company size',title:'Large enterprises',lead:'200+ people, portfolio operations.',body:['Enterprise deployments include custom integrations (ERP, BIM, existing document management), dedicated support, training programs, and negotiated SLAs.','Multi-tenant setup lets subsidiaries and joint venture partners work in shared or separated spaces as needed. Executive dashboards aggregate portfolio-wide data.','Custom onboarding and change management to ensure adoption across large field organizations.'],cta:'Contact enterprise sales'},
@@ -4073,6 +4073,7 @@ function applyLang(){
   try{var _pi=document.getElementById("pwa-install-label");if(_pi)_pi.textContent=plL("Installer l'application","Install app","Instalar aplicativo");}catch(e){}
   try{var _lo=document.getElementById("mob-logout-label");if(_lo)_lo.textContent=plL("Déconnexion","Log out","Sair");}catch(e){}
   try{renderSyncBadge();}catch(e){}
+  try{var _pt=document.getElementById("pm-team-input");if(_pt)_pt.placeholder=plL("Saisir un nom puis Entrée","Type a name, then Enter","Digite um nome e Enter");}catch(e){}
   try{if(typeof renderBilling==="function")renderBilling();}catch(e){}
   // Sync Resources page translations to main app language
   try{translateResources(lang===0?'fr':lang===2?'pt':'en');}catch(e){}
@@ -6052,7 +6053,7 @@ var PROMPT_VOICE="You are a senior civil engineer and construction site expert. 
 
 
 function saveKey(){
-  toast("La clé API est gérée côté serveur — rien à configurer ici");
+  toast(plL("La clé API est gérée côté serveur — rien à configurer ici","The API key is managed server-side — nothing to set up here","A chave de API é gerenciada no servidor — nada para configurar aqui"));
 }
 
 async function callAI(parts,opts){
@@ -7591,7 +7592,7 @@ function attachChatFile(input,type){
     document.getElementById("chat-attachment").classList.add("show");
     // Show preview for images
     if(type==="photo-camera"||type==="photo-gallery"){
-      addMsg("user","<img src='"+e.target.result+"' style='max-width:220px;border-radius:8px;display:block'>");
+      addMsg("user","<img alt='' src='"+e.target.result+"' style='max-width:220px;border-radius:8px;display:block'>");
     } else {
       addMsg("user","&#x1F4CE; "+file.name);
     }
@@ -8269,7 +8270,7 @@ async function processDoc(file,proj){
     var isPDF=file.type==="application/pdf"||file.name.toLowerCase().endsWith(".pdf");
 
     if(isPDF){
-      if(typeof pdfjsLib==="undefined"){toast("\u274C pdf.js non chargé");showLoad(false);return;}
+      if(typeof pdfjsLib==="undefined"){toast("\u274C "+plL("pdf.js non chargé","pdf.js not loaded","pdf.js não carregado"));showLoad(false);return;}
       pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
       var arrayBuffer=await file.arrayBuffer();
       var localArrayBuffer=arrayBuffer.slice(0);
@@ -8716,7 +8717,7 @@ async function openDocViewer(docId){
       if(String(d.id)===String(docId))doc=d;
     });
   });
-  if(!doc){toast("Document introuvable");return;}
+  if(!doc){toast(plL("Document introuvable","Document not found","Documento não encontrado"));return;}
 
   document.getElementById("doc-viewer-title").textContent=doc.name;
   document.getElementById("doc-viewer-body").innerHTML="<div class='empty-state'><div class='empty-icon'>&#x23F3;</div><div class='empty-text'>Chargement...</div></div>";
@@ -8744,7 +8745,7 @@ async function openDocViewer(docId){
           await renderPDFViewer(arrayBuffer,doc.name);
         } else {
           var blob=new Blob([arrayBuffer],{type:doc.type||"image/png"});
-          document.getElementById("doc-viewer-body").innerHTML="<img src='"+URL.createObjectURL(blob)+"' style='max-width:100%;border-radius:8px'>";
+          document.getElementById("doc-viewer-body").innerHTML="<img alt='' src='"+URL.createObjectURL(blob)+"' style='max-width:100%;border-radius:8px'>";
         }
         return;
       }
@@ -8759,7 +8760,7 @@ async function openDocViewer(docId){
           if(doc.name.toLowerCase().endsWith(".pdf")){
             await renderPDFViewer(await pr.arrayBuffer(),doc.name);
           } else {
-            document.getElementById("doc-viewer-body").innerHTML="<img src='"+purl+"' style='max-width:100%;border-radius:8px'>";
+            document.getElementById("doc-viewer-body").innerHTML="<img alt='' src='"+purl+"' style='max-width:100%;border-radius:8px'>";
           }
           return;
         }
@@ -8777,7 +8778,7 @@ async function openDocViewer(docId){
       var ab=base64ToArrayBuffer(doc.localData);
       await renderPDFViewer(ab,doc.name);
     } else {
-      document.getElementById("doc-viewer-body").innerHTML="<img src='data:"+doc.type+";base64,"+doc.localData+"' style='max-width:100%;border-radius:8px'>";
+      document.getElementById("doc-viewer-body").innerHTML="<img alt='' src='data:"+doc.type+";base64,"+doc.localData+"' style='max-width:100%;border-radius:8px'>";
     }
     return;
   }
@@ -8840,7 +8841,7 @@ async function renderViewerPage(pageNum){
 }
 
 function updateViewerPageInfo(){
-  document.getElementById("dv-page-info").textContent="Page "+viewerPage+" / "+viewerTotal;
+  document.getElementById("dv-page-info").textContent=plL("Page ","Page ","Página ")+viewerPage+" / "+viewerTotal;
   document.getElementById("dv-prev").disabled=viewerPage<=1;
   document.getElementById("dv-next").disabled=viewerPage>=viewerTotal;
 }
@@ -9225,7 +9226,7 @@ showTab=function(i,btn){
 
 // ── Cloud Storage Sync ───────────────────────────────────────────────────
 async function connectCloud(provider){
-  if(!dbCoId){toast("Faça login primeiro");return;}
+  if(!dbCoId){toast(plL("Connectez-vous d'abord","Sign in first","Faça login primeiro"));return;}
   var oauthProviders=["google","onedrive","dropbox"];
   if(oauthProviders.indexOf(provider)>=0){
     // OAuth flow — get auth URL then open popup
@@ -9512,8 +9513,8 @@ function _handleCloudHash(){
   var h=location.hash||"";
   if(h.indexOf("cloud-connected")>=0){
     // If this is the OAuth popup, tell the opener to refresh and close ourselves.
-    try{if(window.opener&&window.opener!==window){if(window.opener.loadCloudStatus)window.opener.loadCloudStatus();try{window.opener.toast&&window.opener.toast("\u2705 Armazenamento conectado!");}catch(e){}window.close();return;}}catch(e){}
-    try{toast("\u2705 Armazenamento conectado!");}catch(e){}
+    try{if(window.opener&&window.opener!==window){if(window.opener.loadCloudStatus)window.opener.loadCloudStatus();try{window.opener.toast&&window.opener.toast("\u2705 "+plL("Stockage connecté !","Storage connected!","Armazenamento conectado!"));}catch(e){}window.close();return;}}catch(e){}
+    try{toast("\u2705 "+plL("Stockage connecté !","Storage connected!","Armazenamento conectado!"));}catch(e){}
     try{loadCloudStatus();}catch(e){}
     location.hash="";
   } else if(h.indexOf("cloud-error")>=0){
@@ -9763,6 +9764,9 @@ function renderBilling(){
   } else if(cur==="free"){
     html+="<div style='background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12.5px;color:var(--text);line-height:1.6;'><b>"+_t3b("Start your 30-day free trial.","Démarrez votre essai gratuit de 30 jours.","Comece seu teste gratuito de 30 dias.")+"</b><br>"+_t3b("You will not be charged today. A card is required. Cancel anytime before the trial ends.","Aucun débit aujourd'hui. Une carte est requise. Annulez à tout moment avant la fin de l'essai.","Você não será cobrado hoje. É necessário um cartão. Cancele quando quiser antes do fim do teste.")+"</div>";
   }
+  if(lang!==2){
+    html+="<div style='font-size:11px;color:var(--text3);line-height:1.5;margin-bottom:12px;'>"+_t3b("Prices shown in your currency for reference; billing is processed in Brazilian Real (R$).","Prix indiqués dans votre devise à titre indicatif ; la facturation est effectuée en réal brésilien (R$).","")+"</div>";
+  }
   order.forEach(function(k){
     var isCur=(k===cur);
     var pillTxt=isCur?(trialing?_t3b("Trial","Essai","Teste"):(paid?_t3b("Current","Actuel","Atual"):_t3b("Current","Actuel","Atual"))):"";
@@ -9806,7 +9810,7 @@ function closeSettingsModal(){
 
 // ── Backfill: sync all existing captures + documents to cloud ────────────
 async function syncAllToCloud(){
-  if(!dbCoId){toast("Faça login primeiro");return;}
+  if(!dbCoId){toast(plL("Connectez-vous d'abord","Sign in first","Faça login primeiro"));return;}
   // Check connections
   var r=await fetch("/api/cloud-sync?action=status",{
     method:"POST",headers:{"Content-Type":"application/json"},
@@ -9815,7 +9819,7 @@ async function syncAllToCloud(){
   var d=await r.json();
   // Only real storage providers — ignore app:* integrations stored in the same table.
   d.connections=(d.connections||[]).filter(function(c){return c.provider&&c.provider.indexOf("app:")!==0;});
-  if(!d.connections.length){toast("Nenhum armazenamento conectado");return;}
+  if(!d.connections.length){toast(plL("Aucun stockage connecté","No storage connected","Nenhum armazenamento conectado"));return;}
 
   var S=STRINGS[lang];
   toast("⏳ "+(S.syncingAll||"Sincronizando tudo..."));
