@@ -2374,6 +2374,14 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
 .set-navbtn.active{background:rgba(44,190,255,0.12);color:#2cbeff;}
 .set-navbtn i{font-size:17px;width:20px;text-align:center;flex-shrink:0;}
 .set-h{font-family:var(--font-d);font-size:18px;font-weight:800;color:var(--text);margin-bottom:16px;}
+/* Settings modal → full-screen with a horizontal nav on phones (portrait) */
+@media(max-width:768px){
+  #settings-modal-card{width:100vw !important;max-width:100vw !important;height:100vh !important;max-height:100vh !important;height:100dvh !important;max-height:100dvh !important;border-radius:0 !important;flex-direction:column !important;}
+  .settings-aside{width:100% !important;flex-direction:row !important;align-items:center;overflow-x:auto !important;overflow-y:hidden !important;border-right:none !important;border-bottom:1px solid var(--border) !important;padding:8px 10px !important;gap:6px !important;display:flex !important;flex-shrink:0 !important;-webkit-overflow-scrolling:touch;}
+  .settings-aside>div:first-child{display:none !important;}
+  .settings-aside .set-navbtn{width:auto !important;white-space:nowrap !important;margin-bottom:0 !important;flex-shrink:0 !important;padding:8px 12px !important;}
+  .settings-content{padding:20px 16px 32px !important;}
+}
 .set-l{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;}
 .set-v{font-size:14px;color:var(--text);}
 .set-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
@@ -10036,8 +10044,8 @@ function cloudSiteName(proj){
 <!-- Settings Modal -->
 <!-- Settings modal (Claude-style: left nav + panels) -->
 <div id="settings-modal-overlay" onclick="if(event.target===this)closeSettingsModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
-  <div style="background:#16323b;border:1px solid rgba(44,190,255,0.15);border-radius:16px;width:760px;max-width:94vw;height:560px;max-height:88vh;display:flex;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.5);">
-    <aside style="width:210px;flex-shrink:0;background:rgba(255,255,255,0.02);border-right:1px solid var(--border);padding:18px 12px;overflow-y:auto;">
+  <div id="settings-modal-card" style="background:#16323b;border:1px solid rgba(44,190,255,0.15);border-radius:16px;width:760px;max-width:94vw;height:560px;max-height:88vh;display:flex;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.5);">
+    <aside class="settings-aside" style="width:210px;flex-shrink:0;background:rgba(255,255,255,0.02);border-right:1px solid var(--border);padding:18px 12px;overflow-y:auto;">
       <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:0 10px 10px;" id="settings-modal-title2">Configurações</div>
       <button class="set-navbtn active" id="setnav-general" onclick="setSettingsSection('general')"><i class="ti ti-settings"></i><span id="setnav-general-l">General</span></button>
       <button class="set-navbtn" id="setnav-account" onclick="setSettingsSection('account')"><i class="ti ti-user"></i><span id="setnav-account-l">Account</span></button>
@@ -10047,7 +10055,7 @@ function cloudSiteName(proj){
       <button class="set-navbtn" id="setnav-custom" onclick="setSettingsSection('custom')"><i class="ti ti-cloud-cog"></i><span id="setnav-custom-l">Cloud Storage Integrations</span></button>
       <button class="set-navbtn" id="setnav-apps" onclick="setSettingsSection('apps')"><i class="ti ti-adjustments"></i><span id="setnav-apps-l">Customization</span></button>
     </aside>
-    <div style="flex:1;min-width:0;position:relative;overflow-y:auto;padding:26px 28px;">
+    <div class="settings-content" style="flex:1;min-width:0;position:relative;overflow-y:auto;padding:26px 28px;">
       <button onclick="closeSettingsModal()" style="position:absolute;top:16px;right:18px;background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;z-index:2;"><i class="ti ti-x"></i></button>
       <!-- GENERAL -->
       <div class="set-panel" id="setp-general">
