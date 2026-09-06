@@ -4075,6 +4075,7 @@ function applyLang(){
   try{renderSyncBadge();}catch(e){}
   try{var _pt=document.getElementById("pm-team-input");if(_pt)_pt.placeholder=plL("Saisir un nom puis Entrée","Type a name, then Enter","Digite um nome e Enter");}catch(e){}
   try{if(typeof renderBilling==="function")renderBilling();}catch(e){}
+  try{if(typeof renderPricingDropdown==="function")renderPricingDropdown();}catch(e){}
   // Sync Resources page translations to main app language
   try{translateResources(lang===0?'fr':lang===2?'pt':'en');}catch(e){}
   try{renderUsageWidgets();}catch(e){}
@@ -4779,6 +4780,8 @@ function enterApp(user){
   document.getElementById("u-co").textContent=me.co;
   try{var _pb=document.getElementById("sb-plan-badge");if(_pb){var _pl=(typeof _pUsage!=="undefined"&&_pUsage&&_pUsage.plan)?String(_pUsage.plan):"";if(_pl&&_pl.toLowerCase()!=="free"){_pb.textContent=_pl.toUpperCase();_pb.style.display="";}else{_pb.style.display="none";}}}catch(e){}
   try{renderSyncBadge();}catch(e){}
+  try{renderCommBadge();}catch(e){}
+  try{renderIaDot();}catch(e){}
   try{if(localStorage.getItem("pillier-sb-collapsed")==="1"){var _w=document.querySelector(".app-wrap");if(_w)_w.classList.add("sb-collapsed");var _ci=document.getElementById("sb-collapse-ico");if(_ci)_ci.className="ti ti-chevron-right";}}catch(e){}
   document.getElementById("s-login").classList.remove("active");
   document.getElementById("s-content").classList.remove("active");
@@ -5393,6 +5396,26 @@ async function syncPendingCaptures(){
   }
 }
 
+/* ── Sidebar signal badges: Community unread + Pillier IA "new" ─────────────── */
+function _commSeen(){try{var v=localStorage.getItem("pillier-comm-seen");if(v===null){localStorage.setItem("pillier-comm-seen",String(Date.now()));return Date.now();}return parseInt(v,10)||0;}catch(e){return Date.now();}}
+function _commMarkSeen(){try{localStorage.setItem("pillier-comm-seen",String(Date.now()));}catch(e){}try{renderCommBadge();}catch(e){}}
+// Count posts/replies newer than last-seen and not written by me, across all sites.
+function renderCommBadge(){
+  var el=document.getElementById("sb-comm-badge");if(!el)return;
+  var seen=_commSeen(),mine=(me&&me.name?me.name.toLowerCase():""),n=0;
+  try{var all=(typeof commAll==="function")?commAll():{};Object.keys(all).forEach(function(s){(all[s]||[]).forEach(function(p){
+    if(p&&p.ts>seen&&(p.author||"").toLowerCase()!==mine)n++;
+    (p&&p.replies||[]).forEach(function(r){if(r&&r.ts>seen&&(r.author||"").toLowerCase()!==mine)n++;});
+  });});}catch(e){}
+  if(n>0){el.textContent=n>9?"9+":String(n);el.style.display="";}else{el.style.display="none";}
+}
+// "New" dot on Pillier IA until the user opens it once.
+function renderIaDot(){
+  var el=document.getElementById("sb-ia-dot");if(!el)return;
+  var seen=false;try{seen=localStorage.getItem("pillier-ia-seen")==="1";}catch(e){}
+  el.style.display=seen?"none":"";
+}
+
 /* ── Offline capture queue: IndexedDB photo store + deferred AI analysis ──────
  * When the device is offline the AI endpoint is unreachable, so we skip it, keep
  * the full-resolution photo in IndexedDB (too large for localStorage) and mark
@@ -5431,16 +5454,19 @@ async function syncPendingAnalyses(){
     _aiSyncing[oid]=1;
     try{
       var rec=null;try{rec=await _idbGet(e.id);}catch(_){rec=null;}
-      var img=(rec&&rec.photoFull)||e.photo_url||null;
-      if(img){
+      var isVoice=(rec&&rec.kind==="voice")||e.kind==="voice";
+      var media=isVoice?((rec&&rec.audioB64)?"data:audio/webm;base64,"+rec.audioB64:null):((rec&&rec.photoFull)||e.photo_url||null);
+      if(media){
         var projName=e.project||"the site";
         var projObj=(projects||[]).filter(function(p){return p.name===projName;})[0];
         var locStr=projObj&&projObj.location?" ("+projObj.location+")":"";
         var langFull=["French","English","Portuguese"][lang]||"English";
         var docCtx="";try{docCtx=getProjectDocContext(projName);}catch(_){}
-        var prompt=PROMPT_PHOTO.replace("{PROJECT}",projName+locStr+(docCtx?"\n\nAvailable project documents:"+docCtx:"")).replace("{LANG}",langFull).replace("{CATEGORIES}",_aiCategoryList());
-        var aiImg=await _aiReadyImage(img); // shrink for the 4.5MB API limit (mobile photos)
-        var resp=await callAI([{img:aiImg},{text:prompt}],{quiet:true});
+        var prompt=isVoice
+          ? PROMPT_VOICE.replace("{PROJECT}",projName+locStr).replace("{LANG}",langFull).replace("{CATEGORIES}",_aiCategoryList())
+          : PROMPT_PHOTO.replace("{PROJECT}",projName+locStr+(docCtx?"\n\nAvailable project documents:"+docCtx:"")).replace("{LANG}",langFull).replace("{CATEGORIES}",_aiCategoryList());
+        var aiMedia=isVoice?media:await _aiReadyImage(media); // shrink photos only; audio sent as-is
+        var resp=await callAI([{img:aiMedia},{text:prompt}],{quiet:true});
         // Analysis failed (offline again, rate limit, or server error) — keep the
         // entry pending so a later trigger retries it, rather than marking it done
         // with no analysis. Stop the sweep here; the poll/next signal resumes it.
@@ -6546,6 +6572,20 @@ function _applySevUI(i){
 }
 function syncSevSlider(){var sel=document.getElementById("c-sev");if(!sel)return;var i=_sevVals.indexOf(sel.value);if(i<0)i=1;_applySevUI(i);}
 
+// Queue a voice note for deferred AI analysis (offline, or when the AI is unreachable).
+async function _queueVoiceOffline(b64,proj){
+  var id=Date.now();
+  var entry={id:id,title:plL("Note vocale hors ligne","Offline voice note","Nota de voz offline")+" — "+new Date().toLocaleDateString("fr-FR"),
+    project:(proj&&proj!=="the site")?proj:(document.getElementById("c-proj").value||""),
+    cat:canonCat(document.getElementById("c-cat").value||"Structure"),sev:(document.getElementById("c-sev").value||"medium"),
+    desc:"",action:"",date:new Date().toLocaleDateString("fr-FR"),status:"open",cause:"",normes:"",
+    photo:null,photo_url:null,ai_status:"pending_sync",kind:"voice",_autoTitle:true};
+  try{await _idbPut({id:id,audioB64:b64,kind:"voice",createdAt:Date.now()});}catch(_){}
+  entries.unshift(entry);
+  saveEntriesLocal();
+  try{renderDash();renderKB();renderCounts();renderSyncBadge();}catch(_){}
+  toast("💾 "+plL("Note vocale enregistrée. Sera analysée dès le retour de la connexion.","Voice note saved. Will be analysed when the connection returns.","Nota de voz salva. Será analisada assim que a conexão retornar."));
+}
 async function processVoice(){
   var proj=document.getElementById("c-proj").value||"the site";
   var projObj=projects.filter(function(p){return p.name===proj;})[0];
@@ -6555,9 +6595,12 @@ async function processVoice(){
   var blob=new Blob(chunks,{type:"audio/webm"});
   var reader=new FileReader();
   reader.onload=async function(e){
-    showLoad(true,"Pillier IA audio...");
     var b64=e.target.result.split(",")[1];
+    // Offline: queue the voice note (IndexedDB) and analyse it on reconnect.
+    if(typeof navigator!=="undefined"&&navigator.onLine===false){_queueVoiceOffline(b64,proj);return;}
+    showLoad(true,"Pillier IA audio...");
     var resp=await callAI([{img:"data:audio/webm;base64,"+b64},{text:prompt}]);
+    if(!resp){showLoad(false);_queueVoiceOffline(b64,proj);return;} // AI unreachable → queue instead of losing it
     if(resp){
       var p=parseAI(resp);
       document.getElementById("ai-voice").style.display="block";
@@ -7448,6 +7491,7 @@ async function loadPosts(){
   var proj=projByName(site);
   var members=siteMembersOf(proj);
   var all=commGet(site);
+  try{renderCommBadge();}catch(e){}
   var posts=all.filter(function(p){return _commFilter==="all"||p.tag===_commFilter;});
   if(!posts.length){out.innerHTML="<div class='empty-state'><div class='empty-icon'>&#x1F4AC;</div><div class='empty-text'>"+plL("Aucune discussion. Lancez la première !","No discussions yet. Start the first one!","Nenhuma discussão ainda. Comece a primeira!")+"</div></div>";return;}
   var mine=(me&&me.name?me.name.toLowerCase():"");
@@ -8050,8 +8094,8 @@ function showTab(i,btn){
   if(i===0)renderDash();
   if(i===2)renderCounts();
   if(i===3){renderKB();applyLang();}
-  if(i===4)initChat();
-  if(i===5)loadPosts();
+  if(i===4){initChat();try{localStorage.setItem("pillier-ia-seen","1");}catch(e){}try{renderIaDot();}catch(e){}}
+  if(i===5){loadPosts();try{_commMarkSeen();}catch(e){}}
   if(i===6){renderProjects();}
   if(i===7){loadDocs();updateDocProjectDropdown();}
   if(i===8){
@@ -9744,6 +9788,26 @@ function inviteTeam(){
 // Pricing follows the UI language: EN → US$, FR → €, PT → R$.
 function pillierCurrency(){return lang===1?"US$":lang===0?"€":"R$";}
 function pillierPlanPrice(k){var a=(lang===2)?{starter:299,pro:499,team:999}:{starter:59,pro:99,team:199};return pillierCurrency()+" "+a[k];}
+// Landing "Planos" dropdown — rendered from JS so it follows language + currency.
+function renderPricingDropdown(){
+  var el=document.getElementById("pricing-dropdown");if(!el)return;
+  var per=_t3b("/mo","/mois","/mês");
+  var T={starter:"Starter",pro:_t3b("Professional","Professionnel","Profissional"),ent:"Enterprise",
+    popular:_t3b("POPULAR","POPULAIRE","POPULAR"),
+    su:_t3b("Up to 5 users","Jusqu'à 5 utilisateurs","Até 5 usuários"),
+    sf:_t3b("1 project · AI capture · Dashboard · Pillier IA Chat","1 projet · Capture IA · Tableau de bord · Pillier IA Chat","1 projeto · Captura IA · Dashboard · Pillier IA Chat"),
+    pu:_t3b("Up to 15 users","Jusqu'à 15 utilisateurs","Até 15 usuários"),
+    pf:_t3b("Unlimited · Documents · AI Insights · Real-time","Illimité · Documents · Insights IA · Temps réel","Ilimitado · Documentos · Insights IA · Tempo real"),
+    ep:_t3b("Custom","Sur devis","Sob consulta"),eu:_t3b("Unlimited","Illimité","Ilimitado"),
+    ef:_t3b("Integrations · Support · Training · SLA","Intégrations · Support · Formation · SLA","Integrações · Suporte · Treinamento · SLA"),
+    trial:_t3b("Free trial","Essai gratuit","Teste grátis"),sales:_t3b("Talk to sales","Contacter les ventes","Falar com vendas")};
+  el.innerHTML="<div style='display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;'>"+
+    "<div style='text-align:center;padding:14px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:#142536;'><div style='font-size:12px;font-weight:600;color:#8a8a95;margin-bottom:6px;'>"+T.starter+"</div><div style='font-family:var(--font-d);font-size:22px;font-weight:800;color:#f0f0f5;'>"+pillierPlanPrice('starter')+"<span style='font-size:10px;font-weight:400;color:#6a6a75;'>"+per+"</span></div><div style='font-size:10px;color:#2cbeff;margin:4px 0 8px;'>"+T.su+"</div><div style='font-size:10px;color:#6a6a75;line-height:1.6;'>"+T.sf+"</div><a href='https://app.pillier.com.br' style='display:block;margin-top:10px;padding:7px;border-radius:6px;background:rgba(44,190,255,0.1);color:#2cbeff;font-size:10px;font-weight:500;text-decoration:none;'>"+T.trial+"</a></div>"+
+    "<div style='text-align:center;padding:14px 10px;border-radius:10px;border:2px solid #2cbeff;background:#142536;position:relative;'><div style='position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:#2cbeff;color:#fff;font-size:8px;font-weight:700;padding:2px 8px;border-radius:10px;'>"+T.popular+"</div><div style='font-size:12px;font-weight:600;color:#2cbeff;margin-bottom:6px;'>"+T.pro+"</div><div style='font-family:var(--font-d);font-size:22px;font-weight:800;color:#f0f0f5;'>"+pillierPlanPrice('pro')+"<span style='font-size:10px;font-weight:400;color:#6a6a75;'>"+per+"</span></div><div style='font-size:10px;color:#2cbeff;margin:4px 0 8px;'>"+T.pu+"</div><div style='font-size:10px;color:#6a6a75;line-height:1.6;'>"+T.pf+"</div><a href='https://app.pillier.com.br' style='display:block;margin-top:10px;padding:7px;border-radius:6px;background:#2cbeff;color:#fff;font-size:10px;font-weight:600;text-decoration:none;'>"+T.trial+"</a></div>"+
+    "<div style='text-align:center;padding:14px 10px;border-radius:10px;border:1px solid rgba(251,191,36,0.3);background:#142536;'><div style='font-size:12px;font-weight:600;color:#fbbf24;margin-bottom:6px;'>"+T.ent+"</div><div style='font-family:var(--font-d);font-size:18px;font-weight:800;color:#f0f0f5;margin-top:4px;'>"+T.ep+"</div><div style='font-size:10px;color:#fbbf24;margin:4px 0 8px;'>"+T.eu+"</div><div style='font-size:10px;color:#6a6a75;line-height:1.6;'>"+T.ef+"</div><a href='mailto:contact@pillier.com.br' style='display:block;margin-top:10px;padding:7px;border-radius:6px;background:rgba(251,191,36,0.1);color:#fbbf24;font-size:10px;font-weight:500;text-decoration:none;'>"+T.sales+"</a></div>"+
+    "</div>";
+  var np=document.getElementById("nav-pricing");if(np&&np.childNodes[0])np.childNodes[0].nodeValue=_t3b("Plans","Plans","Planos")+" ";
+}
 // Billing: render all plans inside Assinatura with trial/commit/downgrade actions
 function renderBilling(){
   var el=document.getElementById("billing-body");if(!el)return;
