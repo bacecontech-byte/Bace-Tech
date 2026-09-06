@@ -4752,7 +4752,7 @@ function enterApp(user){
   // fallback merges every unrelated @gmail.com account into one shared workspace.
   var co=(meta.company&&meta.company.trim())?meta.company.trim():user.email;
   var parts=name.split(" ");
-  me={name:name,co:co,av:((parts[0]||"?")[0]+(parts[1]||"?")[0]).toUpperCase(),email:user.email,uid:user.id};
+  me={name:name,co:co,av:((parts[0]||"?")[0]+(parts[1]||"?")[0]).toUpperCase(),email:user.email,uid:user.id,role:meta.role||""};
   // If a DIFFERENT account signs in on this browser, drop the previous account's
   // cached data so nothing carries across accounts.
   try{
@@ -9537,6 +9537,55 @@ function setSettingsSection(key){
   if(key==="apps"){try{loadAppIntegrations();}catch(e){}}
 }
 function _t3(en,fr,pt){return lang===1?en:lang===0?fr:pt;}
+// Role dropdown (construction roles) — persisted to Supabase user metadata.
+function renderRoleSelect(){
+  var sel=document.getElementById("set-role-select");if(!sel)return;
+  var opts=lang===0?["Ingénieur civil","Chef de chantier","Conducteur de travaux","Chef d'équipe","Architecte","Responsable HSE","Propriétaire / Direction","Autre"]
+          :lang===2?["Engenheiro(a) civil","Mestre de obras","Encarregado(a)","Líder de equipe","Arquiteto(a)","Técnico(a) de segurança","Proprietário / Direção","Outro"]
+          :["Civil engineer","Site manager","Works supervisor","Team lead","Architect","Health & Safety officer","Owner / Management","Other"];
+  var cur=(me&&me.role)?String(me.role):"";
+  var ph=_t3("Select…","Sélectionner…","Selecionar…");
+  var esc=function(s){return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");};
+  var html="<option value=\"\">"+ph+"</option>";
+  var found=false;
+  opts.forEach(function(o){var s=(o===cur)?" selected":"";if(o===cur)found=true;html+="<option value=\""+esc(o)+"\""+s+">"+esc(o)+"</option>";});
+  if(cur&&!found)html+="<option value=\""+esc(cur)+"\" selected>"+esc(cur)+"</option>";
+  sel.innerHTML=html;
+}
+function saveUserRole(val){
+  me.role=val||"";
+  try{if(db&&me.email)db.auth.updateUser({data:{role:me.role}}).catch(function(){});}catch(e){}
+  try{localStorage.setItem("pillier_role",me.role);}catch(e){}
+  if(val)toast("✅ "+plL("Fonction mise à jour","Role updated","Função atualizada"));
+}
+function togglePwForm(){
+  var f=document.getElementById("set-pw-form");if(!f)return;
+  var open=f.style.display!=="none"&&f.style.display!=="";
+  f.style.display=open?"none":"block";
+  var msg=document.getElementById("set-pw-msg");if(msg)msg.textContent="";
+  if(!open){var n=document.getElementById("set-pw-new");if(n){n.value="";n.focus();}var c=document.getElementById("set-pw-confirm");if(c)c.value="";}
+}
+async function saveNewPassword(){
+  var n=document.getElementById("set-pw-new"),c=document.getElementById("set-pw-confirm"),msg=document.getElementById("set-pw-msg");
+  var show=function(t,ok){if(msg){msg.textContent=t;msg.style.color=ok?"#4ade80":"#f87171";}};
+  var np=n?n.value:"",cf=c?c.value:"";
+  if(np.length<8){show(_t3("At least 8 characters.","Au moins 8 caractères.","Pelo menos 8 caracteres."));return;}
+  if(np!==cf){show(_t3("Passwords don't match.","Les mots de passe ne correspondent pas.","As senhas não coincidem."));return;}
+  if(!db){show(_t3("Not available offline.","Indisponible hors ligne.","Indisponível offline."));return;}
+  var btn=document.getElementById("set-pw-save");if(btn)btn.disabled=true;
+  try{
+    var r=await db.auth.updateUser({password:np});
+    if(r&&r.error){show(r.error.message||_t3("Could not update password.","Impossible de mettre à jour.","Não foi possível atualizar."));}
+    else{show(_t3("Password updated.","Mot de passe mis à jour.","Senha atualizada."),true);if(n)n.value="";if(c)c.value="";setTimeout(function(){togglePwForm();},1300);}
+  }catch(e){show(_t3("Error. Try again.","Erreur. Réessayez.","Erro. Tente novamente."));}
+  if(btn)btn.disabled=false;
+}
+async function sendResetLink(){
+  if(!me||!me.email||!db)return;
+  try{await db.auth.resetPasswordForEmail(me.email,{redirectTo:location.origin+"/reset-password"});
+    toast("📧 "+plL("Lien envoyé à ","Link sent to ","Link enviado para ")+me.email);
+  }catch(e){toast("⚠️ "+plL("Erreur d'envoi","Send error","Erro ao enviar"));}
+}
 function openSettingsModal(){
   var ov=document.getElementById("settings-modal-overlay");
   if(ov)ov.style.display="flex";
@@ -9560,6 +9609,13 @@ function openSettingsModal(){
   lbl("set-email-label",_t3("Email","E-mail","E-mail"));
   lbl("set-role-label",_t3("Role","Rôle","Função"));
   lbl("set-firm-label",_t3("Firm","Entreprise","Empresa"));
+  lbl("set-sec-label",_t3("Security","Sécurité","Segurança"));
+  lbl("set-pw-btn-label",_t3("Change password","Changer le mot de passe","Alterar senha"));
+  lbl("set-pw-reset",_t3("Send a reset link by email","Envoyer un lien de réinitialisation par e-mail","Enviar link de redefinição por e-mail"));
+  var _phn=document.getElementById("set-pw-new");if(_phn)_phn.placeholder=_t3("New password","Nouveau mot de passe","Nova senha");
+  var _phc=document.getElementById("set-pw-confirm");if(_phc)_phc.placeholder=_t3("Confirm password","Confirmer le mot de passe","Confirmar senha");
+  lbl("set-pw-save",_t3("Save","Enregistrer","Salvar"));
+  lbl("set-pw-cancel",_t3("Cancel","Annuler","Cancelar"));
   lbl("set-logout",_t3("Log out","Déconnexion","Sair"));
   lbl("danger-zone-h",_t3("Danger zone","Zone de danger","Zona de perigo"));
   lbl("danger-zone-desc",_t3("Deleting your account permanently removes all your personal data, projects and files.","Supprimer votre compte supprime définitivement toutes vos données personnelles, projets et fichiers.","Excluir sua conta remove permanentemente todos os seus dados pessoais, projetos e arquivos."));
@@ -9596,7 +9652,8 @@ function openTeamModal(){
 function renderSettingsPlan(){
   var g=function(id){return document.getElementById(id);};
   var setTxt=function(id,v){var el=g(id);if(el)el.textContent=v||"—";};
-  setTxt("set-name",me&&me.name); setTxt("set-email",me&&me.email); setTxt("set-role",me&&me.role); setTxt("set-firm",me&&me.co);
+  setTxt("set-name",me&&me.name); setTxt("set-email",me&&me.email); setTxt("set-firm",me&&me.co);
+  try{renderRoleSelect();}catch(e){}
   var plan=PILLIER_PLANS[_pUsage.plan]||PILLIER_PLANS.free;
   var badge=g("set-plan-badge"); if(badge)badge.textContent=(plan.label||"Free").toUpperCase();
   function bar(lb,used,lim){var pct=lim>=999999?6:Math.min(100,Math.round((used/(lim||1))*100));var col=pct<60?"#22c55e":pct<90?"#f59e0b":"#ef4444";var txt=lim>=999999?"∞":used+"/"+lim;return "<div style='margin-bottom:10px;'><div style='display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;'><span style='color:var(--text2)'>"+lb+"</span><span style='color:var(--text);font-weight:700'>"+txt+"</span></div><div style='height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;'><div style='height:100%;width:"+pct+"%;background:"+col+";'></div></div></div>";}
@@ -10071,9 +10128,26 @@ function cloudSiteName(proj){
       <div class="set-panel" id="setp-account" style="display:none">
         <div class="set-h" id="setp-account-h">Conta</div>
         <div class="set-row"><span class="set-l" id="set-email-label">E-mail</span><span class="set-v" id="set-email">—</span></div>
-        <div class="set-row"><span class="set-l" id="set-role-label">Função</span><span class="set-v" id="set-role">—</span></div>
+        <div class="set-row"><span class="set-l" id="set-role-label">Função</span>
+          <select id="set-role-select" onchange="saveUserRole(this.value)" style="background:var(--navy3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:7px 10px;font-family:inherit;outline:none;cursor:pointer;max-width:62%;"></select>
+        </div>
         <div class="set-row"><span class="set-l" id="set-firm-label">Empresa</span><span class="set-v" id="set-firm">—</span></div>
-        <button onclick="doLogout()" style="margin-top:18px;background:none;border:1px solid var(--border2);color:var(--text2);border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:8px;" id="set-logout"><i class="ti ti-logout"></i> Sair</button>
+        <!-- Security: change password -->
+        <div style="margin-top:24px;">
+          <div class="set-l" id="set-sec-label" style="margin-bottom:10px;">Segurança</div>
+          <button id="set-pw-toggle" onclick="togglePwForm()" style="background:none;border:1px solid var(--border2);color:var(--text2);border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:8px;"><i class="ti ti-key"></i> <span id="set-pw-btn-label">Alterar senha</span></button>
+          <div id="set-pw-form" style="display:none;margin-top:12px;max-width:360px;">
+            <input type="password" id="set-pw-new" autocomplete="new-password" placeholder="Nova senha" style="width:100%;background:var(--navy3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:14px;padding:10px 12px;font-family:inherit;outline:none;margin-bottom:8px;">
+            <input type="password" id="set-pw-confirm" autocomplete="new-password" placeholder="Confirmar senha" style="width:100%;background:var(--navy3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:14px;padding:10px 12px;font-family:inherit;outline:none;">
+            <div style="display:flex;gap:8px;margin-top:10px;">
+              <button onclick="saveNewPassword()" id="set-pw-save" style="background:#2cbeff;border:none;color:#062430;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Salvar</button>
+              <button onclick="togglePwForm()" id="set-pw-cancel" style="background:none;border:1px solid var(--border2);color:var(--text2);border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer;font-family:inherit;">Cancelar</button>
+            </div>
+            <div id="set-pw-msg" style="font-size:12px;margin-top:8px;line-height:1.4;"></div>
+          </div>
+          <div style="margin-top:10px;"><a onclick="sendResetLink()" id="set-pw-reset" style="font-size:12px;color:#2cbeff;cursor:pointer;">Enviar link de redefinição por e-mail</a></div>
+        </div>
+        <button onclick="doLogout()" style="margin-top:22px;background:none;border:1px solid var(--border2);color:var(--text2);border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:8px;" id="set-logout"><i class="ti ti-logout"></i> Sair</button>
         <!-- Danger zone (GDPR / LGPD) -->
         <div style="margin-top:26px;padding-top:16px;border-top:1px solid rgba(248,113,113,0.25);">
           <div style="font-size:10px;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;" id="danger-zone-h">Zona de perigo</div>
