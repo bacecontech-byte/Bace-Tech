@@ -4076,6 +4076,7 @@ function applyLang(){
   try{var _pt=document.getElementById("pm-team-input");if(_pt)_pt.placeholder=plL("Saisir un nom puis Entrée","Type a name, then Enter","Digite um nome e Enter");}catch(e){}
   try{if(typeof renderBilling==="function")renderBilling();}catch(e){}
   try{if(typeof renderPricingDropdown==="function")renderPricingDropdown();}catch(e){}
+  try{if(typeof renderCompareTable==="function")renderCompareTable();}catch(e){}
   // Sync Resources page translations to main app language
   try{translateResources(lang===0?'fr':lang===2?'pt':'en');}catch(e){}
   try{renderUsageWidgets();}catch(e){}
@@ -7634,12 +7635,8 @@ function attachChatFile(input,type){
     };
     document.getElementById("chat-attachment-name").textContent=file.name;
     document.getElementById("chat-attachment").classList.add("show");
-    // Show preview for images
-    if(type==="photo-camera"||type==="photo-gallery"){
-      addMsg("user","<img alt='' src='"+e.target.result+"' style='max-width:220px;border-radius:8px;display:block'>");
-    } else {
-      addMsg("user","&#x1F4CE; "+file.name);
-    }
+    // Preview appears in the thread on send (addUserImage) — not here, to avoid
+    // dumping raw base64 into an escaped text bubble.
     input.value="";
   };
   reader.readAsDataURL(file);
@@ -7946,21 +7943,38 @@ function addMsg(role,text){
   wrap.appendChild(div);
   wrap.scrollTop=wrap.scrollHeight;
 }
+// Render a user image message safely (real <img>, dataUrl in src — never through escaped innerHTML).
+function addUserImage(dataUrl){
+  showChatEmpty(false);
+  var wrap=document.getElementById("chat-messages");if(!wrap)return;
+  var time=new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
+  var div=document.createElement("div");div.className="msg user";
+  var av=document.createElement("div");av.className="msg-av";av.textContent=me.av||"";
+  var col=document.createElement("div");
+  var bubble=document.createElement("div");bubble.className="msg-bubble";
+  var img=document.createElement("img");img.src=dataUrl;img.alt="";img.style.cssText="max-width:220px;border-radius:8px;display:block";
+  bubble.appendChild(img);col.appendChild(bubble);
+  var t=document.createElement("div");t.className="msg-time";t.textContent=time;col.appendChild(t);
+  div.appendChild(av);div.appendChild(col);
+  wrap.appendChild(div);wrap.scrollTop=wrap.scrollHeight;
+}
 function showTyping(){var wrap=document.getElementById("chat-messages");var div=document.createElement("div");div.className="msg bot";div.id="typing-ind";div.innerHTML="<div class='msg-av'>&#x1F477;</div><div class='msg-bubble'><div class='typing-indicator'><div class='typing-dot'></div><div class='typing-dot'></div><div class='typing-dot'></div></div></div>";wrap.appendChild(div);wrap.scrollTop=wrap.scrollHeight;}
 function removeTyping(){var el=document.getElementById("typing-ind");if(el)el.remove();}
 
 async function sendChat(){
   var input=document.getElementById("chat-input");
   var val=input.value.trim();
-  if(!val)return;
+  var attachment=chatAttachment;
+  if(!val&&!attachment)return; // allow sending an attachment with no typed text
   // SECURITY: Rate limit AI chat calls
   if(!checkRateLimit('ai_chat'))return;
   var btn=document.getElementById("chat-send");
   input.value="";input.style.height="auto";btn.disabled=true;
-  addMsg("user",val);
-  chatHistory.push({role:"user",content:val});
-  // Clear attachment UI
-  var attachment=chatAttachment;
+  // User-side render: image inline (safe <img>), other files as a paperclip + name.
+  if(attachment&&(attachment.type==="photo-camera"||attachment.type==="photo-gallery")){addUserImage(attachment.dataUrl);}
+  else if(attachment){addMsg("user","📎 "+attachment.name);}
+  if(val)addMsg("user",val);
+  chatHistory.push({role:"user",content:val||(attachment?("["+attachment.name+"]"):"")});
   clearChatAttachment();
   showTyping();
   // Scope the chat's incident knowledge to the current company AND selected site.
@@ -7994,23 +8008,35 @@ async function sendChat(){
   try{
     var chatModel="openai/gpt-oss-120b";
     var lastMsg=messages[messages.length-1];
-    if(attachment&&(attachment.type==="photo-camera"||attachment.type==="photo-gallery"||attachment.type==="video")){
+    if(attachment&&(attachment.type==="photo-camera"||attachment.type==="photo-gallery")){
+      chatModel="gemini-photo";
+      var _cimg=await _aiReadyImage(attachment.dataUrl); // shrink so phone photos stay under the API limit
+      lastMsg={role:"user",content:[
+        {type:"image_url",image_url:{url:_cimg}},
+        {type:"text",text:val||plL("Analyse cette image en lien avec ce chantier.","Analyze this image in the context of this construction site.","Analise esta imagem no contexto desta obra.")}
+      ]};
+      messages[messages.length-1]=lastMsg;
+    } else if(attachment&&attachment.type==="video"){
       chatModel="gemini-photo";
       lastMsg={role:"user",content:[
         {type:"image_url",image_url:{url:attachment.dataUrl}},
-        {type:"text",text:val||"Analyse cette image et dis-moi ce que tu vois en lien avec ce chantier."}
+        {type:"text",text:val||plL("Analyse cette vidéo en lien avec ce chantier.","Analyze this video in the context of this construction site.","Analise este vídeo no contexto desta obra.")}
       ]};
       messages[messages.length-1]=lastMsg;
     } else if(attachment&&attachment.type==="voice"){
       chatModel="gemini-audio";
       lastMsg={role:"user",content:[
         {type:"image_url",image_url:{url:"data:audio/webm;base64,"+attachment.data}},
-        {type:"text",text:val||"Transcris et analyse cette note vocale."}
+        {type:"text",text:val||plL("Transcris et analyse cette note vocale.","Transcribe and analyze this voice note.","Transcreva e analise esta nota de voz.")}
       ]};
       messages[messages.length-1]=lastMsg;
     } else if(attachment&&attachment.type==="document"){
-      // For docs, ask AI to analyze with context
-      lastMsg={role:"user",content:val+(val?" ":"")+"[Document joint: "+attachment.name+"] Analyse ce document dans le contexte du chantier."};
+      // Send the document bytes to Gemini (reads PDFs/images inline) so it's actually analysed.
+      chatModel="gemini-photo";
+      lastMsg={role:"user",content:[
+        {type:"image_url",image_url:{url:attachment.dataUrl}},
+        {type:"text",text:(val||plL("Analyse ce document dans le contexte du chantier.","Analyze this document in the context of the construction site.","Analise este documento no contexto da obra."))+" ["+attachment.name+"]"}
+      ]};
       messages[messages.length-1]=lastMsg;
     }
     var isGeminiChat=chatModel==="gemini-photo"||chatModel==="gemini-audio";
@@ -8021,13 +8047,13 @@ async function sendChat(){
     removeTyping();
     if(data.error){
       console.error("Groq chat error:",data.error);
-      var errMsg=res.status===401?"Clé API invalide. Vérifiez-la dans Shift+Alt+K.":res.status===429?"Limite de l API atteinte. Réessayez dans quelques instants.":"Erreur IA: "+(data.error.message||"inconnue").substring(0,100);
+      var errMsg=res.status===401?plL("Clé API invalide.","Invalid API key.","Chave de API inválida."):res.status===429?plL("Limite de l'API atteinte. Réessayez dans quelques instants.","API limit reached. Please try again shortly.","Limite da API atingida. Tente novamente em instantes."):(res.status===413?plL("Fichier trop volumineux pour l'analyse. Essayez une image plus petite.","File too large to analyze. Try a smaller image.","Arquivo muito grande para análise. Tente uma imagem menor."):plL("Erreur IA : ","AI error: ","Erro de IA: ")+(data.error.message||"inconnue").substring(0,100));
       addMsg("bot","⚠️ "+errMsg);
       btn.disabled=false;return;
     }
     if(!data.choices||!data.choices[0]){
       console.error("Groq chat unexpected response:",data);
-      addMsg("bot","⚠️ Réponse IA invalide, réessayez.");
+      addMsg("bot","⚠️ "+plL("Réponse IA invalide, réessayez.","Invalid AI response, try again.","Resposta de IA inválida, tente novamente."));
       btn.disabled=false;return;
     }
     var reply=data.choices[0].message.content;
@@ -8037,7 +8063,7 @@ async function sendChat(){
   }catch(e){
     console.error("sendChat exception:",e);
     removeTyping();
-    addMsg("bot","⚠️ Erreur de connexion. Vérifiez votre internet.");
+    addMsg("bot","⚠️ "+plL("Erreur de connexion. Vérifiez votre internet.","Connection error. Check your internet.","Erro de conexão. Verifique sua internet."));
   }
   btn.disabled=false;
 }
@@ -9807,6 +9833,50 @@ function renderPricingDropdown(){
     "<div style='text-align:center;padding:14px 10px;border-radius:10px;border:1px solid rgba(251,191,36,0.3);background:#142536;'><div style='font-size:12px;font-weight:600;color:#fbbf24;margin-bottom:6px;'>"+T.ent+"</div><div style='font-family:var(--font-d);font-size:18px;font-weight:800;color:#f0f0f5;margin-top:4px;'>"+T.ep+"</div><div style='font-size:10px;color:#fbbf24;margin:4px 0 8px;'>"+T.eu+"</div><div style='font-size:10px;color:#6a6a75;line-height:1.6;'>"+T.ef+"</div><a href='mailto:contact@pillier.com.br' style='display:block;margin-top:10px;padding:7px;border-radius:6px;background:rgba(251,191,36,0.1);color:#fbbf24;font-size:10px;font-weight:500;text-decoration:none;'>"+T.sales+"</a></div>"+
     "</div>";
   var np=document.getElementById("nav-pricing");if(np&&np.childNodes[0])np.childNodes[0].nodeValue=_t3b("Plans","Plans","Planos")+" ";
+}
+// Plan comparison table — rebuilt from localized data so every row/value follows the language.
+function renderCompareTable(){
+  var C="✓",X="✗";
+  var P1=["1 project","1 projet","1 projeto"],UP15=["Up to 15","Jusqu'à 15","Até 15"],UNL=["Unlimited","Illimité","Ilimitado"];
+  function cell(c){
+    if(c===C)return "<div style='text-align:center;font-size:16px;color:#2cbeff;'>✓</div>";
+    if(c===X)return "<div style='text-align:center;font-size:16px;color:var(--text3);'>✗</div>";
+    var t=Array.isArray(c)?_t3b(c[0],c[1],c[2]):c;
+    return "<div style='text-align:center;font-size:11px;color:var(--text2);'>"+t+"</div>";
+  }
+  function rows(arr){return arr.map(function(r){
+    return "<div class='cmp-row' data-feat='"+r[0]+"' style='display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);'><div style='font-size:13px;color:var(--text);'>"+_t3b(r[1][0],r[1][1],r[1][2])+"</div>"+r[2].map(cell).join("")+"</div>";
+  }).join("");}
+  var feats=[
+    ["feat-photo",["Photo & voice capture","Capture photo & voix","Captura de foto e voz"],[C,C,C,C]],
+    ["feat-chat",["Pillier IA Chat","Pillier IA Chat","Pillier IA Chat"],[C,C,C,C]],
+    ["feat-dash",["Dashboard & KPIs","Tableau de bord & KPI","Dashboard e KPIs"],[C,C,C,C]],
+    ["feat-projects",["Multi-project support","Support multi-projets","Suporte multiprojetos"],[P1,UNL,UNL,UNL]],
+    ["feat-kb",["Knowledge Base","Base de connaissances","Base de conhecimento"],[C,C,C,C]],
+    ["feat-search",["Advanced search","Recherche avancée","Busca avançada"],[X,C,C,C]],
+    ["feat-reports",["Custom report exports","Exports de rapports personnalisés","Exportação de relatórios personalizados"],[X,C,C,C]],
+    ["feat-collab",["Real-time collaboration","Collaboration en temps réel","Colaboração em tempo real"],[X,X,C,C]],
+    ["feat-notif",["Team notifications","Notifications d'équipe","Notificações da equipe"],[X,X,C,C]],
+    ["feat-users",["Team members","Membres d'équipe","Membros da equipe"],["1","1",UP15,UNL]],
+    ["feat-integrations",["Custom integrations (ERP, BIM)","Intégrations personnalisées (ERP, BIM)","Integrações personalizadas (ERP, BIM)"],[X,X,X,C]]
+  ];
+  var agents=[
+    ["agent-capture",["Capture Agent","Agent Capture","Agente Captura"],[C,C,C,C]],
+    ["agent-norm",["Norm Agent (ABNT, DTU, Eurocode)","Agent Norme (ABNT, DTU, Eurocode)","Agente Norma (ABNT, DTU, Eurocode)"],[C,C,C,C]],
+    ["agent-docs",["Docs Agent (PDF analysis)","Agent Docs (analyse PDF)","Agente Docs (análise PDF)"],[X,C,C,C]],
+    ["agent-insight",["Insight Agent (pattern detection)","Agent Insight (détection de tendances)","Agente Insight (detecção de padrões)"],[X,C,C,C]]
+  ];
+  var sec=[
+    ["sec-sso",["Single Sign-On (SSO)","Authentification unique (SSO)","Login único (SSO)"],[X,X,X,C]],
+    ["sec-billing",["Central billing","Facturation centralisée","Faturamento centralizado"],[X,X,C,C]],
+    ["sec-roles",["Role-based access control","Contrôle d'accès par rôle","Controle de acesso por função"],[X,X,X,C]],
+    ["sec-audit",["Audit logs","Journaux d'audit","Logs de auditoria"],[X,X,X,C]],
+    ["sec-sla",["SLA guarantee","Garantie SLA","Garantia de SLA"],[X,X,X,C]],
+    ["sec-support",["Support level","Niveau de support","Nível de suporte"],[["Email","E-mail","E-mail"],["Priority","Prioritaire","Prioritário"],["Priority","Prioritaire","Prioritário"],["Dedicated","Dédié","Dedicado"]]]
+  ];
+  var b1=document.getElementById("cmp-features-body");if(b1)b1.innerHTML=rows(feats);
+  var b2=document.getElementById("cmp-agents-body");if(b2)b2.innerHTML=rows(agents);
+  var b3=document.getElementById("cmp-security-body");if(b3)b3.innerHTML=rows(sec);
 }
 // Billing: render all plans inside Assinatura with trial/commit/downgrade actions
 function renderBilling(){
