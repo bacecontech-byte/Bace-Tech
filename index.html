@@ -4060,6 +4060,10 @@ function applyLang(){
   translateNav();
   syncLangSelects();
   try{var _cb=document.getElementById("sb-cap-lbl");if(_cb)_cb.textContent=plL("Capturer un incident","Capture incident","Capturar incidente");}catch(e){}
+  // Mobile profile panel labels (were hardcoded PT)
+  try{var _ml=document.getElementById("mob-lang-label");if(_ml)_ml.textContent=plL("Langue","Language","Idioma");}catch(e){}
+  try{var _pi=document.getElementById("pwa-install-label");if(_pi)_pi.textContent=plL("Installer l'application","Install app","Instalar aplicativo");}catch(e){}
+  try{var _lo=document.getElementById("mob-logout-label");if(_lo)_lo.textContent=plL("Déconnexion","Log out","Sair");}catch(e){}
   try{renderSyncBadge();}catch(e){}
   // Sync Resources page translations to main app language
   try{translateResources(lang===0?'fr':lang===2?'pt':'en');}catch(e){}
@@ -10017,7 +10021,7 @@ function cloudSiteName(proj){
     <div style="width:32px;height:32px;border-radius:50%;background:rgba(44,190,255,0.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#2cbeff;" id="mob-prof-av">DM</div>
     <div><div style="font-size:13px;font-weight:600;color:var(--white);" id="mob-prof-name">User</div><div style="font-size:10px;color:var(--text3);" id="mob-prof-co">Company</div></div>
   </div>
-  <div style="font-size:9px;color:#6a6a75;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Idioma</div>
+  <div id="mob-lang-label" style="font-size:9px;color:#6a6a75;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Idioma</div>
   <div style="display:flex;gap:6px;margin-bottom:10px;">
     <button onclick="changeLang(0);closeMobileProfile();" style="padding:4px 10px;border-radius:6px;font-size:10px;border:1px solid rgba(255,255,255,0.08);color:#4a6a8a;background:none;cursor:pointer;" id="mob-lang-0">FR</button>
     <button onclick="changeLang(1);closeMobileProfile();" style="padding:4px 10px;border-radius:6px;font-size:10px;border:1px solid rgba(255,255,255,0.08);color:#4a6a8a;background:none;cursor:pointer;" id="mob-lang-1">EN</button>
@@ -10026,7 +10030,7 @@ function cloudSiteName(proj){
   
   <div id="mob-settings-row" onclick="closeMobileProfile();openSettingsModal()" style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px;color:var(--text2);cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);"><i class="ti ti-settings" style="font-size:16px;color:#2cbeff;width:20px;text-align:center;"></i> <span id="mob-settings-label">Configurações</span></div>
   <div id="pwa-install-row" onclick="installPWA();closeMobileProfile()" style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px;color:var(--text2);cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);"><i class="ti ti-download" style="font-size:16px;color:#2cbeff;width:20px;text-align:center;"></i> <span id="pwa-install-label">Instalar aplicativo</span></div>
-  <div onclick="closeMobileProfile();doLogout()" style="display:flex;align-items:center;gap:8px;padding:8px 0;margin-top:4px;font-size:12px;color:#f87171;cursor:pointer;"><i class="ti ti-logout" style="font-size:16px;color:#f87171;width:20px;text-align:center;"></i> Sair</div>
+  <div onclick="closeMobileProfile();doLogout()" style="display:flex;align-items:center;gap:8px;padding:8px 0;margin-top:4px;font-size:12px;color:#f87171;cursor:pointer;"><i class="ti ti-logout" style="font-size:16px;color:#f87171;width:20px;text-align:center;"></i> <span id="mob-logout-label">Sair</span></div>
 </div>
 
 <!-- Settings Modal -->
