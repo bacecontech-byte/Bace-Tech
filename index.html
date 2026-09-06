@@ -3995,8 +3995,8 @@ function translateNav(){
   Object.keys(ddMap).forEach(function(id){var el=document.getElementById(id);if(el&&solT[ddMap[id]])el.textContent=solT[ddMap[id]];});
   // Plans tab
   var isPT=lang===2;
-  var curSym=isPT?'R$ ':'€ ';
-  var pricing={starter:isPT?'R$ 299':'€ 59',pro:isPT?'R$ 499':'€ 99',team:isPT?'R$ 999':'€ 199'};
+  var curSym=pillierCurrency()+' ';
+  var pricing={starter:pillierPlanPrice('starter'),pro:pillierPlanPrice('pro'),team:pillierPlanPrice('team')};
   var plT=lang===0?{title:'Plans',sub:'Commencez avec un essai gratuit. Évoluez avec votre équipe.',individual:'Individuel',team:'Équipe & Enterprise',starterTag:'Pour indépendants',proTag:'Pour cabinets en croissance',teamTag:'Pour petites et moyennes entreprises',entTag:'Pour grandes opérations',period:'Par mois, facturation mensuelle',teamPeriod:'Par mois, jusqu\'à 15 utilisateurs',entPrice:'Nous contacter',entPeriod:'Tarifs et conditions sur mesure',tryBt:'Essayer Pillier',contactSales:'Contact commercial',contact:'Contact',starterInc:'Inclus :',proInc:'Tout Starter, plus :',teamInc:'Tout Pro, plus :',entInc:'Tout Team, plus :',
     sf1:'1 projet actif',sf2:'Capture photo & voix',sf3:'Pillier IA Chat',sf4:'Tableau de bord avec KPI',sf5:'Agent Capture + Agent Norme',sf6:'Support par email',
     pf1:'Projets illimités',pf2:'Agent Docs (analyse PDF)',pf3:'Agent Insight (détection de schémas)',pf4:'Exports de rapports personnalisés',pf5:'Recherche avancée dans la base',pf6:'Support prioritaire',
@@ -4073,6 +4073,7 @@ function applyLang(){
   try{var _pi=document.getElementById("pwa-install-label");if(_pi)_pi.textContent=plL("Installer l'application","Install app","Instalar aplicativo");}catch(e){}
   try{var _lo=document.getElementById("mob-logout-label");if(_lo)_lo.textContent=plL("Déconnexion","Log out","Sair");}catch(e){}
   try{renderSyncBadge();}catch(e){}
+  try{if(typeof renderBilling==="function")renderBilling();}catch(e){}
   // Sync Resources page translations to main app language
   try{translateResources(lang===0?'fr':lang===2?'pt':'en');}catch(e){}
   try{renderUsageWidgets();}catch(e){}
@@ -9739,12 +9740,15 @@ function inviteTeam(){
   try{renderSettingsPlan();}catch(e){}
   try{toast(_t3b("Invitation sent to ","Invitation envoyée à ","Convite enviado para ")+email);}catch(e){}
 }
+// Pricing follows the UI language: EN → US$, FR → €, PT → R$.
+function pillierCurrency(){return lang===1?"US$":lang===0?"€":"R$";}
+function pillierPlanPrice(k){var a=(lang===2)?{starter:299,pro:499,team:999}:{starter:59,pro:99,team:199};return pillierCurrency()+" "+a[k];}
 // Billing: render all plans inside Assinatura with trial/commit/downgrade actions
 function renderBilling(){
   var el=document.getElementById("billing-body");if(!el)return;
   var order=["free","starter","pro","team","enterprise"];
   var cur=_pUsage.plan, paid=_isPaid(), trialing=_isTrialing(), tdays=_trialDaysLeft();
-  var price={free:_t3b("Free","Gratuit","Grátis"),starter:"R$ 299",pro:"R$ 499",team:"R$ 999",enterprise:_t3b("Contact us","Nous contacter","Fale conosco")};
+  var price={free:_t3b("Free","Gratuit","Grátis"),starter:pillierPlanPrice("starter"),pro:pillierPlanPrice("pro"),team:pillierPlanPrice("team"),enterprise:_t3b("Contact us","Nous contacter","Fale conosco")};
   var sub={
     free:_t3b("1 project, basics","1 projet, l'essentiel","1 projeto, o essencial"),
     starter:_t3b("For solo pros","Pour indépendants","Para autônomos"),
