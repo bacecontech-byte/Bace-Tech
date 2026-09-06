@@ -857,6 +857,19 @@ body.light-mode #cloud-connections-panel{background:#f9fafb !important;border-co
 .msg-bubble .md-table tbody tr:nth-child(even){background:rgba(255,255,255,0.02);}
 .msg-bubble .md-table a{color:var(--blue);}
 .msg.user .msg-bubble code,.msg.user .msg-bubble .md-pre{background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.25);color:#fff;}
+/* Document-analysis markdown: readable tables/lists instead of raw pipes */
+.doc-md{font-size:13px;color:var(--text);line-height:1.55;}
+.doc-md .md-p{margin:0 0 8px;}
+.doc-md .md-p:last-child{margin-bottom:0;}
+.doc-md .md-ul,.doc-md .md-ol{margin:4px 0 8px;padding-left:20px;}
+.doc-md .md-ul li,.doc-md .md-ol li{margin:2px 0;}
+.doc-md .md-h{font-weight:700;color:var(--white);margin:8px 0 4px;}
+.doc-md .md-tablewrap{overflow-x:auto;margin:6px 0;-webkit-overflow-scrolling:touch;border:1px solid var(--border);border-radius:8px;}
+.doc-md .md-table{border-collapse:collapse;width:100%;font-size:12.5px;}
+.doc-md .md-table th,.doc-md .md-table td{border:1px solid var(--border);padding:6px 10px;text-align:left;vertical-align:top;}
+.doc-md .md-table th{background:var(--navy3);color:var(--white);font-weight:700;white-space:nowrap;position:sticky;top:0;}
+.doc-md .md-table tbody tr:nth-child(even){background:rgba(255,255,255,0.02);}
+.doc-md .md-table a{color:var(--blue);}
 .msg-time{font-size:10px;color:var(--text3);margin-top:4px;}
 .chat-suggestions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
 .chat-sugg{background:var(--navy2);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:12px;color:var(--text2);cursor:pointer;transition:all 0.12s;white-space:nowrap;}
@@ -8585,7 +8598,6 @@ function parseDocSummary(summary){
     .replace(/^\[\d+ pages?\]\s*/,"")
     .replace(/\*\*([^*]*)\*\*/g,"$1")
     .replace(/^#{1,4}\s*/gm,"")
-    .replace(/^[-*]\s+/gm,"")
     .trim();
 
   fields.raw=clean;
@@ -8618,7 +8630,7 @@ function parseDocSummary(summary){
     if(col>0&&col<35){
       // Save previous key
       if(currentKey&&currentVal.length){
-        var val=currentVal.join(" ").trim();
+        var val=currentVal.join("\n").trim();
         if(val)fields[currentKey]=fields[currentKey]?(fields[currentKey]+" "+val):val;
       }
       var rawKey=ln.substring(0,col).toLowerCase().trim();
@@ -8640,7 +8652,7 @@ function parseDocSummary(summary){
   });
   // Save last key
   if(currentKey&&currentVal.length){
-    var val=currentVal.join(" ").trim();
+    var val=currentVal.join("\n").trim();
     if(val)fields[currentKey]=fields[currentKey]?(fields[currentKey]+" "+val):val;
   }
 
@@ -8683,40 +8695,50 @@ function renderDocs(proj){
     if(f.scale&&f.scale.length>1&&!f.scale.match(/na|n\/a|non sp|n.o esp/i))topRow+="<span style=\'display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:5px;padding:2px 8px;font-size:10px;color:var(--text2);\'>"+(S.docFieldScale||"Échelle")+": "+f.scale+"</span>";
     if(topRow)fields+="<div style=\'display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;\'>"+topRow+"</div>";
 
-    // 2. Project / Object
-    if(f.purpose)fields+="<div class=\'doc-field\'><div class=\'doc-field-label\'>"+(S.docFieldPurpose||"Projet")+"</div><div class=\'doc-field-value\'>"+f.purpose+"</div></div>";
+    // Render each analysis field as real markdown (tables → tables, lists → lists)
+    // so nothing shows up as raw "| … |" pipe-soup.
+    var _isNA=function(v){return !v||/^(na|n\/a)$/i.test(String(v).trim());};
+    var _hasTable=function(v){return /\|/.test(v)&&/-{2,}/.test(v);};
+    var _mdField=function(label,val){return "<div class='doc-field'><div class='doc-field-label'>"+label+"</div><div class='doc-field-value doc-md'>"+renderMarkdown(val)+"</div></div>";};
 
-    // 3. Rooms / Spaces — most useful field on site
-    if(f.rooms&&!f.rooms.match(/^na$/i)){
-      var roomList=f.rooms.split(/[|;\n]+/).map(function(r){return r.trim();}).filter(function(r){return r.length>1;});
-      if(roomList.length>1){
-        var roomHtml=roomList.map(function(r){return "<span style=\'display:inline-flex;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:5px;padding:2px 8px;font-size:11px;color:var(--text2);margin:2px;\'>"+r+"</span>";}).join("");
-        fields+="<div class=\'doc-field\'><div class=\'doc-field-label\'>"+(S.docFieldRooms||"Pièces / Espaces")+"</div><div style=\'display:flex;flex-wrap:wrap;margin-top:4px;\'>"+roomHtml+"</div></div>";
-      } else {
-        fields+="<div class=\'doc-field\'><div class=\'doc-field-label\'>"+(S.docFieldRooms||"Pièces / Espaces")+"</div><div class=\'doc-field-value\'>"+f.rooms+"</div></div>";
+    // 2. Project / Object
+    if(!_isNA(f.purpose))fields+=_mdField(S.docFieldPurpose||"Projet",f.purpose);
+
+    // 3. Rooms / Spaces
+    if(!_isNA(f.rooms)){
+      if(_hasTable(f.rooms)){fields+=_mdField(S.docFieldRooms||"Pièces / Espaces",f.rooms);}
+      else{
+        var roomList=f.rooms.split(/[|;\n]+/).map(function(r){return r.trim();}).filter(function(r){return r.length>1;});
+        if(roomList.length>1){
+          var roomHtml=roomList.map(function(r){return "<span style=\'display:inline-flex;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:5px;padding:2px 8px;font-size:11px;color:var(--text2);margin:2px;\'>"+escapeHTML(r)+"</span>";}).join("");
+          fields+="<div class=\'doc-field\'><div class=\'doc-field-label\'>"+(S.docFieldRooms||"Pièces / Espaces")+"</div><div style=\'display:flex;flex-wrap:wrap;margin-top:4px;\'>"+roomHtml+"</div></div>";
+        } else {fields+=_mdField(S.docFieldRooms||"Pièces / Espaces",f.rooms);}
       }
     }
 
     // 4. Specifications
-    if(f.specifications&&!f.specifications.match(/^na$/i))fields+="<div class=\'doc-field\'><div class=\'doc-field-label\'>"+(S.docFieldSpecs||"Spécifications")+"</div><div class=\'doc-field-value\' style=\'white-space:pre-wrap;\'>"+f.specifications+"</div></div>";
+    if(!_isNA(f.specifications))fields+=_mdField(S.docFieldSpecs||"Spécifications",f.specifications);
 
     // 5. Elements
-    if(f.elements&&!f.elements.match(/^na$/i))fields+="<div class=\'doc-field\'><div class=\'doc-field-label\'>"+(S.docFieldElements||"Éléments")+"</div><div class=\'doc-field-value\' style=\'white-space:pre-wrap;\'>"+f.elements+"</div></div>";
+    if(!_isNA(f.elements))fields+=_mdField(S.docFieldElements||"Éléments",f.elements);
 
-    // 6. Norms — pills
-    if(f.normes&&!f.normes.match(/^(na|n\/a)$/i)){
-      var normList=f.normes.split(/[,;\n]+/).map(function(n){return n.trim();}).filter(function(n){return n.length>2;});
-      var normHtml=normList.length>1?normList.map(function(n){return "<span style=\'display:inline-flex;background:rgba(30,111,255,0.08);border:1px solid rgba(30,111,255,0.2);border-radius:5px;padding:2px 8px;font-size:10px;color:var(--blue);margin:2px;\'>"+n+"</span>";}).join(""):"&#x1F4D0; "+f.normes;
-      fields+="<div class=\'doc-field\'><div class=\'doc-field-label\'>"+(S.docFieldNorms||"Normes")+"</div><div style=\'display:flex;flex-wrap:wrap;margin-top:4px;\'>"+normHtml+"</div></div>";
+    // 6. Norms — table if the AI returned one, otherwise pills
+    if(!_isNA(f.normes)){
+      if(_hasTable(f.normes)){fields+=_mdField(S.docFieldNorms||"Normes",f.normes);}
+      else{
+        var normList=f.normes.split(/[,;\n]+/).map(function(n){return n.trim();}).filter(function(n){return n.length>2;});
+        var normHtml=normList.length>1?normList.map(function(n){return "<span style=\'display:inline-flex;background:rgba(30,111,255,0.08);border:1px solid rgba(30,111,255,0.2);border-radius:5px;padding:2px 8px;font-size:10px;color:var(--blue);margin:2px;\'>"+escapeHTML(n)+"</span>";}).join(""):"&#x1F4D0; "+escapeHTML(f.normes);
+        fields+="<div class=\'doc-field\'><div class=\'doc-field-label\'>"+(S.docFieldNorms||"Normes")+"</div><div style=\'display:flex;flex-wrap:wrap;margin-top:4px;\'>"+normHtml+"</div></div>";
+      }
     }
 
     // 7. Notes
-    if(f.notes&&!f.notes.match(/^na$/i))fields+="<div class=\'doc-field\'><div class=\'doc-field-label\'>"+(S.docFieldNotes||"Notes")+"</div><div class=\'doc-field-value\' style=\'white-space:pre-wrap;font-size:11px;color:var(--text3);\'>"+f.notes+"</div></div>";
+    if(!_isNA(f.notes))fields+="<div class=\'doc-field\'><div class=\'doc-field-label\'>"+(S.docFieldNotes||"Notes")+"</div><div class=\'doc-field-value doc-md\' style=\'font-size:11px;color:var(--text3);\'>"+renderMarkdown(f.notes)+"</div></div>";
 
     // Fallback
     if(!fields){
       var rawText=f.raw||d.summary||"";
-      if(rawText)fields="<div class=\'doc-field\'><div class=\'doc-field-label\'>Analyse IA</div><div class=\'doc-field-value\' style=\'white-space:pre-wrap;\'>"+rawText+"</div></div>";
+      if(rawText)fields=_mdField("Analyse IA",rawText);
       else fields="<div class=\'doc-field\'><div class=\'doc-field-value\' style=\'color:var(--text3);font-style:italic\'>"+(S.docNoSummary||"Analyse non disponible.")+"</div></div>";
     }
 
