@@ -197,22 +197,44 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
-    // Push a message to a connected app's webhook (Slack / Teams / Zapier / generic)
+    // Push a single test message to ONE connected app (used by the "Send test" button).
     if (action === "notify") {
-      const { company_id, app, text, payload } = req.body || JSON.parse(await getBody(req));
+      const { company_id, app, incident } = req.body || JSON.parse(await getBody(req));
       const conn = await getConnection(company_id, "app:" + app);
-      const url = conn && conn.tokens && conn.tokens.config && conn.tokens.config.webhookUrl;
-      if (!url) return res.status(400).json({ error: "No webhook configured for " + app });
-      let body;
-      if (app === "slack") body = { text: text || "" };
-      else if (app === "teams") body = { text: text || "" };
-      else body = payload || { text: text || "" };
-      try {
-        const wr = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-        return res.status(200).json({ ok: wr.ok });
-      } catch (e) {
-        return res.status(200).json({ ok: false, error: e.message });
-      }
+      const config = conn && conn.tokens && conn.tokens.config;
+      if (!config) return res.status(400).json({ error: "Not connected: " + app });
+      const inc = normalizeIncident(incident);
+      const out = await dispatchToApp(app, config, inc);
+      console.log("[integrations] test notify", app, out.ok ? "OK" : "FAILED", out.error || "");
+      return res.status(200).json(out);
+    }
+
+    // Fan-out an incident to EVERY connected app (Slack, Teams, WhatsApp, Google
+    // Calendar, Procore, Autodesk, Jira, Zapier). Called when a capture is saved.
+    // All third-party requests happen here, server-side — no browser CORS.
+    if (action === "dispatch") {
+      const { company_id, incident } = req.body || JSON.parse(await getBody(req));
+      if (!company_id) return res.status(400).json({ error: "Missing company_id" });
+      const all = await getConnections(company_id, true);
+      const apps = (all || []).filter((c) => c.provider && c.provider.indexOf("app:") === 0);
+      const inc = normalizeIncident(incident);
+      const results = {};
+      await Promise.all(apps.map(async (c) => {
+        const appId = c.provider.slice(4);
+        const config = c.tokens && c.tokens.config;
+        if (!config) { results[appId] = { ok: false, error: "no config" }; return; }
+        try {
+          const out = await dispatchToApp(appId, config, inc);
+          results[appId] = out;
+          console.log("[integrations] dispatch", appId, out.ok ? "OK" : "FAILED", out.error || "");
+        } catch (e) {
+          results[appId] = { ok: false, error: e.message };
+          console.error("[integrations] dispatch", appId, "THREW", e.message);
+        }
+      }));
+      const sent = Object.keys(results).filter((k) => results[k].ok).length;
+      console.log("[integrations] dispatch complete —", sent + "/" + apps.length, "delivered");
+      return res.status(200).json({ ok: true, dispatched: sent, total: apps.length, results });
     }
 
     return res.status(400).json({ error: "Unknown action" });
@@ -220,6 +242,229 @@ export default async function handler(req, res) {
     console.error("cloud-sync error:", err);
     return res.status(500).json({ error: err.message });
   }
+}
+
+// ── App-integration dispatch (Slack / Teams / WhatsApp / GCal / Procore /
+//    Autodesk / Jira / Zapier) ──────────────────────────────────────────────
+
+// Normalize whatever the client sends into a stable incident shape.
+function normalizeIncident(raw) {
+  raw = raw || {};
+  const sevRaw = ("" + (raw.severity || raw.sev || "")).toLowerCase();
+  const sevMap = { low: "Baixa", medium: "Média", high: "Alta", critical: "Crítica",
+    faible: "Baixa", moyen: "Média", "élevé": "Alta", critique: "Crítica",
+    baixa: "Baixa", "média": "Média", media: "Média", alta: "Alta", "crítica": "Crítica" };
+  const emoji = { critical: "🔴", high: "🟠", medium: "🟡", low: "🟢", critique: "🔴", "élevé": "🟠", moyen: "🟡", faible: "🟢", "crítica": "🔴", alta: "🟠", "média": "🟡", baixa: "🟢" };
+  return {
+    title: ("" + (raw.title || "Incidente")).slice(0, 300),
+    severity: sevMap[sevRaw] || raw.severity || "—",
+    severityKey: sevRaw || "medium",
+    severityEmoji: emoji[sevRaw] || "⚠️",
+    category: ("" + (raw.category || raw.cat || "—")).slice(0, 120),
+    project: ("" + (raw.project || "—")).slice(0, 200),
+    description: ("" + (raw.description || raw.desc || "")).slice(0, 3000),
+    action: ("" + (raw.action || "")).slice(0, 3000),
+    user_name: ("" + (raw.user_name || raw.user || "Pillier")).slice(0, 120),
+    photo_url: raw.photo_url || null,
+    url: raw.app_url || raw.url || "https://pillier.com.br",
+    at: raw.captured_at || new Date().toISOString(),
+  };
+}
+
+// Plain-text summary reused by Slack fallback, Teams summary, WhatsApp and Zapier.
+function incidentText(inc) {
+  let t = inc.severityEmoji + " *" + inc.title + "*\n";
+  t += "Severidade: " + inc.severity + "  |  Categoria: " + inc.category + "\n";
+  t += "Obra: " + inc.project + "\n";
+  if (inc.description) t += "\n" + inc.description + "\n";
+  if (inc.action) t += "\nAção recomendada: " + inc.action + "\n";
+  t += "\nRegistrado por " + inc.user_name + " · Pillier";
+  return t;
+}
+
+async function postJSON(url, body, headers) {
+  const r = await fetch(url, {
+    method: "POST",
+    headers: Object.assign({ "Content-Type": "application/json" }, headers || {}),
+    body: JSON.stringify(body),
+  });
+  let detail = "";
+  if (!r.ok) { try { detail = (await r.text()).slice(0, 300); } catch (e) {} }
+  return { ok: r.ok, status: r.status, detail };
+}
+
+// Route one incident to one app using its stored config. Returns {ok, error?}.
+async function dispatchToApp(app, config, inc) {
+  config = config || {};
+  try {
+    if (app === "slack") return await dispatchSlack(config, inc);
+    if (app === "teams") return await dispatchTeams(config, inc);
+    if (app === "zapier") return await dispatchZapier(config, inc);
+    if (app === "whatsapp") return await dispatchWhatsApp(config, inc);
+    if (app === "jira") return await dispatchJira(config, inc);
+    if (app === "gcal") return await dispatchGCal(config, inc);
+    if (app === "procore") return await dispatchGeneric(config, inc, "procore");
+    if (app === "autodesk") return await dispatchGeneric(config, inc, "autodesk");
+    return { ok: false, error: "unknown app: " + app };
+  } catch (e) {
+    return { ok: false, error: e.message || String(e) };
+  }
+}
+
+// Slack — Block Kit message via Incoming Webhook.
+async function dispatchSlack(config, inc) {
+  if (!config.webhookUrl) return { ok: false, error: "no webhookUrl" };
+  const fields = [
+    { type: "mrkdwn", text: "*Severidade:*\n" + inc.severityEmoji + " " + inc.severity },
+    { type: "mrkdwn", text: "*Categoria:*\n" + inc.category },
+    { type: "mrkdwn", text: "*Obra:*\n" + inc.project },
+    { type: "mrkdwn", text: "*Registrado por:*\n" + inc.user_name },
+  ];
+  const blocks = [
+    { type: "header", text: { type: "plain_text", text: (inc.severityEmoji + " " + inc.title).slice(0, 150), emoji: true } },
+    { type: "section", fields },
+  ];
+  if (inc.description) blocks.push({ type: "section", text: { type: "mrkdwn", text: "*Descrição:*\n" + inc.description.slice(0, 2900) } });
+  if (inc.action) blocks.push({ type: "section", text: { type: "mrkdwn", text: "*Ação recomendada:*\n" + inc.action.slice(0, 2900) } });
+  blocks.push({ type: "context", elements: [{ type: "mrkdwn", text: "Pillier · " + new Date(inc.at).toLocaleString("pt-BR") }] });
+  const r = await postJSON(config.webhookUrl, { text: inc.severityEmoji + " " + inc.title + " — " + inc.project, blocks });
+  return r.ok ? { ok: true } : { ok: false, error: "slack " + r.status + " " + r.detail };
+}
+
+// Teams — Adaptive Card (Workflows/Power Automate). Falls back to the legacy
+// MessageCard format if the webhook rejects the modern payload.
+async function dispatchTeams(config, inc) {
+  if (!config.webhookUrl) return { ok: false, error: "no webhookUrl" };
+  const facts = [
+    { title: "Severidade", value: inc.severityEmoji + " " + inc.severity },
+    { title: "Categoria", value: inc.category },
+    { title: "Obra", value: inc.project },
+    { title: "Registrado por", value: inc.user_name },
+  ];
+  const cardBody = [
+    { type: "TextBlock", size: "Large", weight: "Bolder", text: inc.title, wrap: true },
+    { type: "FactSet", facts },
+  ];
+  if (inc.description) cardBody.push({ type: "TextBlock", text: inc.description, wrap: true, spacing: "Medium" });
+  if (inc.action) cardBody.push({ type: "TextBlock", text: "**Ação recomendada:** " + inc.action, wrap: true, isSubtle: true });
+  const adaptive = {
+    type: "message",
+    attachments: [{
+      contentType: "application/vnd.microsoft.card.adaptive",
+      content: {
+        $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
+        type: "AdaptiveCard", version: "1.4",
+        body: cardBody,
+        actions: [{ type: "Action.OpenUrl", title: "Abrir no Pillier", url: inc.url }],
+        msteams: { width: "Full" },
+      },
+    }],
+  };
+  let r = await postJSON(config.webhookUrl, adaptive);
+  if (r.ok) return { ok: true };
+  // Fallback: legacy Office 365 connector MessageCard.
+  const messageCard = {
+    "@type": "MessageCard", "@context": "http://schema.org/extensions",
+    themeColor: "2cbeff", summary: inc.title,
+    title: inc.severityEmoji + " " + inc.title,
+    sections: [{ facts: facts.map((f) => ({ name: f.title, value: f.value })), text: inc.description || "", markdown: true }],
+    potentialAction: [{ "@type": "OpenUri", name: "Abrir no Pillier", targets: [{ os: "default", uri: inc.url }] }],
+  };
+  const r2 = await postJSON(config.webhookUrl, messageCard);
+  return r2.ok ? { ok: true } : { ok: false, error: "teams " + r.status + "/" + r2.status + " " + (r2.detail || r.detail) };
+}
+
+// Zapier / generic webhook — flat event payload any automation can map.
+async function dispatchZapier(config, inc) {
+  if (!config.webhookUrl) return { ok: false, error: "no webhookUrl" };
+  const r = await postJSON(config.webhookUrl, {
+    event: "incident.captured", source: "Pillier",
+    title: inc.title, severity: inc.severity, severity_key: inc.severityKey,
+    category: inc.category, project: inc.project,
+    description: inc.description, recommended_action: inc.action,
+    user_name: inc.user_name, photo_url: inc.photo_url, url: inc.url, captured_at: inc.at,
+    summary: incidentText(inc),
+  });
+  return r.ok ? { ok: true } : { ok: false, error: "zapier " + r.status + " " + r.detail };
+}
+
+// WhatsApp Business Cloud API — one text message per recipient.
+async function dispatchWhatsApp(config, inc) {
+  const token = config.token || config.apiKey;
+  if (!token || !config.phoneNumberId) {
+    // Allow a webhook bridge as an alternative.
+    if (config.webhookUrl) return dispatchZapier(config, inc);
+    return { ok: false, error: "missing token/phoneNumberId" };
+  }
+  const recipients = ("" + (config.recipients || "")).split(/[,\s;]+/).map((s) => s.trim().replace(/[^0-9]/g, "")).filter(Boolean);
+  if (!recipients.length) return { ok: false, error: "no recipients" };
+  const url = "https://graph.facebook.com/v19.0/" + config.phoneNumberId + "/messages";
+  let okAny = false, err = "";
+  for (const to of recipients) {
+    const r = await postJSON(url, { messaging_product: "whatsapp", to, type: "text", text: { body: incidentText(inc).replace(/\*/g, "*") } }, { Authorization: "Bearer " + token });
+    if (r.ok) okAny = true; else err = "whatsapp " + r.status + " " + r.detail;
+  }
+  return okAny ? { ok: true } : { ok: false, error: err };
+}
+
+// Jira Cloud — create an issue via Basic auth (email:apiToken). No OAuth needed.
+async function dispatchJira(config, inc) {
+  if (config.webhookUrl && !config.apiToken) return dispatchZapier(config, inc);
+  const site = ("" + (config.site || "")).replace(/^https?:\/\//, "").replace(/\/$/, "");
+  if (!site || !config.email || !config.apiToken || !config.projectKey) return { ok: false, error: "missing site/email/apiToken/projectKey" };
+  const auth = Buffer.from(config.email + ":" + config.apiToken).toString("base64");
+  // Atlassian Document Format body.
+  const paras = [];
+  const push = (label, val) => { if (val) paras.push({ type: "paragraph", content: [{ type: "text", text: label + ": ", marks: [{ type: "strong" }] }, { type: "text", text: val }] }); };
+  push("Obra", inc.project); push("Severidade", inc.severity); push("Categoria", inc.category);
+  if (inc.description) paras.push({ type: "paragraph", content: [{ type: "text", text: inc.description }] });
+  push("Ação recomendada", inc.action); push("Registrado por", inc.user_name);
+  const body = {
+    fields: {
+      project: { key: config.projectKey },
+      summary: ("[" + inc.severity + "] " + inc.title).slice(0, 250),
+      issuetype: { name: config.issueType || "Task" },
+      description: { type: "doc", version: 1, content: paras.length ? paras : [{ type: "paragraph", content: [{ type: "text", text: inc.title }] }] },
+    },
+  };
+  const r = await postJSON("https://" + site + "/rest/api/3/issue", body, { Authorization: "Basic " + auth, Accept: "application/json" });
+  return r.ok ? { ok: true } : { ok: false, error: "jira " + r.status + " " + r.detail };
+}
+
+// Google Calendar — create an event. Prefers a webhook bridge (no OAuth secret);
+// supports a direct OAuth access token for advanced setups.
+async function dispatchGCal(config, inc) {
+  if (config.webhookUrl && !config.accessToken) return dispatchZapier(config, inc);
+  if (!config.accessToken) return { ok: false, error: "missing accessToken (or set a webhookUrl bridge)" };
+  const calId = config.calendarId || "primary";
+  const start = new Date(inc.at);
+  const end = new Date(start.getTime() + 60 * 60 * 1000);
+  const body = {
+    summary: "[Pillier] " + inc.title,
+    description: incidentText(inc) + "\n\n" + inc.url,
+    start: { dateTime: start.toISOString() },
+    end: { dateTime: end.toISOString() },
+  };
+  const r = await postJSON("https://www.googleapis.com/calendar/v3/calendars/" + encodeURIComponent(calId) + "/events", body, { Authorization: "Bearer " + config.accessToken });
+  return r.ok ? { ok: true } : { ok: false, error: "gcal " + r.status + " " + r.detail };
+}
+
+// Procore / Autodesk — no generic incoming webhook and OAuth needs a registered
+// app + refresh dance we can't complete server-side without the customer's client
+// secret. The reliable, verified path is a webhook bridge (Zapier/Make/Power
+// Automate → Procore Observation / ACC Issue). A direct REST endpoint is also
+// honored if the customer supplies { apiUrl, accessToken }.
+async function dispatchGeneric(config, inc, name) {
+  if (config.webhookUrl) return dispatchZapier(config, inc);
+  if (config.apiUrl && config.accessToken) {
+    const r = await postJSON(config.apiUrl, {
+      title: inc.title, severity: inc.severity, category: inc.category,
+      project: inc.project, description: inc.description, recommended_action: inc.action,
+      user_name: inc.user_name, url: inc.url, captured_at: inc.at, source: "Pillier",
+    }, { Authorization: "Bearer " + config.accessToken });
+    return r.ok ? { ok: true } : { ok: false, error: name + " " + r.status + " " + r.detail };
+  }
+  return { ok: false, error: name + ": set a webhookUrl (recommended) or apiUrl+accessToken" };
 }
 
 // ── Helper functions ─────────────────────────────────────────────────────
@@ -310,8 +555,9 @@ async function saveTokens(companyId, provider, tokens) {
   }
 }
 
-async function getConnections(companyId) {
-  return supabaseRequest("GET", `cloud_connections?company_id=eq.${companyId}&select=provider,updated_at`);
+async function getConnections(companyId, withTokens) {
+  const select = withTokens ? "provider,tokens,updated_at" : "provider,updated_at";
+  return supabaseRequest("GET", `cloud_connections?company_id=eq.${companyId}&select=${select}`);
 }
 
 async function getConnection(companyId, provider) {

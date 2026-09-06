@@ -4796,6 +4796,7 @@ function enterApp(user){
   try{renderSyncBadge();}catch(e){}
   try{renderCommBadge();}catch(e){}
   try{renderIaDot();}catch(e){}
+  try{_fetchConnectedApps();}catch(e){} // preload so the first capture dispatches without delay
   try{if(localStorage.getItem("pillier-sb-collapsed")==="1"){var _w=document.querySelector(".app-wrap");if(_w)_w.classList.add("sb-collapsed");var _ci=document.getElementById("sb-collapse-ico");if(_ci)_ci.className="ti ti-chevron-right";}}catch(e){}
   document.getElementById("s-login").classList.remove("active");
   document.getElementById("s-content").classList.remove("active");
@@ -5398,6 +5399,7 @@ async function syncPendingCaptures(){
         if(idx>=0)entries[idx].id=r.data[0].id;
         try{fileStorage(e);}catch(_){}
         try{incrementPillierUsage("captures");}catch(_){}
+        try{dispatchIncident(e);}catch(_){} // notify connected apps once it reaches the cloud
         synced++;
       }
     }catch(err){delete _capSyncing[oid];break;} // network dropped again → stop
@@ -5503,6 +5505,7 @@ async function syncPendingAnalyses(){
       try{renderDash();renderKB();renderCounts();}catch(_){}
       try{ragIndex("incident",e.id,e.project,e.title,[e.title,catLabel(e.cat),e.desc,e.action,e.cause,e.normes].filter(Boolean).join("\n"));}catch(_){}
       try{if(dbOk)await saveDB(e);}catch(_){} // push the enriched record to the cloud
+      try{dispatchIncident(e);}catch(_){} // now that AI enriched it, notify connected apps
     }catch(err){delete _aiSyncing[oid];break;}
     delete _aiSyncing[oid];
   }
@@ -6799,6 +6802,7 @@ async function saveEntry(){
     toast("✅ "+plL("Classé dans « ","Filed under « ","Arquivado em « ")+catLabel(entry.cat)+" »");
     syncToCloud(entry,_origPhoto);
     if(dbOk)await saveDB(entry);
+    try{dispatchIncident(entry);}catch(_){} // fan-out to connected apps (Slack/Teams/…)
   }
   setTimeout(function(){showTab(0,document.querySelectorAll(".sidebar-link")[0]);},700);
 }
@@ -9426,70 +9430,188 @@ async function loadCloudStatus(){
   if(el){var n=Object.keys(connected).length;el.innerHTML=n?("<div style='font-size:12px;color:#4ade80;display:flex;align-items:center;gap:6px;'><i class='ti ti-circle-check'></i> "+n+" "+_t3("storage connected","stockage(s) connecté(s)","armazenamento(s) conectado(s)")+"</div>"):"";}
 }
 
-// ── Customization: other company apps (webhook / API-key integrations) ───
+// ── Customization: other company apps (webhook / API integrations) ────────
+// Each app declares the fields it needs. Labels are [EN,FR,PT]. `req` fields are
+// validated before saving; the connect modal below renders them. Every dispatch
+// happens server-side (/api/cloud-sync?action=dispatch) so there are no browser
+// CORS blocks and credentials never touch the client after being entered.
 var PILLIER_APPS=[
-  {id:"slack",name:"Slack",icon:"ti-brand-slack",color:"#4A154B",kind:"webhook"},
-  {id:"teams",name:"Microsoft Teams",icon:"ti-brand-teams",color:"#6264A7",kind:"webhook"},
-  {id:"whatsapp",name:"WhatsApp Business",icon:"ti-brand-whatsapp",color:"#25D366",kind:"apikey"},
-  {id:"gcal",name:"Google Calendar",icon:"ti-calendar-event",color:"#4285F4",kind:"apikey"},
-  {id:"procore",name:"Procore",icon:"ti-building",color:"#F47E42",kind:"apikey"},
-  {id:"autodesk",name:"Autodesk Construction",icon:"ti-cube",color:"#0696D7",kind:"apikey"},
-  {id:"jira",name:"Jira",icon:"ti-ticket",color:"#0052CC",kind:"apikey"},
-  {id:"zapier",name:"Zapier / Webhook",icon:"ti-webhook",color:"#FF4A00",kind:"webhook"}
+  {id:"slack",name:"Slack",icon:"ti-brand-slack",color:"#4A154B",
+   note:["Paste an Incoming Webhook URL (Slack → Apps → Incoming Webhooks).","Collez une URL de webhook entrant (Slack → Apps → Incoming Webhooks).","Cole a URL de um Incoming Webhook (Slack → Apps → Incoming Webhooks)."],
+   fields:[{key:"webhookUrl",l:["Incoming Webhook URL","URL du webhook entrant","URL do Incoming Webhook"],type:"url",req:1,ph:"https://hooks.slack.com/services/…"}]},
+  {id:"teams",name:"Microsoft Teams",icon:"ti-brand-teams",color:"#6264A7",
+   note:["Create a Workflow \"Post to a channel when a webhook request is received\" and paste its URL.","Créez un flux \"Publier quand une requête webhook est reçue\" et collez son URL.","Crie um Fluxo \"Postar quando uma solicitação de webhook for recebida\" e cole a URL."],
+   fields:[{key:"webhookUrl",l:["Incoming Webhook / Workflow URL","URL du webhook / flux","URL do Webhook / Fluxo"],type:"url",req:1,ph:"https://…webhook.office.com/…"}]},
+  {id:"whatsapp",name:"WhatsApp Business",icon:"ti-brand-whatsapp",color:"#25D366",
+   note:["Meta Cloud API: paste the permanent token, the Phone Number ID and the recipient numbers.","API Cloud Meta : collez le token permanent, l'ID du numéro et les numéros destinataires.","API Cloud da Meta: cole o token permanente, o Phone Number ID e os números destinatários."],
+   fields:[{key:"token",l:["Cloud API token","Token API Cloud","Token da Cloud API"],type:"password",req:1},
+           {key:"phoneNumberId",l:["Phone Number ID","ID du numéro","Phone Number ID"],type:"text",req:1},
+           {key:"recipients",l:["Recipient numbers (comma-separated)","Numéros destinataires (séparés par des virgules)","Números destinatários (separados por vírgula)"],type:"text",req:1,ph:"5511999999999, 5511888888888"}]},
+  {id:"gcal",name:"Google Calendar",icon:"ti-calendar-event",color:"#4285F4",
+   note:["Recommended: paste a Zapier/Make/Power Automate webhook that creates a Calendar event. Advanced: an OAuth access token + calendar ID.","Recommandé : un webhook Zapier/Make/Power Automate qui crée un événement. Avancé : un token OAuth + l'ID du calendrier.","Recomendado: um webhook Zapier/Make/Power Automate que cria um evento. Avançado: um token OAuth + ID do calendário."],
+   fields:[{key:"webhookUrl",l:["Automation webhook URL","URL du webhook d'automatisation","URL do webhook de automação"],type:"url",req:1,group:"a",ph:"https://hooks.zapier.com/…"},
+           {key:"accessToken",l:["OAuth access token (advanced)","Token OAuth (avancé)","Token OAuth (avançado)"],type:"password",group:"b"},
+           {key:"calendarId",l:["Calendar ID (default: primary)","ID du calendrier (défaut : primary)","ID do calendário (padrão: primary)"],type:"text",group:"b"}]},
+  {id:"procore",name:"Procore",icon:"ti-building",color:"#F47E42",
+   note:["Recommended: paste a Zapier/Make/Power Automate webhook that creates a Procore Observation. Advanced: a REST endpoint + access token.","Recommandé : un webhook Zapier/Make/Power Automate qui crée une Observation Procore. Avancé : un endpoint REST + token.","Recomendado: um webhook Zapier/Make/Power Automate que cria uma Observação no Procore. Avançado: um endpoint REST + token."],
+   fields:[{key:"webhookUrl",l:["Automation webhook URL","URL du webhook d'automatisation","URL do webhook de automação"],type:"url",req:1,group:"a",ph:"https://hooks.zapier.com/…"},
+           {key:"apiUrl",l:["Direct REST endpoint (advanced)","Endpoint REST direct (avancé)","Endpoint REST direto (avançado)"],type:"url",group:"b"},
+           {key:"accessToken",l:["Access token (advanced)","Token d'accès (avancé)","Token de acesso (avançado)"],type:"password",group:"b"}]},
+  {id:"autodesk",name:"Autodesk Construction",icon:"ti-cube",color:"#0696D7",
+   note:["Recommended: paste a Zapier/Make/Power Automate webhook that creates an ACC Issue. Advanced: a REST endpoint + access token.","Recommandé : un webhook Zapier/Make/Power Automate qui crée un Problème ACC. Avancé : un endpoint REST + token.","Recomendado: um webhook Zapier/Make/Power Automate que cria uma Issue no ACC. Avançado: um endpoint REST + token."],
+   fields:[{key:"webhookUrl",l:["Automation webhook URL","URL du webhook d'automatisation","URL do webhook de automação"],type:"url",req:1,group:"a",ph:"https://hooks.zapier.com/…"},
+           {key:"apiUrl",l:["Direct REST endpoint (advanced)","Endpoint REST direct (avancé)","Endpoint REST direto (avançado)"],type:"url",group:"b"},
+           {key:"accessToken",l:["Access token (advanced)","Token d'accès (avancé)","Token de acesso (avançado)"],type:"password",group:"b"}]},
+  {id:"jira",name:"Jira",icon:"ti-ticket",color:"#0052CC",
+   note:["Jira Cloud: paste your site, account email, an API token (id.atlassian.com → Security) and the project key.","Jira Cloud : collez votre site, votre email, un token API (id.atlassian.com → Sécurité) et la clé de projet.","Jira Cloud: cole seu site, e-mail, um token de API (id.atlassian.com → Segurança) e a chave do projeto."],
+   fields:[{key:"site",l:["Site (yourco.atlassian.net)","Site (votresoc.atlassian.net)","Site (suaempresa.atlassian.net)"],type:"text",req:1,ph:"empresa.atlassian.net"},
+           {key:"email",l:["Account email","Email du compte","E-mail da conta"],type:"text",req:1},
+           {key:"apiToken",l:["API token","Token API","Token de API"],type:"password",req:1},
+           {key:"projectKey",l:["Project key (e.g. CON)","Clé de projet (ex. CON)","Chave do projeto (ex. CON)"],type:"text",req:1,ph:"CON"},
+           {key:"issueType",l:["Issue type (default: Task)","Type de ticket (défaut : Task)","Tipo de item (padrão: Task)"],type:"text",ph:"Task"}]},
+  {id:"zapier",name:"Zapier / Webhook",icon:"ti-webhook",color:"#FF4A00",
+   note:["Paste a Zapier \"Catch Hook\" URL (or any endpoint) — it receives the full incident as JSON.","Collez une URL \"Catch Hook\" Zapier (ou tout endpoint) — il reçoit l'incident complet en JSON.","Cole a URL de um \"Catch Hook\" do Zapier (ou qualquer endpoint) — recebe o incidente completo em JSON."],
+   fields:[{key:"webhookUrl",l:["Catch Hook URL","URL du Catch Hook","URL do Catch Hook"],type:"url",req:1,ph:"https://hooks.zapier.com/hooks/catch/…"}]}
 ];
-var _connectedApps={};
-async function loadAppIntegrations(){
-  if(!document.getElementById("apps-grid"))return;
+function _appById(id){return PILLIER_APPS.filter(function(a){return a.id===id;})[0];}
+var _connectedApps={},_appsLoaded=false;
+// Fetch which apps are connected — DOM-independent, so dispatch works even when
+// the settings modal was never opened this session.
+async function _fetchConnectedApps(){
   _connectedApps={};
   if(dbCoId){try{
     var r=await fetch("/api/cloud-sync?action=list-integrations",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:dbCoId})});
     var d=await r.json();(d.apps||[]).forEach(function(a){_connectedApps[a.app]=true;});
+    _appsLoaded=true;
   }catch(e){}}
+  return _connectedApps;
+}
+async function loadAppIntegrations(){
+  if(!document.getElementById("apps-grid"))return;
+  await _fetchConnectedApps();
   renderAppsGrid();
 }
 function renderAppsGrid(){
   var grid=document.getElementById("apps-grid");if(!grid)return;
   grid.innerHTML=PILLIER_APPS.map(function(a){
     var on=!!_connectedApps[a.id];
-    var right=on?("<span style='margin-left:auto;font-size:9px;font-weight:700;color:#4ade80;background:rgba(74,222,128,0.12);border-radius:20px;padding:2px 7px;'>"+_t3("Connected","Connecté","Conectado")+"</span>"):"<i class='ti ti-plus' style='margin-left:auto;font-size:15px;color:var(--text3);'></i>";
+    var right=on
+      ?("<span style='margin-left:auto;display:inline-flex;align-items:center;gap:8px;'><span style='font-size:9px;font-weight:700;color:#4ade80;background:rgba(74,222,128,0.12);border-radius:20px;padding:2px 7px;'>"+_t3("Connected","Connecté","Conectado")+"</span><i class='ti ti-settings' onclick=\"event.stopPropagation();connectApp('"+a.id+"')\" style='font-size:15px;color:var(--text3);' title='"+_t3("Edit","Modifier","Editar")+"'></i></span>")
+      :"<i class='ti ti-plus' style='margin-left:auto;font-size:15px;color:var(--text3);'></i>";
     return "<button onclick=\"appTileClick('"+a.id+"')\" class='cloud-btn' style='display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid "+(on?"rgba(74,222,128,0.35)":"rgba(255,255,255,0.06)")+";color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;text-align:left;'><i class='ti "+a.icon+"' style='font-size:18px;color:"+a.color+";flex-shrink:0;'></i> "+a.name+right+"</button>";
   }).join("");
 }
 function appTileClick(id){return _connectedApps[id]?disconnectApp(id):connectApp(id);}
-async function connectApp(id){
+
+// Per-app connection form modal (replaces the old single window.prompt).
+function connectApp(id){
   if(!dbCoId){toast(_t3("Log in first","Connectez-vous d'abord","Faça login primeiro"));return;}
-  var app=PILLIER_APPS.filter(function(a){return a.id===id;})[0];if(!app)return;
-  var config={};
-  if(app.kind==="webhook"){
-    var url=window.prompt(_t3("Paste the incoming webhook URL for "+app.name+":","Collez l'URL du webhook entrant pour "+app.name+" :","Cole a URL do webhook de entrada do "+app.name+":"));
-    if(!url)return;url=(""+url).trim();
-    if(!/^https:\/\//.test(url)){toast(_t3("Enter a valid https URL.","URL https invalide.","Insira uma URL https válida."));return;}
-    config.webhookUrl=url;
-  } else {
-    var key=window.prompt(_t3("Paste your "+app.name+" API key / token:","Collez votre clé API "+app.name+" :","Cole sua chave de API do "+app.name+":"));
-    if(!key)return;config.apiKey=(""+key).trim();
+  var app=_appById(id);if(!app)return;
+  var already=!!_connectedApps[id];
+  var ov=document.createElement("div");
+  ov.id="app-conn-overlay";
+  ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;";
+  var h="<div style=\"background:#16323b;border:1px solid rgba(44,190,255,0.2);border-radius:14px;padding:22px;width:420px;max-width:94vw;max-height:88vh;overflow:auto;\">";
+  h+="<div style=\"display:flex;align-items:center;gap:10px;margin-bottom:6px;\"><i class='ti "+app.icon+"' style='font-size:22px;color:"+app.color+";'></i><div style=\"font-size:17px;font-weight:600;color:var(--white);\">"+escapeHTML(app.name)+"</div></div>";
+  h+="<div style=\"font-size:12px;color:var(--text3);line-height:1.5;margin-bottom:16px;\">"+_t3.apply(null,app.note)+"</div>";
+  app.fields.forEach(function(f){
+    var lab=_t3(f.l[0],f.l[1],f.l[2]);
+    var opt=f.req?"":" <span style='color:var(--text3);font-weight:400;'>("+_t3("optional","optionnel","opcional")+")</span>";
+    h+="<div style=\"margin-bottom:11px;\"><label style=\"font-size:11px;color:var(--text2);display:block;margin-bottom:4px;\">"+escapeHTML(lab)+opt+"</label>";
+    h+="<input id=\"appf-"+f.key+"\" type=\""+(f.type==="password"?"password":"text")+"\" placeholder=\""+escapeHTML(f.ph||"")+"\" style=\"width:100%;padding:9px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;color:var(--white);font-size:13px;box-sizing:border-box;font-family:inherit;\"></div>";
+  });
+  h+="<div style=\"display:flex;gap:8px;margin-top:8px;\">";
+  h+="<button onclick=\"saveAppIntegration('"+id+"')\" style=\"flex:1;padding:11px;background:#2cbeff;border:none;border-radius:9px;color:#062430;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;\">"+_t3(already?"Save changes":"Connect",already?"Enregistrer":"Connecter",already?"Salvar":"Conectar")+"</button>";
+  if(already)h+="<button onclick=\"disconnectApp('"+id+"')\" style=\"padding:11px 14px;background:none;border:1px solid rgba(248,113,113,0.4);border-radius:9px;color:#f87171;font-size:13px;cursor:pointer;font-family:inherit;\">"+_t3("Disconnect","Déconnecter","Desconectar")+"</button>";
+  h+="<button onclick=\"document.getElementById('app-conn-overlay').remove()\" style=\"padding:11px 14px;background:none;border:1px solid var(--border);border-radius:9px;color:var(--text2);font-size:13px;cursor:pointer;font-family:inherit;\">"+_t3("Cancel","Annuler","Cancelar")+"</button>";
+  h+="</div></div>";
+  ov.innerHTML=h;
+  ov.onclick=function(e){if(e.target===ov)ov.remove();};
+  document.body.appendChild(ov);
+  var first=ov.querySelector("input");if(first)setTimeout(function(){first.focus();},50);
+}
+
+async function saveAppIntegration(id){
+  var app=_appById(id);if(!app)return;
+  var config={},missing=[],grouped={};
+  app.fields.forEach(function(f){
+    var el=document.getElementById("appf-"+f.key);
+    var v=el?(""+el.value).trim():"";
+    if(v)config[f.key]=v;
+    if(f.group){grouped[f.group]=grouped[f.group]||{filled:false};if(v)grouped[f.group].filled=true;}
+    else if(f.req&&!v)missing.push(_t3(f.l[0],f.l[1],f.l[2]));
+  });
+  // Grouped fields (a=webhook OR b=direct API): at least one group must be filled.
+  var groupKeys=Object.keys(grouped);
+  if(groupKeys.length&&!groupKeys.some(function(g){return grouped[g].filled;})){
+    missing.push(_t3("a webhook URL or the advanced fields","une URL de webhook ou les champs avancés","uma URL de webhook ou os campos avançados"));
   }
+  // Validate URL-typed fields that were provided.
+  var badUrl=app.fields.some(function(f){return f.type==="url"&&config[f.key]&&!/^https:\/\//.test(config[f.key]);});
+  if(badUrl){toast(_t3("Webhook URLs must start with https://","Les URLs webhook doivent commencer par https://","URLs de webhook devem começar com https://"));return;}
+  if(missing.length){toast(_t3("Fill in: ","Remplissez : ","Preencha: ")+missing.join(", "));return;}
   try{
     var r=await fetch("/api/cloud-sync?action=save-integration",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:dbCoId,app:id,config:config})});
     var d=await r.json();
-    if(d&&d.ok){_connectedApps[id]=true;renderAppsGrid();toast(app.name+" "+_t3("connected","connecté","conectado"));}
-    else toast(_t3("Could not connect","Échec de la connexion","Não foi possível conectar"));
-  }catch(e){toast("Error: "+e.message);}
+    if(d&&d.ok){
+      _connectedApps[id]=true;
+      var ov=document.getElementById("app-conn-overlay");if(ov)ov.remove();
+      renderAppsGrid();
+      console.log("[integrations] saved config for",id,Object.keys(config));
+      toast(app.name+" "+_t3("connected","connecté","conectado"));
+      // Fire a test payload so the user sees it land immediately.
+      sendAppTest(id);
+    } else {
+      toast(_t3("Could not connect","Échec de la connexion","Não foi possível conectar"));
+    }
+  }catch(e){console.error("[integrations] save failed",id,e);toast("Error: "+e.message);}
 }
+
 async function disconnectApp(id){
   if(!dbCoId)return;
-  var app=PILLIER_APPS.filter(function(a){return a.id===id;})[0];
+  var app=_appById(id);
   if(!window.confirm(_t3("Disconnect "+(app?app.name:"this app")+"?","Déconnecter "+(app?app.name:"")+" ?","Desconectar "+(app?app.name:"")+"?")))return;
   try{await fetch("/api/cloud-sync?action=delete-integration",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:dbCoId,app:id})});}catch(e){}
-  delete _connectedApps[id];renderAppsGrid();
+  delete _connectedApps[id];
+  var ov=document.getElementById("app-conn-overlay");if(ov)ov.remove();
+  renderAppsGrid();
+  console.log("[integrations] disconnected",id);
 }
-// Post a message to every connected webhook app (Slack/Teams/Zapier).
-async function notifyApps(text){
-  if(!dbCoId||!text)return;
-  ["slack","teams","zapier"].forEach(function(id){
-    if(!_connectedApps[id])return;
-    try{fetch("/api/cloud-sync?action=notify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:dbCoId,app:id,text:text})});}catch(e){}
-  });
+
+// A structured incident object the server turns into per-app payloads.
+function _incidentForDispatch(e){
+  return {
+    title:e.title||"",severity:e.sev||e.severity||"medium",category:catLabel(e.cat||e.category)||e.cat||"",
+    project:e.project||"",description:e.desc||e.description||"",action:e.action||"",
+    user_name:(me&&me.name)||"Pillier",photo_url:(e.photo_url&&e.photo_url.indexOf("http")===0)?e.photo_url:null,
+    app_url:(location.origin||"https://pillier.com.br"),captured_at:new Date().toISOString()
+  };
+}
+// Fan-out one incident to EVERY connected app (server-side, no CORS). Guarded so
+// an incident is only dispatched once even though several code paths save it.
+async function dispatchIncident(e){
+  if(!dbCoId||!e)return;
+  if(e._dispatched)return; e._dispatched=true;
+  if(!_appsLoaded){try{await _fetchConnectedApps();}catch(_){}}
+  if(!Object.keys(_connectedApps).length){console.log("[integrations] no apps connected — nothing to dispatch");e._dispatched=false;return;}
+  try{
+    var r=await fetch("/api/cloud-sync?action=dispatch",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:dbCoId,incident:_incidentForDispatch(e)})});
+    var d=await r.json();
+    if(d&&d.results){Object.keys(d.results).forEach(function(k){var x=d.results[k];console[x.ok?"log":"warn"]("[integrations] "+k+": "+(x.ok?"delivered":"FAILED "+(x.error||"")));});}
+    console.log("[integrations] incident dispatched — "+((d&&d.dispatched)||0)+"/"+((d&&d.total)||0)+" services");
+  }catch(err){e._dispatched=false;console.error("[integrations] dispatch failed",err);}
+}
+// Send a one-off test incident to a single app (after connecting).
+async function sendAppTest(id){
+  if(!dbCoId)return;
+  var inc={title:_t3("Test from Pillier","Test depuis Pillier","Teste do Pillier"),severity:"low",category:_t3("Test","Test","Teste"),project:_t3("Integration check","Vérification d'intégration","Verificação de integração"),description:_t3("If you can read this, the integration is working.","Si vous lisez ceci, l'intégration fonctionne.","Se você está lendo isto, a integração está funcionando."),action:"",user_name:(me&&me.name)||"Pillier",app_url:location.origin,captured_at:new Date().toISOString()};
+  try{
+    var r=await fetch("/api/cloud-sync?action=notify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:dbCoId,app:id,incident:inc})});
+    var d=await r.json();
+    console[d&&d.ok?"log":"warn"]("[integrations] test "+id+": "+(d&&d.ok?"delivered":"FAILED "+((d&&d.error)||"")));
+    if(d&&d.ok)toast("✅ "+_t3("Test sent to ","Test envoyé à ","Teste enviado para ")+(_appById(id)||{name:id}).name);
+    else toast("⚠️ "+_t3("Test failed: ","Échec du test : ","Falha no teste: ")+((d&&d.error)||""));
+  }catch(e){console.error("[integrations] test failed",id,e);}
 }
 
 function showCredentialsForm(provider){
@@ -9824,7 +9946,7 @@ function openSettingsModal(){
   lbl("settings-cloud-label2",_t3("Cloud Storage Integrations","Stockage cloud","Armazenamento em nuvem"));
   lbl("cloud-desc2",_t3("Connect your company storage. Incidents sync straight into each project's folder structure.","Connectez le stockage de votre entreprise. Les incidents se synchronisent directement dans l'arborescence de chaque projet.","Conecte o armazenamento da sua empresa. Os incidentes vão direto para a estrutura de pastas de cada projeto."));
   lbl("setp-apps-h",_t3("Customization","Personnalisation","Personalização"));
-  lbl("apps-desc",_t3("Connect the other apps your company uses so Pillier fits into your workflow.","Connectez les autres apps de votre entreprise pour intégrer Pillier à votre flux de travail.","Conecte os outros apps da sua empresa para integrar o Pillier ao seu fluxo de trabalho."));
+  lbl("apps-desc",_t3("Connect your company's apps — every new incident is instantly sent to each connected service.","Connectez les apps de votre entreprise — chaque nouvel incident est envoyé instantanément à chaque service connecté.","Conecte os apps da sua empresa — cada novo incidente é enviado instantaneamente para cada serviço conectado."));
   lbl("cloud-structure-legend",_t3("Folder structure created per project:","Arborescence créée par projet :","Estrutura de pastas criada por projeto:"));
   lbl("cloud-test-label",_t3("Test folder structure","Tester l'arborescence","Testar estrutura de pastas"));
   setSettingsSection(_settingsSection||"general");
@@ -10474,7 +10596,7 @@ function cloudSiteName(proj){
       <!-- CUSTOMIZATION (app integrations) -->
       <div class="set-panel" id="setp-apps" style="display:none">
         <div class="set-h" id="setp-apps-h">Customization</div>
-        <div style="font-size:12px;color:var(--text3);margin-bottom:14px" id="apps-desc">Connect the other apps your company uses so Pillier fits into your workflow.</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:14px" id="apps-desc">Connect your company's apps — every new incident is instantly sent to each connected service.</div>
         <div id="apps-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
       </div>
     </div>
