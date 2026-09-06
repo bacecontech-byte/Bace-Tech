@@ -8963,7 +8963,7 @@ async function _maybeGenerateTitle(){
   var langName=lang===1?"English":lang===0?"French":"Portuguese";
   var prompt="Give a very short title (3 to 6 words) in "+langName+" that names the construction-site topic of this conversation. Output ONLY the title — no quotes, no trailing punctuation.\n\nUser: "+((u&&u.content)||"").substring(0,300)+"\nAssistant: "+a.content.substring(0,600);
   try{
-    var res=await fetch("/api/groq",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"openai/gpt-oss-120b",messages:[{role:"user",content:prompt}],max_tokens:24,temperature:0.3})});
+    var res=await fetch("/api/groq",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"openai/gpt-oss-120b",messages:[{role:"user",content:prompt}],max_tokens:60,temperature:0.3,reasoning_effort:"low"})});
     var data=await res.json();
     var t=data&&data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content;
     if(t){
@@ -9031,7 +9031,7 @@ function renderSavedChats(){
   var secToday=lang===1?"TODAY":lang===2?"HOJE":"AUJOURD'HUI";
   var secEarlier=lang===1?"EARLIER":lang===2?"ANTERIORES":"PLUS TÔT";
   function itemHTML(c){
-    return "<div class='chat-saved-item' onclick=\"loadChat('"+c.id+"')\"><div><div class='chat-saved-title'>"+c.title+"</div><div class='chat-saved-meta'>"+c.date+" &bull; "+c.messages.length+" msg</div></div><button class='chat-saved-del' onclick=\"event.stopPropagation();deleteSavedChat('"+c.id+"')\">&#x1F5D1;</button></div>";
+    return "<div class='chat-saved-item' onclick=\"loadChat('"+c.id+"')\"><div style='min-width:0;flex:1'><div class='chat-saved-title' style='white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>"+escapeHTML(c.title||"")+"</div><div class='chat-saved-meta'>"+escapeHTML(c.date||"")+" &bull; "+c.messages.length+" msg</div></div><div style='display:flex;gap:2px;flex-shrink:0;margin-left:8px'><button class='chat-saved-del' title='"+plL('Renommer','Rename','Renomear')+"' onclick=\"event.stopPropagation();renameSavedChat('"+c.id+"')\"><i class='ti ti-pencil'></i></button><button class='chat-saved-del' title='"+plL('Supprimer','Delete','Excluir')+"' onclick=\"event.stopPropagation();deleteSavedChat('"+c.id+"')\"><i class='ti ti-trash'></i></button></div></div>";
   }
   var today=saved.filter(function(c){return todayStrs.indexOf(c.date)>=0;});
   var earlier=saved.filter(function(c){return todayStrs.indexOf(c.date)<0;});
@@ -9063,6 +9063,20 @@ function deleteSavedChat(id){
   localStorage.setItem("pillier_chats",JSON.stringify(savedChats));
   renderSavedChats();
   toast(STRINGS[lang].toastChatDel||"Conversation supprimée");
+}
+function renameSavedChat(id){
+  var c=savedChats.find(function(x){return x.id===id;});if(!c)return;
+  var nv=prompt(plL("Renommer la conversation :","Rename conversation:","Renomear conversa:"),c.title||"");
+  if(nv===null)return;nv=nv.trim();if(!nv)return;
+  var idx=savedChats.findIndex(function(x){return x.id===id;});
+  if(idx>=0){
+    savedChats[idx].title=nv.substring(0,80);
+    savedChats[idx].titleAI=true; // user-set → don't let auto-namer overwrite it
+    _chatTitleCache[id]=savedChats[idx].title;
+    try{localStorage.setItem("pillier_chats",JSON.stringify(savedChats));}catch(e){}
+    renderSavedChats();
+    toast(plL("Renommée","Renamed","Renomeada"));
+  }
 }
 
 // -- PROFILE PANEL --
