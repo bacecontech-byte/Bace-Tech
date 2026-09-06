@@ -9558,6 +9558,26 @@ function saveUserRole(val){
   try{localStorage.setItem("pillier_role",me.role);}catch(e){}
   if(val)toast("✅ "+plL("Fonction mise à jour","Role updated","Função atualizada"));
 }
+// Editable display name → Supabase metadata (full_name); refresh avatar + UI everywhere.
+function saveUserName(val){
+  val=(val||"").trim();if(!val)return;
+  me.name=val;
+  var parts=val.split(" ");
+  me.av=((parts[0]||"?")[0]+(parts[1]||"?")[0]).toUpperCase();
+  try{if(db&&me.email)db.auth.updateUser({data:{full_name:val}}).catch(function(){});}catch(e){}
+  ["u-name","mob-prof-name"].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=val;});
+  ["u-av","mob-prof-av","mob-av-initials"].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=me.av;});
+  try{renderDashHeader();}catch(e){}
+  toast("✅ "+plL("Nom mis à jour","Name updated","Nome atualizado"));
+}
+// Editable company (display + cloud folder slug; workspace scoping stays on dbCoId).
+function saveUserFirm(val){
+  val=(val||"").trim();
+  me.co=val||me.email;
+  try{if(db&&me.email)db.auth.updateUser({data:{company:val}}).catch(function(){});}catch(e){}
+  ["u-co","mob-prof-co"].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=(me.co===me.email)?"":me.co;});
+  toast("✅ "+plL("Entreprise mise à jour","Company updated","Empresa atualizada"));
+}
 function togglePwForm(){
   var f=document.getElementById("set-pw-form");if(!f)return;
   var open=f.style.display!=="none"&&f.style.display!=="";
@@ -9602,6 +9622,8 @@ function openSettingsModal(){
   // Panel headers + field labels
   lbl("setp-general-h",_t3("Profile","Profil","Perfil"));
   lbl("set-name-label",_t3("Name","Nom","Nome"));
+  var _nin=document.getElementById("set-name-input");if(_nin)_nin.placeholder=_t3("Your name","Votre nom","Seu nome");
+  var _fin=document.getElementById("set-firm-input");if(_fin)_fin.placeholder=_t3("Company","Entreprise","Empresa");
   lbl("set-nick-label",_t3("What to call you?","Comment vous appeler ?","Como chamar você?"));
   lbl("set-lang-label",_t3("Language","Langue","Idioma"));
   lbl("set-theme-label",_t3("Theme","Thème","Tema"));
@@ -9652,7 +9674,9 @@ function openTeamModal(){
 function renderSettingsPlan(){
   var g=function(id){return document.getElementById(id);};
   var setTxt=function(id,v){var el=g(id);if(el)el.textContent=v||"—";};
-  setTxt("set-name",me&&me.name); setTxt("set-email",me&&me.email); setTxt("set-firm",me&&me.co);
+  setTxt("set-email",me&&me.email);
+  var _ni=g("set-name-input");if(_ni)_ni.value=(me&&me.name)||"";
+  var _fi=g("set-firm-input");if(_fi)_fi.value=(me&&me.co&&me.co!==me.email)?me.co:"";
   try{renderRoleSelect();}catch(e){}
   var plan=PILLIER_PLANS[_pUsage.plan]||PILLIER_PLANS.free;
   var badge=g("set-plan-badge"); if(badge)badge.textContent=(plan.label||"Free").toUpperCase();
@@ -10117,7 +10141,7 @@ function cloudSiteName(proj){
       <!-- GENERAL -->
       <div class="set-panel" id="setp-general">
         <div class="set-h" id="setp-general-h">Perfil</div>
-        <div class="set-row"><span class="set-l" id="set-name-label">Nome</span><span class="set-v" id="set-name">—</span></div>
+        <div class="set-row"><span class="set-l" id="set-name-label">Nome</span><input id="set-name-input" onchange="saveUserName(this.value)" style="background:var(--navy3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:7px 10px;font-family:inherit;outline:none;max-width:62%;text-align:right;"></div>
         <div class="set-row"><span class="set-l" id="set-nick-label">Como chamar você?</span><span class="set-v" id="set-nick">—</span></div>
         <div style="margin-top:18px"><div class="set-l" style="margin-bottom:8px" id="set-lang-label">Idioma</div>
           <div class="pp-seg"><button onclick="changeLang(0)" id="pp-lang-0b" class="lang-pref-btn">&#x1F1EB;&#x1F1F7; FR</button><button onclick="changeLang(1)" id="pp-lang-1b" class="lang-pref-btn">&#x1F1EC;&#x1F1E7; EN</button><button onclick="changeLang(2)" id="pp-lang-2b" class="lang-pref-btn">&#x1F1E7;&#x1F1F7; PT</button></div></div>
@@ -10131,7 +10155,7 @@ function cloudSiteName(proj){
         <div class="set-row"><span class="set-l" id="set-role-label">Função</span>
           <select id="set-role-select" onchange="saveUserRole(this.value)" style="background:var(--navy3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:7px 10px;font-family:inherit;outline:none;cursor:pointer;max-width:62%;"></select>
         </div>
-        <div class="set-row"><span class="set-l" id="set-firm-label">Empresa</span><span class="set-v" id="set-firm">—</span></div>
+        <div class="set-row"><span class="set-l" id="set-firm-label">Empresa</span><input id="set-firm-input" onchange="saveUserFirm(this.value)" style="background:var(--navy3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:7px 10px;font-family:inherit;outline:none;max-width:62%;text-align:right;"></div>
         <!-- Security: change password -->
         <div style="margin-top:24px;">
           <div class="set-l" id="set-sec-label" style="margin-bottom:10px;">Segurança</div>
