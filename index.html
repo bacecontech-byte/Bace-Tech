@@ -8059,6 +8059,7 @@ async function sendChat(){
     var reply=data.choices[0].message.content;
     chatHistory.push({role:"assistant",content:reply});incrementPillierUsage("ai_messages");
     saveChat();
+    try{_maybeGenerateTitle();}catch(e){} // auto-name the conversation from its content
     addMsg("bot",reply);
   }catch(e){
     console.error("sendChat exception:",e);
@@ -8935,13 +8936,51 @@ function closeDocViewer(e){
 var savedChats=JSON.parse(localStorage.getItem("pillier_chats")||"[]");
 var currentChatId=null;
 
+var _chatTitleCache={}; // chatId -> AI-generated title
+// Immediate best-effort title: a meaningful user line, else the first sentence of the AI reply.
+function _deriveChatTitle(){
+  var u=chatHistory.find(function(m){return m.role==="user"&&typeof m.content==="string"&&m.content.trim()&&!/^\[.*\]$/.test(m.content.trim());});
+  if(u)return u.content.trim().substring(0,60);
+  var a=chatHistory.find(function(m){return m.role==="assistant"&&typeof m.content==="string"&&m.content.trim();});
+  if(a){
+    var t=a.content.replace(/[#*_`>]/g,"").replace(/\s+/g," ").trim();
+    var end=t.search(/[.!?]/);
+    if(end>10&&end<70)t=t.substring(0,end);
+    if(t.length>58)t=t.substring(0,55).replace(/\s+\S*$/,"")+"…";
+    return t||"Conversation";
+  }
+  var fm=chatHistory.find(function(m){return m.role==="user";});
+  return (fm&&typeof fm.content==="string")?fm.content.substring(0,60):"Conversation";
+}
+// Once per chat: ask the AI for a short 3–6 word title in the user's language.
+async function _maybeGenerateTitle(){
+  var id=currentChatId;if(!id||_chatTitleCache[id])return;
+  var ex=savedChats.find(function(c){return c.id===id;});if(ex&&ex.titleAI)return; // already named
+  var a=chatHistory.find(function(m){return m.role==="assistant"&&typeof m.content==="string"&&m.content.trim();});
+  if(!a)return;
+  _chatTitleCache[id]="…"; // lock so we only fire once
+  var u=chatHistory.find(function(m){return m.role==="user"&&typeof m.content==="string";});
+  var langName=lang===1?"English":lang===0?"French":"Portuguese";
+  var prompt="Give a very short title (3 to 6 words) in "+langName+" that names the construction-site topic of this conversation. Output ONLY the title — no quotes, no trailing punctuation.\n\nUser: "+((u&&u.content)||"").substring(0,300)+"\nAssistant: "+a.content.substring(0,600);
+  try{
+    var res=await fetch("/api/groq",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"openai/gpt-oss-120b",messages:[{role:"user",content:prompt}],max_tokens:24,temperature:0.3})});
+    var data=await res.json();
+    var t=data&&data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content;
+    if(t){
+      t=t.replace(/<think>[\s\S]*?<\/think>/gi,"").replace(/["'`\n]/g," ").replace(/\s+/g," ").replace(/[.。!?;:]+$/,"").trim().substring(0,60);
+      if(t){_chatTitleCache[id]=t;var idx=savedChats.findIndex(function(c){return c.id===id;});if(idx>=0){savedChats[idx].title=t;savedChats[idx].titleAI=true;try{localStorage.setItem("pillier_chats",JSON.stringify(savedChats));}catch(e){}renderSavedChats();}return;}
+    }
+    delete _chatTitleCache[id]; // failed → allow a later retry
+  }catch(e){delete _chatTitleCache[id];}
+}
 function saveChat(){
   if(!chatHistory.length){toast(STRINGS[lang].toastChatEmpty||"Aucun message à sauvegarder");return;}
   var S=STRINGS[lang];
-  var firstMsg=chatHistory.find(function(m){return m.role==="user";});
-  var title=firstMsg?firstMsg.content.substring(0,60):"Conversation";
   var id=currentChatId||Date.now().toString();
   currentChatId=id;
+  var existing=savedChats.find(function(c){return c.id===id;});
+  var aiTitle=(_chatTitleCache[id]&&_chatTitleCache[id]!=="…")?_chatTitleCache[id]:((existing&&existing.titleAI&&existing.title)||"");
+  var title=aiTitle||_deriveChatTitle();
   var chat={
     id:id,
     title:title,
